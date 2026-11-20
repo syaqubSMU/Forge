@@ -11,7 +11,7 @@ Branch: `redesign` (production on `main` is untouched until approved).
 - Old URLs removed: `/resources/*`, `/book-consultation`, `/solutions/[slug]`, `/ai-automation/[slug]`, old product slugs. Static hosting cannot redirect; add redirects if old links matter.
 
 ## Brand and design system
-- Logo system in `public/brand/` (SVG, Sora Bold letterforms converted to outlines): wordmark, compact icon, tile/favicon, horizontal and stacked lockups, light and dark versions. React component: `components/brand/Logo.tsx`.
+- Logo system in `public/brand/` (SVG, Sora Bold letterforms converted to outlines): integrated wordmark where the logo mark is the F (blue stem and arm, coral middle arm), compact F icon, tile/favicon, stacked lockup with descriptor, light and dark versions. React component: `components/brand/Logo.tsx`.
 - Tokens: `lib/tokens.ts` and CSS variables at the top of `app/globals.css`. Palette: Trust Blue #244B70, Forge Coral #E98262, Soft Blue #EFF4F8, Warm Neutral #F3F4F2, Slate #344452.
 - Type: Sora (headings), Inter (body and dashboard), IBM Plex Mono (technical labels).
 - Coral is an accent only. White text on #E98262 fails AA contrast, so primary buttons are Trust Blue and the accent button uses dark text. Small coral text uses a darker "coral ink" (#A4441F).

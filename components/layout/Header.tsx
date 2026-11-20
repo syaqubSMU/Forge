@@ -22,7 +22,7 @@ export default function Header() {
         <span className="header-cta"><Button href="/book-discovery-call" event="consultation_cta_clicked">Book a Discovery Call</Button></span>
         <button className="menu-btn" aria-label="Open menu" aria-expanded={open} onClick={() => setOpen(true)}><MenuOutlined /></button>
       </div>
-      <Drawer title={<Logo variant="horizontal" height={28} />} placement="right" open={open} onClose={() => setOpen(false)} width={320}>
+      <Drawer title={<Logo variant="horizontal" height={26} />} placement="right" open={open} onClose={() => setOpen(false)} width={320}>
         <nav aria-label="Mobile" style={{ display: "grid", gap: 2 }}>
           {nav.map((n) => (
             <Link key={n.href} href={n.href} onClick={() => setOpen(false)} aria-current={isActive(n.href) ? "page" : undefined}

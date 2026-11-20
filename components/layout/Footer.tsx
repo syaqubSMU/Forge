@@ -6,7 +6,7 @@ export default function Footer() {
     <footer className="site-footer">
       <div className="container">
         <div className="footer-grid">
-          <div><Logo variant="stacked" tone="dark" height={64} /><p style={{ marginTop: 18, maxWidth: 300, fontSize: 15 }}>{site.tagline}</p></div>
+          <div><Logo variant="stacked" tone="dark" height={70} /><p style={{ marginTop: 18, maxWidth: 300, fontSize: 15 }}>{site.tagline}</p></div>
           <div><h4>Explore</h4><ul>{nav.slice(1, 4).map((n) => <li key={n.href}><Link href={n.href}>{n.label}</Link></li>)}</ul></div>
           <div><h4>Learn</h4><ul>{nav.slice(4).map((n) => <li key={n.href}><Link href={n.href}>{n.label}</Link></li>)}</ul></div>
           <div><h4>Talk to us</h4><ul>

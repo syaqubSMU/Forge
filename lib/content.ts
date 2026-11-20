@@ -17,7 +17,8 @@ export const site = {
     description:
       "Grant-funded organizations need more than funding. They need the systems and processes to manage that funding effectively. Discover how Forge helps turn fragmented grant administration into structured, visible, and manageable operations.",
   },
-  chatbotId: process.env.NEXT_PUBLIC_CHATLING_CHATBOT_ID ?? "",
+  // Chatling bot ID (public, appears in the embed snippet). Override with NEXT_PUBLIC_CHATLING_CHATBOT_ID.
+  chatbotId: process.env.NEXT_PUBLIC_CHATLING_CHATBOT_ID || "6621135586",
   chatWelcome:
     "Welcome to Forge. I can help you understand our services, explore grant-management resources, and find the right solution for your organization. What would you like help with?",
 };

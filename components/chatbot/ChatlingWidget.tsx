@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
-import Script from "next/script";
+import { useState } from "react";
+import Link from "next/link";
 import { MessageOutlined } from "@ant-design/icons";
 import { site } from "@/lib/content";
 import { track } from "@/lib/analytics";
@@ -15,16 +15,13 @@ import CTAButton from "../common/CTAButton";
 export default function ChatlingWidget() {
   const id = site.chatbotId;
   const [open, setOpen] = useState(false);
-  useEffect(() => {
-    if (id) (window as unknown as { chtlConfig?: unknown }).chtlConfig = { chatbotId: id };
-  }, [id]);
 
   if (id) {
+    // Chat is embedded inline on the Contact page; the floating button takes visitors to it.
     return (
-      <>
-        <Script id="chtl-config" strategy="afterInteractive">{`window.chtlConfig = { chatbotId: "${id.replace(/[^a-zA-Z0-9_-]/g, "")}" }`}</Script>
-        <Script id="chatling-embed-script" strategy="lazyOnload" src="https://chatling.ai/js/embed.js" data-id={id} />
-      </>
+      <Link className="chat-fab" href="/contact/#chat" onClick={() => track("chatbot_opened", { from: "fab" })}>
+        <MessageOutlined /> Ask Forge
+      </Link>
     );
   }
   return (

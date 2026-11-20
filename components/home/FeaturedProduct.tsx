@@ -8,7 +8,7 @@ export default function FeaturedProduct() {
     <section className="section section--white">
       <div className="container">
         <SectionHeading eyebrow="Featured product" title="Start Building Your Grant Operations System." />
-        <div className="card-grid grid-2" style={{ alignItems: "center" }}>
+        <div className="feature-grid">
           <ProductMock label={p.title} />
           <div>
             <h3 style={{ fontSize: 26 }}>Forge Grant Operations Toolkit</h3>

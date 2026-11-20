@@ -14,7 +14,7 @@ export default function ProductDetails({ p }: { p: Product }) {
     <section className="section">
       <div className="container">
         <Breadcrumb style={{ marginBottom: 24 }} items={[{ title: <Link href="/products">Products</Link> }, { title: p.title }]} />
-        <div className="card-grid grid-2" style={{ alignItems: "start" }}>
+        <div className="feature-grid" style={{ alignItems: "start" }}>
           <ProductMock label={p.title} />
           <div>
             <div className="eyebrow">{p.category}</div>

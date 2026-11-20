@@ -221,5 +221,5 @@ a { color: var(--blue); }
 .wordmark i { font-style: normal; color: var(--coral-bright); }
 .brand { gap: 0; }
 .wordmark--footer { display: inline-block; color: #fff; font-size: 52px; }
-@media (max-width: 640px) { .wordmark { font-size: 48px; } .brand img { height: 52px !important; } .site-header .inner { height: 88px; } }
+@media (max-width: 640px) { .wordmark { font-size: 48px; } .brand img { height: 38px !important; } .site-header .inner { height: 88px; } }
 .site-header .container { max-width: 1320px; }

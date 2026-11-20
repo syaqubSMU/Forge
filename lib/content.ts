@@ -21,6 +21,9 @@ export const site = {
   chatbotId: process.env.NEXT_PUBLIC_CHATLING_CHATBOT_ID ?? "",
   // Free "Travel Calculator" tool: a separate Chatling bot embedded inline on its resource page.
   travelCalculatorBotId: "6621135586",
+  // Optional real photos for the hero collage (licensed images placed in /public/images, e.g. "/images/scientists.jpg").
+  // Leave empty to show the illustrations.
+  heroPhotos: { scientists: "", economists: "" },
   chatWelcome:
     "Welcome to Forge. I can help you understand our services, explore grant-management resources, and find the right solution for your organization. What would you like help with?",
 };

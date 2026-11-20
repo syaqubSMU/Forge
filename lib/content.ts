@@ -12,6 +12,7 @@ export const site = {
   responseTime: "" as string, // e.g. "We respond within two business days." once operationally defined
   video: {
     url: process.env.NEXT_PUBLIC_INTRO_VIDEO_URL ?? "",
+    poster: "/images/video-poster.webp", // cover image shown before play (replace the file to change it)
     captionsUrl: process.env.NEXT_PUBLIC_INTRO_VIDEO_CAPTIONS_URL ?? "",
     headline: "The Problem Isn't Winning Grants. It's Managing Them Well.",
     description:

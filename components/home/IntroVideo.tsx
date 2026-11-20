@@ -3,12 +3,13 @@ import { useState } from "react";
 import { CaretRightFilled } from "@ant-design/icons";
 import { site } from "@/lib/content";
 import { track } from "@/lib/analytics";
+import { withBase } from "@/lib/path";
 
 const isEmbed = (u: string) => /youtube\.com\/embed|youtube-nocookie\.com\/embed|player\.vimeo\.com/.test(u);
 
 /** URL is configured via NEXT_PUBLIC_INTRO_VIDEO_URL — no layout change needed when the founder's video arrives. */
 export default function IntroVideo() {
-  const { url, captionsUrl, headline, description } = site.video;
+  const { url, captionsUrl, headline, description, poster } = site.video;
   const [playing, setPlaying] = useState(false);
   const play = () => { setPlaying(true); track("intro_video_played"); };
   return (
@@ -19,16 +20,14 @@ export default function IntroVideo() {
             isEmbed(url) ? (
               <iframe src={`${url}${url.includes("?") ? "&" : "?"}autoplay=1`} title="Forge introduction video" allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen />
             ) : (
-              <video src={url} controls autoPlay playsInline>
+              <video src={url} controls autoPlay playsInline poster={poster ? withBase(poster) : undefined}>
                 {captionsUrl && <track kind="captions" src={captionsUrl} srcLang="en" label="English" default />}
               </video>
             )
           ) : (
-            <div className="video-placeholder">
-              <button className="play-btn" onClick={play} aria-label={url ? "Play introduction video" : "Play introduction video (placeholder)"}><CaretRightFilled /></button>
-              <strong style={{ fontSize: 18 }}>{url ? "Watch the introduction" : "Introductory video coming soon"}</strong>
-              {playing && !url && <span style={{ fontSize: 14, maxWidth: 360 }}>Video placeholder — the founder's video will be added by setting <code>NEXT_PUBLIC_INTRO_VIDEO_URL</code>.</span>}
-              {!playing && <span style={{ fontSize: 14, opacity: .85 }}>The grant-management problem and the Forge approach</span>}
+            <div className={`video-placeholder${poster ? " has-poster" : ""}`} style={poster ? { background: `#0B2744 url(${withBase(poster)}) center / cover no-repeat` } : undefined}>
+              <button className="play-btn" onClick={play} aria-label={url ? "Play introduction video" : "Play introduction video (coming soon)"}><CaretRightFilled />{poster && <span className="play-label">Watch the introduction</span>}</button>
+              {playing && !url && <span className="video-note">The introduction video is coming soon.</span>}
             </div>
           )}
         </div>

@@ -90,7 +90,7 @@ a { color: var(--blue); }
 /* Video */
 .video-frame { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 16px; overflow: hidden; background: var(--blue-dark); }
 .video-frame iframe, .video-frame video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-.video-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #fff; text-align: center; padding: 20px;
+.video-placeholder { background-size: cover; background-position: center; position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #fff; text-align: center; padding: 20px;
   background: linear-gradient(135deg, #174A82 0%, #0F355F 100%); }
 .play-btn { width: 84px; height: 84px; border-radius: 50%; border: 0; background: var(--coral); color: #fff; font-size: 34px; cursor: pointer; display: grid; place-items: center; box-shadow: 0 8px 24px rgba(0,0,0,.35); }
 .play-btn:hover { background: #B8371F; }
@@ -259,3 +259,14 @@ a { color: var(--blue); }
 .pmock .tag { position: absolute; left: 12px; bottom: 10px; font-size: 11px; color: var(--muted); background: rgba(255,255,255,.9); padding: 2px 8px; border-radius: 999px; }
 .feature-grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 56px; align-items: center; }
 @media (max-width: 900px) { .feature-grid { grid-template-columns: 1fr; gap: 32px; } .section { padding: 72px 0; } .hero { padding: 72px 0 80px; } }
+
+.video-placeholder { justify-content: center; }
+.video-placeholder::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11,39,68,.05), rgba(11,39,68,.35)); }
+.video-placeholder > * { position: relative; }
+.video-note { background: rgba(255,255,255,.95); color: var(--blue-dark); font-size: 14px; font-weight: 600; padding: 6px 14px; border-radius: 999px; }
+
+.video-placeholder.has-poster { align-items: flex-start; justify-content: flex-start; padding: 16px; }
+.video-placeholder.has-poster .play-btn { width: auto; height: 46px; padding: 0 20px 0 14px; border-radius: 999px; font-size: 18px; display: inline-flex; align-items: center; gap: 8px; }
+.video-placeholder.has-poster .play-label { font-size: 15px; font-weight: 600; font-family: var(--font-sans), sans-serif; }
+.video-placeholder.has-poster::before { background: linear-gradient(180deg, rgba(11,39,68,0) 60%, rgba(11,39,68,.35)); }
+.video-placeholder.has-poster .video-note { position: absolute; left: 16px; bottom: 16px; }

@@ -17,8 +17,10 @@ export const site = {
     description:
       "Grant-funded organizations need more than funding. They need the systems and processes to manage that funding effectively. Discover how Forge helps turn fragmented grant administration into structured, visible, and manageable operations.",
   },
-  // Chatling bot ID (public, appears in the embed snippet). Override with NEXT_PUBLIC_CHATLING_CHATBOT_ID.
-  chatbotId: process.env.NEXT_PUBLIC_CHATLING_CHATBOT_ID || "6621135586",
+  // Forge assistant (floating chat). Leave empty until a Forge-trained Chatling bot exists.
+  chatbotId: process.env.NEXT_PUBLIC_CHATLING_CHATBOT_ID ?? "",
+  // Free "Travel Calculator" tool: a separate Chatling bot embedded inline on its resource page.
+  travelCalculatorBotId: "6621135586",
   chatWelcome:
     "Welcome to Forge. I can help you understand our services, explore grant-management resources, and find the right solution for your organization. What would you like help with?",
 };
@@ -211,6 +213,7 @@ export const governance = [
 export type Resource = { slug: string; title: string; category: string; summary: string };
 export const resourceCategories = ["Grant Operations", "Grant Financial Management", "Compliance and Reporting", "Nonprofit Administration", "AI in Grant Management"];
 export const resources: Resource[] = [
+  { slug: "travel-calculator", title: "Travel Calculator", category: "Grant Financial Management", summary: "A free interactive tool to help estimate travel costs." },
   { slug: "nonprofit-grant-management-checklist", title: "The Nonprofit Grant Management Checklist", category: "Grant Operations", summary: "A quick self-check of the core practices in managing grants." },
   { slug: "grant-compliance-calendar-template", title: "Grant Compliance Calendar Template", category: "Compliance and Reporting", summary: "A simple template for tracking reporting dates and obligations." },
   { slug: "budget-monitoring-workbook-sample", title: "Budget Monitoring Workbook", category: "Grant Financial Management", summary: "Monitor budgets against actuals across awards." },

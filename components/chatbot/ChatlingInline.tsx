@@ -1,6 +1,5 @@
 "use client";
 import { useEffect } from "react";
-import { site } from "@/lib/content";
 import { track } from "@/lib/analytics";
 
 /**
@@ -10,8 +9,8 @@ import { track } from "@/lib/analytics";
  *   <script async data-id=... data-display="page_inline" id="chtl-script" src="https://chatling.ai/js/embed.js">
  * The script is (re)inserted on mount so the chat also appears after client-side navigation.
  */
-export default function ChatlingInline() {
-  const id = site.chatbotId;
+export default function ChatlingInline({ botId }: { botId: string }) {
+  const id = botId;
   useEffect(() => {
     if (!id) return;
     const w = window as unknown as { chtlConfig?: unknown };
@@ -21,11 +20,11 @@ export default function ChatlingInline() {
     s.async = true; s.id = "chtl-script"; s.type = "text/javascript";
     s.setAttribute("data-id", id); s.setAttribute("data-display", "page_inline");
     s.src = "https://chatling.ai/js/embed.js";
-    s.onload = () => track("chatbot_opened", { inline: true });
+    s.onload = () => track("chatbot_opened", { inline: true, tool: "travel-calculator" });
     document.body.appendChild(s);
     return () => { s.remove(); const c = document.getElementById("chtl-inline-bot"); if (c) c.innerHTML = ""; };
   }, [id]);
 
-  if (!id) return <div className="note-box">The Forge assistant isn’t connected yet.</div>;
-  return <div id="chtl-inline-bot" style={{ width: "100%", height: 500 }} aria-label="Forge assistant chat" />;
+  if (!id) return <div className="note-box">This tool isn’t connected yet.</div>;
+  return <div id="chtl-inline-bot" style={{ width: "100%", height: 500 }} aria-label="Travel Calculator" />;
 }

@@ -23,6 +23,8 @@ export const site = {
   travelCalculatorBotId: "6621135586",
   // Optional real photos for the hero collage (licensed images placed in /public/images, e.g. "/images/scientists.jpg").
   // Leave empty to show the illustrations.
+  // Collage colour grade: "brand" | "orange" | "light-orange" | "sunset" (preview at /design-options)
+  heroGrade: "brand" as string,
   heroPhotos: { scientists: "", economists: "" },
   chatWelcome:
     "Welcome to Forge. I can help you understand our services, explore grant-management resources, and find the right solution for your organization. What would you like help with?",

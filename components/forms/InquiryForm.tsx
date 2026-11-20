@@ -64,7 +64,7 @@ export default function InquiryForm({ mode }: { mode: Mode }) {
       <Form.Item name="consent" valuePropName="checked" rules={[{ validator: (_, v) => (v ? Promise.resolve() : Promise.reject(new Error("Please confirm to continue."))) }]}>
         <Checkbox>I agree that Forge may use the information I provide to respond to this inquiry, as described in the <Link href="/privacy" target="_blank">Privacy Notice</Link>. Please do not include confidential award documents or sensitive financial information.</Checkbox>
       </Form.Item>
-      <Button type="primary" htmlType="submit" loading={state === "sending"} style={{ background: "#CF4126" }}>{consult ? "Request a Consultation" : "Send Message"}</Button>
+      <Button type="primary" htmlType="submit" loading={state === "sending"} className="btn-shine">{consult ? "Request a Consultation" : "Send Message"}</Button>
     </Form>
   );
 }

@@ -8,7 +8,7 @@ export default function ResourceGate({ slug }: { slug: string }) {
   return (
     <Form layout="vertical" size="large" onFinish={() => { track("resource_downloaded", { resource: slug, placeholder: true }); setDone(true); }}>
       <Form.Item name="email" label="Work email" rules={[{ required: true, type: "email", message: "Enter a valid email address." }]}><Input autoComplete="email" /></Form.Item>
-      <Button type="primary" htmlType="submit" style={{ background: "#CF4126" }}>Get this resource</Button>
+      <Button type="primary" htmlType="submit" className="btn-shine">Get this resource</Button>
     </Form>
   );
 }

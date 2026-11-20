@@ -87,10 +87,11 @@ function Tile({ photo, alt, children, label, className }: { photo?: string; alt:
   );
 }
 
-export default function HeroCollage() {
+export type Grade = "brand" | "orange" | "light-orange" | "sunset";
+export default function HeroCollage({ grade = site.heroGrade as Grade }: { grade?: Grade }) {
   const { scientists, economists } = site.heroPhotos;
   return (
-    <div className="collage">
+    <div className="collage" data-grade={grade}>
       <div className="collage-left">
         <Tile photo={scientists} alt="Scientists working in a laboratory" label="Scientists"><Scientists /></Tile>
         <Tile photo={economists} alt="Economists analysing data" label="Economists"><Economists /></Tile>

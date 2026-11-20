@@ -16,7 +16,7 @@ export default function CTAButton({ href, tone = "primary", event, children, onC
   const router = useRouter();
   const external = /^(https?:|mailto:)/.test(href);
   const styles: Record<string, React.CSSProperties> = {
-    primary: { background: "#CF4126", borderColor: "#CF4126", color: "#fff" },
+    primary: {},
     secondary: { background: "#fff", borderColor: "#174A82", color: "#174A82" },
     "ghost-light": { background: "transparent", borderColor: "#fff", color: "#fff" },
   };
@@ -25,6 +25,7 @@ export default function CTAButton({ href, tone = "primary", event, children, onC
       size="large"
       href={external ? href : withBase(href)}
       {...rest}
+      className={`${tone === "primary" ? "btn-shine" : tone === "ghost-light" ? "btn-glass" : ""} ${rest.className ?? ""}`}
       style={{ ...styles[tone], ...style }}
       onClick={(e) => {
         if (event) track(event, { href });

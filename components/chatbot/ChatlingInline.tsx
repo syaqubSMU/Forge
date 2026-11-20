@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { track } from "@/lib/analytics";
 
 /**
@@ -7,24 +7,35 @@ import { track } from "@/lib/analytics";
  *   window.chtlConfig = { chatbotId, display: "page_inline" }
  *   <div id="chtl-inline-bot" style="width:100%;height:500px"></div>
  *   <script async data-id=... data-display="page_inline" id="chtl-script" src="https://chatling.ai/js/embed.js">
- * The script is (re)inserted on mount so the chat also appears after client-side navigation.
+ * The container and script are created imperatively inside an EMPTY React-owned host, so Chatling's DOM changes
+ * can never conflict with React's own rendering (which causes "client-side exception" errors).
  */
 export default function ChatlingInline({ botId }: { botId: string }) {
-  const id = botId;
+  const host = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!id) return;
-    const w = window as unknown as { chtlConfig?: unknown };
-    w.chtlConfig = { chatbotId: id, display: "page_inline" };
-    document.getElementById("chtl-script")?.remove();
-    const s = document.createElement("script");
-    s.async = true; s.id = "chtl-script"; s.type = "text/javascript";
-    s.setAttribute("data-id", id); s.setAttribute("data-display", "page_inline");
-    s.src = "https://chatling.ai/js/embed.js";
-    s.onload = () => track("chatbot_opened", { inline: true, tool: "travel-calculator" });
-    document.body.appendChild(s);
-    return () => { s.remove(); const c = document.getElementById("chtl-inline-bot"); if (c) c.innerHTML = ""; };
-  }, [id]);
+    const el = host.current;
+    if (!el || !botId) return;
+    let script: HTMLScriptElement | null = null;
+    let box: HTMLDivElement | null = null;
+    try {
+      box = document.createElement("div");
+      box.id = "chtl-inline-bot";
+      box.style.cssText = "width:100%;height:500px";
+      el.appendChild(box);
+      (window as unknown as { chtlConfig?: unknown }).chtlConfig = { chatbotId: botId, display: "page_inline" };
+      document.getElementById("chtl-script")?.remove();
+      script = document.createElement("script");
+      script.async = true; script.id = "chtl-script"; script.type = "text/javascript";
+      script.setAttribute("data-id", botId); script.setAttribute("data-display", "page_inline");
+      script.src = "https://chatling.ai/js/embed.js";
+      script.onload = () => track("chatbot_opened", { inline: true, tool: "travel-calculator" });
+      document.body.appendChild(script);
+    } catch { /* never let a third-party widget break the page */ }
+    return () => {
+      try { script?.remove(); box?.remove(); } catch { /* ignore */ }
+    };
+  }, [botId]);
 
-  if (!id) return <div className="note-box">This tool isn’t connected yet.</div>;
-  return <div id="chtl-inline-bot" style={{ width: "100%", height: 500 }} aria-label="Travel Calculator" />;
+  if (!botId) return <div className="note-box">This tool isn’t connected yet.</div>;
+  return <div ref={host} role="region" aria-label="Travel Calculator" style={{ width: "100%", minHeight: 500 }} />;
 }

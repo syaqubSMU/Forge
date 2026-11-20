@@ -34,16 +34,16 @@ a { color: var(--blue); }
 
 /* Header */
 .site-header { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,.96); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
-.site-header .inner { display: flex; align-items: center; gap: 16px; height: 68px; }
+.site-header .inner { display: flex; align-items: center; gap: 16px; height: 104px; }
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--blue-dark); font-weight: 800; font-size: 18px; margin-right: auto; }
 .brand img { height: 36px; width: auto; }
 .brand small { display: block; font-weight: 500; font-size: 11px; color: var(--muted); letter-spacing: 0; }
-.desktop-nav { display: flex; align-items: center; gap: 4px; }
-.desktop-nav a.navlink { padding: 8px 12px; border-radius: 8px; color: var(--text); text-decoration: none; font-weight: 500; font-size: 15px; }
+.desktop-nav { display: flex; align-items: center; gap: 2px; }
+.desktop-nav a.navlink { white-space: nowrap; padding: 8px 9px; border-radius: 8px; color: var(--text); text-decoration: none; font-weight: 500; font-size: 15px; }
 .desktop-nav a.navlink:hover { background: var(--off-white); }
 .desktop-nav a.navlink[aria-current="page"] { color: var(--blue); font-weight: 700; background: #E9F0F8; }
 .mobile-only { display: none; }
-@media (max-width: 1023px) { .desktop-nav, .header-cta { display: none; } .mobile-only { display: inline-flex; } }
+@media (max-width: 1239px) { .desktop-nav, .header-cta { display: none; } .mobile-only { display: inline-flex; } }
 
 /* Hero */
 .hero { background: var(--blue); color: #fff; padding: 72px 0 80px; }
@@ -215,3 +215,11 @@ a { color: var(--blue); }
 .collage[data-grade="light-orange"] .tile > img { filter: sepia(.2) saturate(.95) brightness(1.08) contrast(.95); }
 .collage[data-grade="sunset"] .tile.graded::after { background: linear-gradient(160deg, rgba(244,162,97,.75) 0%, rgba(242,92,60,.50) 55%, rgba(23,74,130,.40) 100%); mix-blend-mode: soft-light; }
 .collage[data-grade="sunset"] .tile > img { filter: saturate(1.05) contrast(1.06); }
+
+/* Wordmark */
+.wordmark { font-variant-caps: all-small-caps; font-feature-settings: "smcp", "c2sc"; font-weight: 800; letter-spacing: .04em; font-size: 66px; line-height: 1; color: var(--blue-dark); }
+.wordmark i { font-style: normal; color: var(--coral-bright); }
+.brand { gap: 0; }
+.wordmark--footer { display: inline-block; color: #fff; font-size: 52px; }
+@media (max-width: 640px) { .wordmark { font-size: 48px; } .brand img { height: 52px !important; } .site-header .inner { height: 88px; } }
+.site-header .container { max-width: 1320px; }

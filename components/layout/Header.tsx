@@ -17,8 +17,8 @@ export default function Header() {
     <header className="site-header">
       <div className="container inner">
         <Link href="/" className="brand" aria-label="Forge — home">
-          <Image src={withBase("/logo.webp")} alt="" width={72} height={36} priority style={{ height: 36, width: "auto" }} />
-          <span>Forge<small>Grant operations for nonprofits</small></span>
+          <Image src={withBase("/logo.webp")} alt="" width={130} height={68} priority style={{ height: 68, width: "auto" }} />
+          <span className="wordmark">Forge<i aria-hidden="true">.</i></span>
         </Link>
         <nav className="desktop-nav" aria-label="Primary">
           {nav.map((n) => (

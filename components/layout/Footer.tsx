@@ -6,7 +6,7 @@ export default function Footer() {
       <div className="container">
         <div className="footer-grid">
           <div>
-            <strong style={{ color: "#fff", fontSize: 18 }}>{site.name}</strong>
+            <strong className="wordmark wordmark--footer">{site.name}<i aria-hidden="true">.</i></strong>
             <p style={{ marginTop: 10 }}>{site.tagline}</p>
           </div>
           <div><h4>Solutions</h4><ul>{services.map((s) => <li key={s.slug}><Link href={`/solutions/${s.slug}`}>{s.title}</Link></li>)}</ul></div>

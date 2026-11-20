@@ -1,10 +1,5 @@
-import Link from "next/link";
+import Section from "@/components/ui/Section";
+import Button from "@/components/ui/Button";
 export default function NotFound() {
-  return (
-    <section className="section"><div className="container" style={{ maxWidth: 640, textAlign: "center" }}>
-      <h1 style={{ fontSize: 32 }}>Page not found.</h1>
-      <p className="lead" style={{ margin: "12px auto 24px" }}>That page doesn’t exist or has moved.</p>
-      <Link href="/" style={{ fontWeight: 600 }}>Back to home</Link>
-    </div></section>
-  );
+  return (<Section tone="white"><div style={{ maxWidth: 560, margin: "0 auto", textAlign: "center" }}><h1 style={{ fontSize: 40 }}>Page not found</h1><p className="lead" style={{ margin: "14px auto 26px" }}>That page doesn&apos;t exist or has moved.</p><Button href="/">Back to home</Button></div></Section>);
 }

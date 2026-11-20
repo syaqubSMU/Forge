@@ -1,43 +1,35 @@
 "use client";
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Button, Drawer } from "antd";
+import { Drawer } from "antd";
 import { MenuOutlined } from "@ant-design/icons";
-import { withBase } from "@/lib/path";
 import { nav } from "@/lib/content";
-import CTAButton from "../common/CTAButton";
+import Logo from "../brand/Logo";
+import Button from "../ui/Button";
 
 export default function Header() {
-  const path = usePathname();
+  const path = usePathname() || "/";
   const [open, setOpen] = useState(false);
   const isActive = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
   return (
     <header className="site-header">
       <div className="container inner">
-        <Link href="/" className="brand" aria-label="Forge — home">
-          <Image src={withBase("/logo.webp")} alt="" width={96} height={48} priority style={{ height: 48, width: "auto", marginRight: 8 }} />
-          <span className="wordmark">Forge<i aria-hidden="true">.</i></span>
-        </Link>
+        <Link href="/" className="brand" aria-label="FORGE — home"><Logo variant="horizontal" height={34} /></Link>
         <nav className="desktop-nav" aria-label="Primary">
-          {nav.map((n) => (
-            <Link key={n.href} href={n.href} className="navlink" aria-current={isActive(n.href) ? "page" : undefined}>{n.label}</Link>
-          ))}
+          {nav.map((n) => (<Link key={n.href} href={n.href} className="navlink" aria-current={isActive(n.href) ? "page" : undefined}>{n.label}</Link>))}
         </nav>
-        <span className="header-cta">
-          <CTAButton href="/book-consultation" event="consultation_cta_clicked">Book a Consultation</CTAButton>
-        </span>
-        <Button className="mobile-only" size="large" icon={<MenuOutlined />} aria-label="Open menu" onClick={() => setOpen(true)} />
+        <span className="header-cta"><Button href="/book-discovery-call" event="consultation_cta_clicked">Book a Discovery Call</Button></span>
+        <button className="menu-btn" aria-label="Open menu" aria-expanded={open} onClick={() => setOpen(true)}><MenuOutlined /></button>
       </div>
-      <Drawer title="Menu" placement="right" open={open} onClose={() => setOpen(false)} width={300}>
-        <nav aria-label="Mobile" style={{ display: "grid", gap: 4 }}>
+      <Drawer title={<Logo variant="horizontal" height={28} />} placement="right" open={open} onClose={() => setOpen(false)} width={320}>
+        <nav aria-label="Mobile" style={{ display: "grid", gap: 2 }}>
           {nav.map((n) => (
             <Link key={n.href} href={n.href} onClick={() => setOpen(false)} aria-current={isActive(n.href) ? "page" : undefined}
-              style={{ padding: "12px 8px", fontSize: 17, textDecoration: "none", fontWeight: isActive(n.href) ? 700 : 500 }}>{n.label}</Link>
+              style={{ padding: "13px 6px", fontSize: 17, textDecoration: "none", fontWeight: isActive(n.href) ? 700 : 500, borderBottom: "1px solid var(--border)" }}>{n.label}</Link>
           ))}
         </nav>
-        <div style={{ marginTop: 20 }}><CTAButton href="/book-consultation" event="consultation_cta_clicked" block>Book a Consultation</CTAButton></div>
+        <div style={{ marginTop: 24 }}><Button href="/book-discovery-call" event="consultation_cta_clicked" className="btn--block">Book a Discovery Call</Button></div>
       </Drawer>
     </header>
   );

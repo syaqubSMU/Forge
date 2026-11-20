@@ -1,29 +1,26 @@
 import type { Metadata } from "next";
-import { services, pillars } from "@/lib/content";
-import PageHero from "@/components/common/PageHero";
-import ServiceCard from "@/components/common/ServiceCard";
-import SectionHeading from "@/components/common/SectionHeading";
-import FinalCTA from "@/components/common/FinalCTA";
-import CTAButton from "@/components/common/CTAButton";
-export const metadata: Metadata = { title: "Solutions", description: "Fixed-price grant operations diagnostics and implementation packages for nonprofits." };
+import { services } from "@/lib/content";
+import Section, { PageHero, SectionHeading } from "@/components/ui/Section";
+import Button from "@/components/ui/Button";
+import FinalCTA from "@/components/sections/FinalCTA";
+export const metadata: Metadata = { title: "Solutions", description: "Practical consulting and implementation for research administration teams: assessment, process design, financial oversight, SOPs, implementation and AI readiness." };
 export default function Solutions() {
   return (
     <>
-      <PageHero eyebrow="Solutions" title="Professional grant operations services." text="From a diagnostic to a full implementation, choose the level of support that fits your organization's capacity.">
-        <CTAButton href="/book-consultation" event="consultation_cta_clicked">Book a Consultation</CTAButton>
+      <PageHero eyebrow="Solutions" title="Practical consulting and implementation." text="Right-sized help for small research administration teams, from understanding where you are today to putting simpler operations in place.">
+        <Button href="/book-discovery-call" event="consultation_cta_clicked">Book a Discovery Call</Button>
       </PageHero>
-      <section className="section">
-        <div className="container">
-          <div className="card-grid grid-2">{services.map((s) => <ServiceCard key={s.slug} s={s} />)}</div>
-          <p style={{ marginTop: 20, color: "var(--muted)", fontSize: 14 }}>Prices are indicative and may vary with scope.</p>
-        </div>
-      </section>
-      <section className="section section--white">
-        <div className="container">
-          <SectionHeading title="What every engagement can draw on" />
-          <div className="card-grid grid-4">{pillars.map((p) => <div className="gcard" key={p.slug}><h3>{p.title}</h3><p>{p.summary}</p></div>)}</div>
-        </div>
-      </section>
+      <Section tone="white">
+        <div className="ruled">{services.map((s) => (
+          <div key={s.slug} id={s.slug} className="item item--cols">
+            <div><div className="num">{s.n}</div><h3 style={{ fontSize: 24, margin: "6px 0 10px" }}>{s.t}</h3><p style={{ fontSize: 17 }}>{s.d}</p></div>
+            <ul className="checks">{s.items.map((i) => <li key={i}>{i}</li>)}</ul>
+          </div>))}</div>
+      </Section>
+      <Section tone="soft">
+        <SectionHeading eyebrow="How we work" title="Start with a conversation." text="Most engagements begin with a discovery call to understand your portfolio, team and systems. Scope and fees are agreed before work begins. Pricing is set per engagement." />
+        <Button href="/book-discovery-call" event="consultation_cta_clicked">Book a Discovery Call</Button>
+      </Section>
       <FinalCTA />
     </>
   );

@@ -1,9 +1,0 @@
-export default function SectionHeading({ eyebrow, title, text }: { eyebrow?: string; title: string; text?: string }) {
-  return (
-    <div className="section-heading">
-      {eyebrow && <div className="eyebrow">{eyebrow}</div>}
-      <h2>{title}</h2>
-      {text && <p className="lead">{text}</p>}
-    </div>
-  );
-}

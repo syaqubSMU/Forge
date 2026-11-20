@@ -215,4 +215,3 @@ a { color: var(--blue); }
 .collage[data-grade="light-orange"] .tile > img { filter: sepia(.2) saturate(.95) brightness(1.08) contrast(.95); }
 .collage[data-grade="sunset"] .tile.graded::after { background: linear-gradient(160deg, rgba(244,162,97,.75) 0%, rgba(242,92,60,.50) 55%, rgba(23,74,130,.40) 100%); mix-blend-mode: soft-light; }
 .collage[data-grade="sunset"] .tile > img { filter: saturate(1.05) contrast(1.06); }
-.options-band { background: var(--blue); padding: 28px 20px; border-radius: 16px; }

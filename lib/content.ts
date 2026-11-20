@@ -23,7 +23,7 @@ export const site = {
   travelCalculatorBotId: "6621135586",
   // Optional real photos for the hero collage (licensed images placed in /public/images, e.g. "/images/scientists.jpg").
   // Leave empty to show the illustrations.
-  // Collage colour grade: "brand" | "orange" | "light-orange" | "sunset" (preview at /design-options)
+  // Collage colour grade: "brand" | "orange" | "light-orange" | "sunset"
   heroGrade: "brand" as string,
   heroPhotos: { scientists: "", economists: "" },
   chatWelcome:

@@ -27,8 +27,8 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
           <div>
             <div className="eyebrow">{p.category}</div><h1>{p.title}</h1><p className="lead">{p.description}</p>
             <div style={{ display: "flex", gap: 14, alignItems: "baseline", marginTop: 20 }}><b style={{ fontFamily: "var(--f-head)", fontSize: 30, color: "var(--blue)" }}>{p.price}</b>{!isCalc && <span style={{ color: "var(--muted)", fontSize: 14 }}>indicative price</span>}</div>
-            {!isCalc && <div className="btn-row"><Button href="#request" size="lg">Request this product</Button></div>}
-            {!isCalc && <p className="note" style={{ marginTop: 18 }}>Online checkout is not available yet. Use the request form below.</p>}
+            {!isCalc && <div className="btn-row"><Button href="#request" size="lg">Request a Demo</Button></div>}
+            {!isCalc && <p className="note" style={{ marginTop: 18 }}>Online checkout is not available yet. Use the demo request form below.</p>}
           </div>
           <ProductVisual kind={p.visual} label={p.title} />
         </div>

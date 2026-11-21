@@ -9,7 +9,7 @@ export default function AI() {
   return (
     <>
       <PageHero eyebrow="AI & Automation" title="Intelligent help for research administration." text="FORGE applies AI to the routine work of research administration, with people reviewing every result. These capabilities are in development.">
-        <Button href="#request">Discuss an Automation Project</Button>
+        <Button href="#request">Request a Demo</Button>
       </PageHero>
       <Section tone="white">
         <SectionHeading eyebrow="Featured" title="Award document intelligence" text="Award agreements hold the terms that drive everything else. FORGE is designed to read an agreement and prepare a structured record, with each value tied to its source page and uncertain items flagged for a person to confirm." />
@@ -23,7 +23,7 @@ export default function AI() {
         <SectionHeading eyebrow="Trust and governance" title="Automation supports people. It doesn't replace judgment." />
         <ul className="checks" style={{ maxWidth: 780, fontSize: 17, gap: 12 }}>{governance.map((g) => <li key={g}>{g}</li>)}</ul>
       </Section>
-      <RequestSection product="an AI and automation project" />
+      <RequestSection product="our AI & automation capabilities" />
     </>
   );
 }

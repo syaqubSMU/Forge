@@ -6,10 +6,10 @@ import { requestsOpen } from "@/lib/content";
 export default function RequestSection({ product }: { product?: string }) {
   return (
     <Section tone="soft" id="request">
-      <SectionHeading eyebrow="Request" title={product ? `Request ${product}` : "Request a product"} text="Tell us which tool you need and a little about your team. We will follow up with delivery details." />
+      <SectionHeading eyebrow="Request" title={product ? `Request a demo of ${product}` : "Request a demo"} text="Tell us which tool you would like to see and a little about your team. We will follow up to arrange a demo." />
       {requestsOpen
-        ? <div className="panel form-shell"><GeneralForm prefill={product ? `I'd like to request: ${product}` : undefined} /></div>
-        : <p className="note" style={{ maxWidth: 720 }}>Online requests are opening soon. Online ordering is not available yet.</p>}
+        ? <div className="panel form-shell"><GeneralForm prefill={product ? `I'd like a demo of: ${product}` : undefined} /></div>
+        : <p className="note" style={{ maxWidth: 720 }}>Demo requests are opening soon. Online ordering is not available yet.</p>}
     </Section>
   );
 }

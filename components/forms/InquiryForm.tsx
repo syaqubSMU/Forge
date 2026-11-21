@@ -57,7 +57,7 @@ export default function InquiryForm({ mode, prefill: prefillProp }: { mode: Mode
       <Form.Item name="consent" valuePropName="checked" rules={[{ validator: (_, v) => (v ? Promise.resolve() : Promise.reject(new Error("Please confirm to continue."))) }]}>
         <Checkbox>I agree that FORGE may use this information to respond to my message, only to respond to this request, and not to share it. I will not include confidential or restricted data (such as health, financial account or student record information) in this form.</Checkbox>
       </Form.Item>
-      <Button type="primary" htmlType="submit" loading={state === "sending"} size="large" style={{ height: 48, paddingInline: 28 }}>{discovery ? "Request a Discovery Call" : "Send Message"}</Button>
+      <Button type="primary" htmlType="submit" loading={state === "sending"} size="large" style={{ height: 48, paddingInline: 28 }}>{discovery ? "Request a Discovery Call" : "Request a Demo"}</Button>
     </Form>
   );
 }

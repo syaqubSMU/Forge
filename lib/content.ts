@@ -9,7 +9,8 @@ export const site = {
   tagline: "Research administration, made simpler.",
   contactEmail: "" as string, // set once a business mailbox exists
   travelCalculatorBotId: "6621135586", // Chatling bot powering the free Travel Budget Calculator
-  chatbotId: process.env.NEXT_PUBLIC_CHATLING_CHATBOT_ID ?? "", // optional site assistant; hidden when empty
+  // Site-wide floating assistant. Currently the same Chatling bot as the calculator; set NEXT_PUBLIC_CHATLING_CHATBOT_ID (or edit here) to use a separate Forge-trained bot.
+  chatbotId: process.env.NEXT_PUBLIC_CHATLING_CHATBOT_ID || "6621135586",
   syntheticNote: "Illustrative synthetic data. Not real awards, people or institutions.",
 };
 

@@ -1,7 +1,7 @@
 # Forge assistant (Chatling) — setup and design brief
 
 The site already loads a floating assistant on every page except the Travel Budget Calculator page (which has its own bot).
-It stays hidden until you give it a bot ID.
+Currently it uses the same bot as the calculator (6621135586). To use a separate Forge-trained bot, follow the steps below.
 
 ## Switch it on
 1. In Chatling, create the bot and publish it. Under the bot's website/domain settings, allow `syaqubsmu.github.io` (and your own domain later).

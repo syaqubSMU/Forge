@@ -1,4 +1,5 @@
 import { products, whyForge, aiItems } from "@/lib/content";
+import { withBase } from "@/lib/path";
 import Section, { SectionHeading } from "@/components/ui/Section";
 import Button from "@/components/ui/Button";
 import FinancialWorkspace from "@/components/platform/FinancialWorkspace";
@@ -18,7 +19,10 @@ export default function Home() {
             <div className="btn-row"><Button href="/products" size="lg">Explore Products</Button><Button href="/products/travel-budget-calculator" variant="secondary" size="lg">Try the free calculator</Button></div>
             <p className="tagline-strip">Small teams. Complex research portfolios. Simpler operations.</p>
           </div>
-          <FinancialWorkspace compact />
+          <figure className="hero-visual">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={withBase("/images/hero.webp")} width={640} height={360} alt="A monitor showing the FORGE logo with many separate spreadsheet windows being brought together" fetchPriority="high" />
+          </figure>
         </div>
       </section>
 
@@ -29,7 +33,10 @@ export default function Home() {
       </Section>
 
       <Section tone="warm">
-        <SectionHeading eyebrow="Coming next" title="Beyond the Shadow Budget." text="FORGE Financial Intelligence is being designed to replace the manually maintained departmental spreadsheet with a connected view of award budgets, posted expenditures, commitments and projected balances. It works alongside the official institutional systems and does not replace them. It is in development." />
+        <div className="split" style={{ marginBottom: 56 }}>
+          <SectionHeading eyebrow="Coming next" title="Beyond the Shadow Budget." text="FORGE Financial Intelligence is being designed to replace the manually maintained departmental spreadsheet with a connected view of award budgets, posted expenditures, commitments and projected balances. It works alongside the official institutional systems and does not replace them. It is in development." />
+          <FinancialWorkspace compact />
+        </div>
         <ShadowTransformation />
       </Section>
 

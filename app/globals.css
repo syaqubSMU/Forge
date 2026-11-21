@@ -181,3 +181,6 @@ p a, .note a, li a, .ant-checkbox-wrapper a, .article a { text-decoration: under
 .frame { max-width: 100%; } .hero { overflow-x: clip; }
 @media (max-width: 640px) { .frame-bar .url { display: none; } .dash { padding: 14px; } }
 .footer-grid--simple { grid-template-columns: 1.5fr 1fr; } @media (max-width: 520px) { .footer-grid--simple { grid-template-columns: 1fr; } }
+
+.hero-visual { margin: 0; border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-md); border: 1px solid var(--border); background: #1B2733; line-height: 0; }
+.hero-visual img { width: 100%; height: auto; display: block; }

@@ -1,0 +1,4 @@
+User-Agent: *
+Allow: /
+
+Sitemap: https://syaqubsmu.github.io/Forge/sitemap.xml

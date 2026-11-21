@@ -1,19 +1,18 @@
 "use client";
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
 import { Alert, Button, Checkbox, Form, Input, Select } from "antd";
 import { challengesForForm, interestsForForm, rolesForForm, teamSizes } from "@/lib/content";
 import { track } from "@/lib/analytics";
 
 type Mode = "discovery" | "general";
 
-export default function InquiryForm({ mode }: { mode: Mode }) {
+export default function InquiryForm({ mode, prefill: prefillProp }: { mode: Mode; prefill?: string }) {
   const [form] = Form.useForm();
   const [state, setState] = useState<"idle" | "sending" | "ok" | "proto" | "error">("idle");
   const params = useSearchParams();
   const discovery = mode === "discovery";
-  const prefill = params.get("interest");
+  const prefill = prefillProp ?? params.get("interest");
 
   const onFinish = async (values: Record<string, unknown>) => {
     setState("sending");
@@ -56,7 +55,7 @@ export default function InquiryForm({ mode }: { mode: Mode }) {
       <Form.Item name="message" label={discovery ? "Anything else we should know?" : "How can we help?"} rules={discovery ? [] : [{ required: true, message: "Please enter a message." }]}><Input.TextArea rows={4} maxLength={2000} /></Form.Item>
       <div style={{ position: "absolute", left: -9999 }} aria-hidden><label>Leave blank<input name="website_hp" tabIndex={-1} autoComplete="off" /></label></div>
       <Form.Item name="consent" valuePropName="checked" rules={[{ validator: (_, v) => (v ? Promise.resolve() : Promise.reject(new Error("Please confirm to continue."))) }]}>
-        <Checkbox>I agree that FORGE may use this information to respond to my message, as described in the <Link href="/privacy" target="_blank">Privacy Notice</Link>. I will not include confidential or restricted data (such as health, financial account or student record information) in this form.</Checkbox>
+        <Checkbox>I agree that FORGE may use this information to respond to my message, only to respond to this request, and not to share it. I will not include confidential or restricted data (such as health, financial account or student record information) in this form.</Checkbox>
       </Form.Item>
       <Button type="primary" htmlType="submit" loading={state === "sending"} size="large" style={{ height: 48, paddingInline: 28 }}>{discovery ? "Request a Discovery Call" : "Send Message"}</Button>
     </Form>

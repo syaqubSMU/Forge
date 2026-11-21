@@ -19,7 +19,7 @@ export default function Header() {
         <nav className="desktop-nav" aria-label="Primary">
           {nav.map((n) => (<Link key={n.href} href={n.href} className="navlink" aria-current={isActive(n.href) ? "page" : undefined}>{n.label}</Link>))}
         </nav>
-        <span className="header-cta"><Button href="/book-discovery-call" event="consultation_cta_clicked">Book a Discovery Call</Button></span>
+        <span className="header-cta"><Button href="/products/#request">Request a Product</Button></span>
         <button className="menu-btn" aria-label="Open menu" aria-expanded={open} onClick={() => setOpen(true)}><MenuOutlined /></button>
       </div>
       <Drawer title={<Logo variant="horizontal" height={26} />} placement="right" open={open} onClose={() => setOpen(false)} width={320}>
@@ -29,7 +29,7 @@ export default function Header() {
               style={{ padding: "13px 6px", fontSize: 17, textDecoration: "none", fontWeight: isActive(n.href) ? 700 : 500, borderBottom: "1px solid var(--border)" }}>{n.label}</Link>
           ))}
         </nav>
-        <div style={{ marginTop: 24 }}><Button href="/book-discovery-call" event="consultation_cta_clicked" className="btn--block">Book a Discovery Call</Button></div>
+        <div style={{ marginTop: 24 }}><Button href="/products/#request" className="btn--block">Request a Product</Button></div>
       </Drawer>
     </header>
   );

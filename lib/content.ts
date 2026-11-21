@@ -13,15 +13,14 @@ export const site = {
   syntheticNote: "Illustrative synthetic data. Not real awards, people or institutions.",
 };
 
+/** Published pages only. The full site (Platform, Solutions, AI, Insights, About, Contact, ...) lives in app/_unpublished. */
 export const nav = [
   { label: "Home", href: "/" },
-  { label: "Platform", href: "/platform" },
-  { label: "Solutions", href: "/solutions" },
   { label: "Products", href: "/products" },
   { label: "AI & Automation", href: "/ai-automation" },
-  { label: "Insights", href: "/insights" },
-  { label: "About", href: "/about" },
 ];
+/** True when a form endpoint is configured; the request form is hidden until messages can actually be delivered. */
+export const requestsOpen = Boolean(process.env.NEXT_PUBLIC_INQUIRY_ENDPOINT);
 
 export const challenges = [
   { t: "Better award visibility", d: "Know what you manage, where each award stands and what needs attention, without opening five files." },

@@ -7,7 +7,7 @@ import Button from "@/components/ui/Button";
 import FAQ from "@/components/ui/FAQ";
 import ProductVisual from "@/components/ui/ProductVisual";
 import ChatlingInline from "@/components/chatbot/ChatlingInline";
-import FinalCTA from "@/components/sections/FinalCTA";
+import RequestSection from "@/components/sections/RequestSection";
 
 export const dynamicParams = false;
 export const generateStaticParams = () => products.map((p) => ({ slug: p.slug }));
@@ -27,8 +27,8 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
           <div>
             <div className="eyebrow">{p.category}</div><h1>{p.title}</h1><p className="lead">{p.description}</p>
             <div style={{ display: "flex", gap: 14, alignItems: "baseline", marginTop: 20 }}><b style={{ fontFamily: "var(--f-head)", fontSize: 30, color: "var(--blue)" }}>{p.price}</b>{!isCalc && <span style={{ color: "var(--muted)", fontSize: 14 }}>indicative price</span>}</div>
-            {!isCalc && <div className="btn-row"><Button href={`/contact?interest=${encodeURIComponent(p.title)}`} size="lg">Request this product</Button></div>}
-            {!isCalc && <p className="note" style={{ marginTop: 18 }}>Online checkout is not available yet. This sends a product inquiry to FORGE.</p>}
+            {!isCalc && <div className="btn-row"><Button href="#request" size="lg">Request this product</Button></div>}
+            {!isCalc && <p className="note" style={{ marginTop: 18 }}>Online checkout is not available yet. Use the request form below.</p>}
           </div>
           <ProductVisual kind={p.visual} label={p.title} />
         </div>
@@ -50,7 +50,7 @@ export default function ProductPage({ params }: { params: { slug: string } }) {
         <h2 style={{ fontSize: 26, margin: "48px 0 16px" }}>Frequently asked questions</h2>
         <div style={{ maxWidth: 820 }}><FAQ items={p.faqs} /></div>
       </Section>
-      <FinalCTA title="Want help choosing or setting up?" text="A discovery call is a good way to match tools to your team." />
+      {!isCalc && <RequestSection product={p.title} />}
     </>
   );
 }

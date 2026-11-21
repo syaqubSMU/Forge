@@ -180,3 +180,4 @@ p a, .note a, li a, .ant-checkbox-wrapper a, .article a { text-decoration: under
 .section--blue .conn span { color: #F4B49F; }
 .frame { max-width: 100%; } .hero { overflow-x: clip; }
 @media (max-width: 640px) { .frame-bar .url { display: none; } .dash { padding: 14px; } }
+.footer-grid--simple { grid-template-columns: 1.5fr 1fr; } @media (max-width: 520px) { .footer-grid--simple { grid-template-columns: 1fr; } }

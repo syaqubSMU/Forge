@@ -154,7 +154,7 @@ export default function FinancialWorkspace({ compact = false }: { compact?: bool
             <tbody>{list.map((x) => (<tr key={x.id}><td>{x.title}</td><td><Bar a={x} /></td><td className="r">{moneyShort(derive(x).available)}</td></tr>))}</tbody></table></div>
             <div style={{ marginTop: 10 }}><Legend /></div></div>
           <div className="dpanel"><h4>Awards requiring attention</h4><Attention list={awards} limit={2} /></div>
-          <div className="dash-foot"><span>{site.syntheticNote}</span></div>
+          <div className="dash-foot"><span>Preview of FORGE Financial Intelligence, currently in development. {site.syntheticNote}</span></div>
         </div>
       </div>
     );

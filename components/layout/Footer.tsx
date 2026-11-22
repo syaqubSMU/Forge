@@ -1,3 +1,4 @@
+import { withBase } from "@/lib/path";
 import Link from "next/link";
 import { nav, site } from "@/lib/content";
 import Logo from "../brand/Logo";
@@ -7,7 +8,7 @@ export default function Footer() {
       <div className="container">
         <div className="footer-grid footer-grid--simple">
           <div><Logo variant="stacked" tone="dark" height={70} /><p style={{ marginTop: 18, maxWidth: 300, fontSize: 15 }}>{site.tagline}</p></div>
-          <div><h4>Explore</h4><ul>{nav.map((n) => <li key={n.href}><Link href={n.href}>{n.label}</Link></li>)}<li><Link href="/products/travel-budget-calculator">Free Travel Budget Calculator</Link></li></ul></div>
+          <div><h4>Explore</h4><ul>{nav.map((n) => <li key={n.href}><Link href={n.href}>{n.label}</Link></li>)}<li><Link href="/products/travel-budget-calculator">Free Travel Budget Calculator</Link></li><li><a href={withBase("/signal/")}>Forge Signal</a></li></ul></div>
         </div>
         <div className="legal">
           <p>© {new Date().getFullYear()} FORGE. The FORGE platform is in development; product screens use illustrative synthetic data.</p>

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SIGNAL Workbench (prototype) | FORGE SIGNAL</title>
+<meta name="description" content="Prototype workbench: verified faculty profiles, opportunity fact sheets, evidence-based matching in both directions, draft alerts and an outreach calendar.">
+<link rel="icon" href="assets/logo-dark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css?v=5">
+<style>
+.pane[hidden]{display:none}.pane{margin:16px 0}
+label{display:block;font-weight:600;margin:10px 0 4px}
+textarea{width:100%;min-height:90px;padding:10px;border:1px solid #9fb0c0;border-radius:6px;font:inherit}
+pre{white-space:pre-wrap;background:var(--soft);border:1px solid #dde5ec;border-radius:8px;padding:14px;font-size:.88rem;max-height:380px;overflow:auto}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+table{border-collapse:collapse;width:100%;margin:10px 0}th,td{border:1px solid #dde5ec;padding:8px;text-align:left;font-size:.9rem;vertical-align:top}
+.r-High{color:#0b6b2f;font-weight:700}.r-Medium{color:#8a5a00;font-weight:700}.r-Low{color:#555}.r-NE{color:#a1261c;font-weight:700}
+.item{border:1px solid #dde5ec;border-radius:8px;padding:12px;margin:8px 0;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.small{font-size:.85rem}.btn.s{padding:7px 14px;font-size:.9rem}
+.sr{position:absolute;left:-9999px}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+<header class="nav"><div class="wrap">
+ <a class="brand" href="index.html" aria-label="FORGE SIGNAL home"><span>FORGE<small>SIGNAL</small></span></a>
+ <nav aria-label="Main"><ul><li><a href="index.html">Home</a></li><li><a href="workflow.html">Prompt builder</a></li><li><a href="app.html" aria-current="page">Workbench</a></li><li><a href="about.html">About SIGNAL</a></li></ul></nav>
+</div></header>
+<main id="main"><div class="wrap">
+<h1>SIGNAL Workbench <small style="font-size:.5em">prototype</small></h1>
+<p class="note"><strong>Screening aid, not a decision.</strong> Matching is keyword overlap between sponsor-priority quotes and faculty-page quotes you enter. It never infers interests. Research Development confirms every rating and sends every message. Data stays in this browser (localStorage); use Public or Private data only, no Restricted data. Sample records are fictional.</p>
+
+<div class="tabs" role="group" aria-label="Sections">
+ <button class="tab" type="button" data-t="prof" aria-pressed="true">1. Profiles</button>
+ <button class="tab" type="button" data-t="opp" aria-pressed="false">2. Opportunities</button>
+ <button class="tab" type="button" data-t="b" aria-pressed="false">3. Opportunity → Faculty</button>
+ <button class="tab" type="button" data-t="a" aria-pressed="false">4. Faculty → Opportunities</button>
+ <button class="tab" type="button" data-t="data" aria-pressed="false">Export / import</button>
+</div>
+
+<section id="p-prof" class="pane">
+ <h2>Faculty profiles (verified scope)</h2>
+ <div id="profList"></div>
+ <h3 id="pfH">Add profile</h3>
+ <form id="pf" class="row">
+  <div><label for="pf_n">Name</label><input id="pf_n" required></div>
+  <div><label for="pf_d">Department</label><input id="pf_d" required></div>
+  <div><label for="pf_u">Dedman profile URL</label><input id="pf_u" type="url" placeholder="https://www.smu.edu/dedman/..."></div>
+  <div><label for="pf_s">Status</label><select id="pf_s"><option>Unverified</option><option>Verified</option><option>Stale</option></select></div>
+  <div><label for="pf_r">Date retrieved</label><input id="pf_r" type="date"></div>
+  <div style="grid-column:1/-1"><label for="pf_a">Research areas: quoted from the page, one per line</label><textarea id="pf_a" required></textarea></div>
+  <div style="grid-column:1/-1"><button class="btn dark" type="submit">Save profile</button> <button class="btn ghost s" type="button" id="pf_c" style="color:var(--blue);border-color:var(--blue)">Clear form</button></div>
+ </form>
+</section>
+
+<section id="p-opp" class="pane" hidden>
+ <h2>Opportunity fact sheets</h2>
+ <div id="oppList"></div>
+ <h3>Add opportunity</h3>
+ <form id="of" class="row">
+  <div><label for="of_t">Title</label><input id="of_t" required></div>
+  <div><label for="of_s">Sponsor</label><input id="of_s" required></div>
+  <div><label for="of_u">Sponsor link</label><input id="of_u" type="url"></div>
+  <div><label for="of_d">Deadline (blank = not stated)</label><input id="of_d" type="date"></div>
+  <div><label for="of_e">Eligibility status</label><select id="of_e"><option value="Unclear">Unclear: RD must verify</option><option value="Clear">Clear: verified for SMU/Dedman</option><option value="Blocked">Blocked: hard blocker</option></select></div>
+  <div><label for="of_x">Eligibility / structure notes</label><input id="of_x" placeholder="e.g. limited submission; lead only; early-career"></div>
+  <div style="grid-column:1/-1"><label for="of_p">Sponsor priorities: quoted from the NOFO with section/page, one per line</label><textarea id="of_p" required></textarea></div>
+  <div style="grid-column:1/-1"><button class="btn dark" type="submit">Save opportunity</button></div>
+ </form>
+</section>
+
+<section id="p-b" class="pane" hidden>
+ <h2>Opportunity → Faculty</h2>
+ <label for="b_o">Opportunity</label><select id="b_o"></select>
+ <label><input type="checkbox" id="b_low" style="width:auto"> Show Low matches</label>
+ <div id="b_out"></div>
+</section>
+
+<section id="p-a" class="pane" hidden>
+ <h2>Faculty → Opportunities</h2>
+ <label for="a_p">Faculty member</label><select id="a_p"></select>
+ <label for="a_w">Window</label><select id="a_w"><option value="60">next 60 days</option><option value="90">next 90 days</option><option value="180" selected>next 6 months</option><option value="365">next 12 months</option><option value="0">any (include no deadline)</option></select>
+ <div id="a_out"></div>
+</section>
+
+<section id="p-data" class="pane" hidden>
+ <h2>Export / import</h2>
+ <p>Export a JSON backup, or import one. Importing replaces current data.</p>
+ <button class="btn dark" type="button" id="ex">Download JSON</button>
+ <label for="im">Import JSON</label><input id="im" type="file" accept="application/json">
+ <p><button class="btn ghost s" type="button" id="reset" style="color:var(--blue);border-color:var(--blue)">Reset to sample data</button> <span id="dmsg" role="status"></span></p>
+</section>
+
+<section id="deliver" class="pane" hidden>
+ <h2 id="dh">Drafts</h2>
+ <h3>Draft email (edit and send yourself)</h3><pre id="mail" tabindex="0"></pre>
+ <button class="btn dark s" type="button" id="cm">Copy email</button>
+ <button class="btn dark s" type="button" id="ci">Download calendar (.ics)</button>
+ <h3>AI verification prompt (paste into an approved AI tool)</h3><pre id="prm" tabindex="0"></pre>
+ <button class="btn dark s" type="button" id="cp">Copy prompt</button> <span id="msg" role="status"></span>
+ <p class="note small">Calendar offsets (70/60/45/30/14/7/0 days) are placeholders pending Research Development's internal policy. Verify deadlines on the sponsor page.</p>
+</section>
+</div></main>
+<footer><div class="wrap"><p>© 2026 FORGE SIGNAL · Class project prototype. <a href="index.html">Home</a></p></div></footer>
+<script src="app.js"></script>
+</body>
+</html>

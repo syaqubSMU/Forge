@@ -8,13 +8,13 @@
 <link rel="icon" href="assets/logo-dark.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=5">
+<link rel="stylesheet" href="styles.css?v=7">
 </head>
 <body>
 <a class="skip" href="#main">Skip to main content</a>
 <header class="nav"><div class="wrap">
  <a class="brand" href="index.html" aria-label="FORGE SIGNAL home"><svg width="30" height="26" viewBox="0 0 30 26" aria-hidden="true" fill="none" stroke="#F28C28" stroke-width="2.4" stroke-linecap="round"><path d="M7 11a11 11 0 0 1 16 0"/><path d="M10.5 15a6 6 0 0 1 9 0"/><circle cx="15" cy="20" r="2" fill="#F28C28" stroke="none"/></svg><span>FORGE<small>SIGNAL</small></span></a>
- <nav aria-label="Main"><ul><li><a href="index.html">Home</a></li><li><a href="index.html#explorer">Try it</a></li><li><a href="about.html" aria-current="page">About SIGNAL</a></li></ul></nav>
+ <nav aria-label="Main"><ul><li><a href="index.html">Home</a></li><li><a href="index.html#explorer">Try it</a></li><li><a href="workflow.html">Prompt builder</a></li><li><a href="app.html">Workbench</a></li><li><a href="about.html" aria-current="page">About SIGNAL</a></li></ul></nav>
 </div></header>
 <main id="main">
 <section class="hero">
@@ -22,60 +22,111 @@
   <div class="hero-text">
    <p class="eyebrow">About the project</p>
    <h1 style="max-width:20ch">What FORGE SIGNAL is, and what it is not</h1>
-   <p class="lead">A lightweight, public grant discovery application for university research teams, built on clear sources, honest coverage and no invented data.</p>
-   <div class="btns"><a class="btn" href="index.html#explorer">Try the Explorer</a><a class="btn ghost" href="index.html">← Back to home</a></div>
+   <p class="lead">AI does the fast first pass. People make the calls. SIGNAL helps research teams find funding and the right faculty, with clear sources and no invented data.</p>
+   <div class="btns"><a class="btn" href="app.html">Open the Workbench</a><a class="btn ghost" href="index.html#explorer">Try the Explorer</a></div>
+   <ul class="toc" aria-label="On this page"><li><a href="#how">How it works</a></li><li><a href="#collab">AI &amp; human collaboration</a></li><li><a href="#rules">Ground rules</a></li><li><a href="#serves">Who it serves</a></li><li><a href="#trust">Trust &amp; coverage</a></li><li><a href="#build">Architecture</a></li></ul>
   </div>
  </div>
 </section>
 
-<section><div class="wrap">
- <p style="font-size:1.15rem;max-width:68ch">FORGE SIGNAL v0.1 is a lightweight, public grant discovery application for university research teams. It indexes a limited, clearly disclosed set of U.S. federal funding opportunity records, makes them searchable and filterable, shows normalized details with links to the official announcement, and lets users save a shortlist in their browser. Its value is a fast, reliable discovery experience backed by clear provenance and freshness information.</p>
+<section id="how"><div class="wrap">
+ <div class="sec-head"><p class="eyebrow">How it works</p><h2>Two ways in, one careful process</h2>
+ <p>Research development staff usually start in one of two places. Both end the same way: a person reviews the evidence and decides what goes out.</p></div>
+ <div class="paths">
+  <article class="path"><span class="tag">Path A · Faculty first</span><h3>A PI asks, "What is coming up for me?"</h3>
+   <p>SIGNAL starts from a verified faculty profile and screens open and forecasted opportunities in the PI's time window.</p></article>
+  <article class="path"><span class="tag">Path B · Opportunity first</span><h3>A new funding opportunity appears</h3>
+   <p>SIGNAL reads the sponsor announcement and screens verified faculty profiles for departments and people who may fit.</p></article>
+ </div>
+ <ol class="flow" aria-label="Shared process">
+  <li><strong>Verify scope</strong>Faculty profile quoted from Dedman pages, with a retrieved date.</li>
+  <li><strong>Summarize</strong>AI drafts a fact sheet of priorities, eligibility and deadlines, each cited.</li>
+  <li><strong>Screen</strong>Evidence-based match: High, Medium or Low, with the quotes shown.</li>
+  <li class="human"><strong>Review</strong>Research Development confirms ratings, eligibility and policy.</li>
+  <li class="human"><strong>Reach out</strong>A person edits and sends the alert. Nothing is automatic.</li>
+ </ol>
+ <p class="legend" aria-hidden="false"><span>AI-assisted step</span><span class="h">Human decision</span></p>
+ <div class="cta-row"><a class="btn dark" href="app.html">Try both paths in the Workbench</a><a class="btn outline" href="workflow.html">Use the prompt builder</a></div>
 </div></section>
 
-<section class="band"><div class="wrap">
- <h2>Who it serves</h2>
+<section id="collab" class="band"><div class="wrap">
+ <div class="sec-head"><p class="eyebrow">AI &amp; human collaboration</p><h2>Each does what it does best</h2>
+ <p>These boundaries come from the 2026 SMU Technology Showcase and govern every SIGNAL workflow.</p></div>
+ <div class="collab">
+  <article class="col ai"><h3>Where AI helps most</h3>
+   <p class="sub">Speed, volume and first-pass analysis, where speed is of the essence.</p>
+   <ul>
+    <li><strong>Rapid synthesis:</strong> summarizes NOFOs, policies, reports, accreditation standards</li>
+    <li><strong>Drafting &amp; structuring:</strong> first drafts of emails, summaries, tables, briefing materials</li>
+    <li><strong>Pattern identification:</strong> highlights themes in qualitative data</li>
+    <li><strong>Consistency &amp; standardization:</strong> applies shared language across reports and communications</li>
+    <li><strong>Targeted analysis:</strong> supports opportunity–faculty matching and tailored outreach</li>
+    <li><strong>Early-stage sensemaking:</strong> helps frame questions and surface options quickly</li>
+   </ul></article>
+  <article class="col hu"><h3>Where human judgment is required</h3>
+   <p class="sub">To provide trust, context and accountability.</p>
+   <ul>
+    <li><strong>Final interpretation &amp; decisions:</strong> strategic choices, prioritization and trade-offs</li>
+    <li><strong>Policy, eligibility &amp; compliance:</strong> grant rules, accreditation standards, legal and financial risk</li>
+    <li><strong>Equity &amp; ethical considerations:</strong> assessing impact on underrepresented or vulnerable groups</li>
+    <li><strong>Context &amp; institutional knowledge:</strong> culture, history, politics and informal constraints</li>
+    <li><strong>Relationship-based work:</strong> faculty engagement, leadership communication, trust-building</li>
+    <li><strong>Accountability &amp; defensibility:</strong> owning outcomes in audits, reviews and public settings</li>
+   </ul></article>
+ </div>
+ <p class="pull">Humans are essential for setting the oversight, validation of information and direction, and ethical guardrails.</p>
+</div></section>
+
+<section id="rules"><div class="wrap">
+ <div class="sec-head"><p class="eyebrow">Ground rules</p><h2>How SIGNAL keeps those boundaries</h2></div>
+ <ul class="rules">
+  <li><strong>Nothing is sent for you</strong>SIGNAL never sends, submits or commits anyone to anything. Every message is edited and sent by a person.</li>
+  <li><strong>Nothing is invented</strong>No made-up deadlines, eligibility rules, award amounts or faculty interests. Missing stays "Not stated."</li>
+  <li><strong>Evidence you can check</strong>Every match shows its quote, source link and retrieved date, or says "No explicit support found in the provided sources."</li>
+  <li><strong>Eligibility is never assumed</strong>It starts as "Unclear: verify," and only a person can mark it clear. High ratings need a verified profile and confirmed eligibility.</li>
+  <li><strong>People review who is surfaced</strong>Research Development checks who an alert reaches, and who it misses, before it goes out.</li>
+  <li><strong>No restricted data</strong>Public and Private data only, per SMU data governance. No student, health or financial records.</li>
+ </ul>
+</div></section>
+
+<section id="serves" class="band"><div class="wrap">
+ <div class="sec-head"><p class="eyebrow">Who it serves</p><h2>Built for research teams</h2>
+ <p>SIGNAL v0.1 is a lightweight, public grant discovery application. It indexes a limited, clearly disclosed set of U.S. federal funding opportunity records, with links to the official announcement.</p></div>
  <div class="cards">
   <div class="card"><h3>Research administrators</h3><p>Find opportunities to share with faculty using broad search, sponsor filters, deadlines and official links.</p></div>
   <div class="card"><h3>Faculty researchers</h3><p>Discover opportunities by topic with readable details and a saved list.</p></div>
   <div class="card"><h3>Department administrators</h3><p>Track upcoming deadlines and revisit a chosen shortlist.</p></div>
-  <div class="card"><h3>Research development staff</h3><p>Scan across sponsors and disciplines with multiple filters and visible provenance.</p></div>
+  <div class="card"><h3>Research development staff</h3><p>Scan across sponsors and disciplines with multiple filters, visible provenance and the matching Workbench.</p></div>
  </div>
 </div></section>
 
-<section><div class="wrap">
- <h2>Core capabilities in v0.1</h2>
- <ul class="lists">
-  <li><strong>Discover and search:</strong> by title, synopsis, sponsor, opportunity number and program metadata.</li>
-  <li><strong>Filter:</strong> sponsor, research area, status, funding instrument and deadline, with a default 30-day minimum lead time users can change or remove.</li>
-  <li><strong>Inspect:</strong> structured details with unknown fields shown as "Not specified", plus a prominent link to the official announcement.</li>
-  <li><strong>Save:</strong> save and remove opportunities with no account. Saves live in the browser's local storage, so they are specific to that browser and device.</li>
- </ul>
- <h2 style="margin-top:36px">Trust and data integrity</h2>
- <ul class="lists">
-  <li>Primary source is the public Grants.gov opportunity API, called from the server, never from the browser.</li>
-  <li>Every record carries its source system, source ID, source link and last-verified time, or an explicit missing state.</li>
-  <li>SIGNAL never invents a deadline, award amount, eligibility or status. Missing values stay visibly missing.</li>
-  <li>A failed sync never overwrites valid cached data, and the last successful refresh time is always shown.</li>
- </ul>
-</div></section>
-
-<section class="band"><div class="wrap">
- <h2>Coverage and limitations</h2>
- <p class="note">SIGNAL currently indexes selected official federal sources. Always verify requirements in the sponsor announcement. It does not claim to list all federal funding opportunities.</p>
- <p>NSF opportunities will be validated against NSF's official Funding Search using a test set of at least 20 active records. Where Grants.gov coverage has material gaps, SIGNAL will link out to NSF rather than imply complete automated coverage.</p>
+<section id="trust"><div class="wrap">
+ <div class="sec-head"><p class="eyebrow">Trust &amp; coverage</p><h2>What you can rely on, and where it stops</h2></div>
+ <div class="collab">
+  <div class="col"><h3>Core capabilities in v0.1</h3><ul class="lists">
+   <li><strong>Discover and search:</strong> by title, synopsis, sponsor, opportunity number and program metadata.</li>
+   <li><strong>Filter:</strong> sponsor, research area, status, funding instrument and deadline, with a default 30-day minimum lead time users can change or remove.</li>
+   <li><strong>Inspect:</strong> structured details with unknown fields shown as "Not specified", plus a prominent link to the official announcement.</li>
+   <li><strong>Save:</strong> no account needed. Saves live in the browser's local storage, so they are specific to that browser and device.</li></ul></div>
+  <div class="col"><h3>Trust and data integrity</h3><ul class="lists">
+   <li>Primary source is the public Grants.gov opportunity API, called from the server, never from the browser.</li>
+   <li>Every record carries its source system, source ID, source link and last-verified time, or an explicit missing state.</li>
+   <li>A failed sync never overwrites valid cached data, and the last successful refresh time is always shown.</li></ul></div>
+ </div>
+ <p class="note" style="margin-top:24px">SIGNAL currently indexes selected official federal sources. Always verify requirements in the sponsor announcement. It does not claim to list all federal funding opportunities. NSF opportunities will be validated against NSF's official Funding Search using a test set of at least 20 active records; where Grants.gov coverage has material gaps, SIGNAL will link out to NSF rather than imply complete coverage.</p>
  <table>
-  <caption style="text-align:left;font-weight:600;padding:8px 0">Scope boundaries for release 0.1</caption>
+  <caption style="text-align:left;font-weight:600;padding:8px 0">Scope boundaries</caption>
   <thead><tr><th scope="col">In scope</th><th scope="col">Deliberately out of scope</th></tr></thead>
   <tbody><tr>
-   <td>Public discovery, search and filters<br>Opportunity detail with source links<br>Saved list in the browser<br>Freshness and coverage disclosure<br>Responsive, accessible layout</td>
-   <td>PI matching or recommendations<br>Eligibility determinations<br>Alerts and reminders<br>Proposal or award management<br>Institutional system integrations</td>
+   <td>Public discovery, search and filters<br>Opportunity detail with source links<br>Saved list in the browser<br>Freshness and coverage disclosure<br>Workbench prototype: screening aid with human review, draft emails and calendar<br>Responsive, accessible layout</td>
+   <td>Automated eligibility determinations<br>Sending alerts or reminders on anyone's behalf<br>Final matching decisions without staff review<br>Proposal or award management<br>Institutional system integrations</td>
   </tr></tbody>
  </table>
 </div></section>
 
-<section><div class="wrap">
- <h2>Planned architecture</h2>
- <p>A Next.js and React front end, a Python FastAPI backend, a PostgreSQL database with full-text search, and a scheduled Python worker that syncs and normalizes Grants.gov records while retaining the raw payloads. Browse the live demo on the <a href="index.html#explorer">home page</a>; it uses fictional sample data only.</p>
+<section id="build" class="band"><div class="wrap">
+ <div class="sec-head"><p class="eyebrow">Architecture</p><h2>What is planned</h2></div>
+ <p>A Next.js and React front end, a Python FastAPI backend, a PostgreSQL database with full-text search, and a scheduled Python worker that syncs and normalizes Grants.gov records while retaining the raw payloads. The Workbench is a browser-only prototype today; any hosted version would go through accessibility, SSO, data-protection and OIT review first. Browse the live demo on the <a href="index.html#explorer">home page</a>; it uses fictional sample data only.</p>
  <h2 style="margin-top:36px">Questions?</h2>
  <p>Use the chat assistant at the bottom right of this page. Please do not enter confidential or restricted information.</p>
 </div></section>

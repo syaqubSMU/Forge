@@ -92,6 +92,8 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
 .passage{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:6px 0;font-size:.84rem;background:var(--surface)}
 .passage b{font-family:var(--font-mono);font-size:.78rem;color:var(--accent)}
 .answer{white-space:pre-wrap;background:var(--code-bg);border-radius:8px;padding:12px;font-size:.92rem}
+.flow .node.ai{border:2px solid var(--accent);background:var(--surface)}
+.pat{margin:14px 0 4px;font-weight:600;font-size:.92rem}
 footer{margin-top:32px;font-size:.8rem;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
 .small{font-size:.82rem}
 </style>
@@ -306,6 +308,18 @@ footer{margin-top:32px;font-size:.8rem;color:var(--muted);border-top:1px solid v
         <li><b>Documents are data:</b> retrieved text is never obeyed as an instruction, which blocks prompt injection from uploads.</li>
         <li><b>Freshness:</b> every chunk keeps its fetch date; stale chunks are re-verified before use.</li>
       </ul></div>
+  </div>
+
+  <div class="card"><h3>Four ways RAG meets a live model call</h3>
+    <p class="small muted">Boxes with a thick blue border are live model calls. Every pattern ends with a Critic check, and facts still need a person's Verify click before they enter the feed.</p>
+    <div class="pat">1. Classic RAG: retrieve first, then one model call</div>
+    <div class="flow"><div class="node"><b>Question</b></div><span class="arr">→</span><div class="node"><b>Retrieve</b>top passages</div><span class="arr">→</span><div class="node ai"><b>Model call</b>answers from passages</div><span class="arr">→</span><div class="node"><b>Cited answer</b></div><span class="arr">→</span><div class="node"><b>Critic</b></div></div>
+    <div class="pat">2. Agentic RAG: the model decides when to retrieve (the Ask SIGNAL panel)</div>
+    <div class="flow"><div class="node"><b>Question</b></div><span class="arr">→</span><div class="node ai"><b>Model call</b>may search again</div><span class="arr">→</span><div class="node"><b>search_passages</b>tool</div><span class="arr">→</span><div class="node"><b>Cited answer</b></div><span class="arr">→</span><div class="node"><b>Critic</b></div></div>
+    <div class="pat">3. Model calls inside retrieval</div>
+    <div class="flow"><div class="node"><b>Query</b></div><span class="arr">→</span><div class="node ai"><b>Rewrite query</b>small model</div><span class="arr">→</span><div class="node"><b>Search</b>keyword plus vectors</div><span class="arr">→</span><div class="node ai"><b>Rerank</b>small model</div><span class="arr">→</span><div class="node ai"><b>Answer call</b></div></div>
+    <div class="pat">4. Live fetch, then answer from the stored copy</div>
+    <div class="flow"><div class="node"><b>Fresh page needed</b></div><span class="arr">→</span><div class="node"><b>Fetch</b>allowlisted official domain</div><span class="arr">→</span><div class="node"><b>Store</b>with fetch date</div><span class="arr">→</span><div class="node"><b>Index</b>chunks</div><span class="arr">→</span><div class="node ai"><b>Answer call</b></div><span class="arr">→</span><div class="node human"><b>Person verifies</b></div></div>
   </div>
 
   <div class="card"><h3>Live retrieval in the product</h3>

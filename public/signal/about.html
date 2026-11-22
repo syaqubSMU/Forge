@@ -18,17 +18,13 @@
 </div></header>
 <main id="main">
 <section class="hero">
- <div class="wrap hero-grid">
+ <div class="wrap">
   <div class="hero-text">
    <p class="eyebrow">About the project</p>
-   <h1>What FORGE SIGNAL is, and what it is not</h1>
+   <h1 style="max-width:20ch">What FORGE SIGNAL is, and what it is not</h1>
    <p class="lead">A lightweight, public grant discovery application for university research teams, built on clear sources, honest coverage and no invented data.</p>
    <div class="btns"><a class="btn" href="index.html#explorer">Try the Explorer</a><a class="btn ghost" href="index.html">← Back to home</a></div>
   </div>
-  <figure class="hero-video">
-   <video id="hv" autoplay muted loop playsinline preload="auto" poster="assets/poster.jpg?v=5" aria-label="FORGE SIGNAL explainer video: too many opportunities, discover and match, FORGE SIGNAL"><source src="assets/forge-signal-explainer.mp4?v=5" type="video/mp4"></video>
-   <button class="vctl" id="vb" type="button" aria-pressed="false">Pause video</button>
-  </figure>
  </div>
 </section>
 
@@ -85,11 +81,6 @@
 </div></section>
 </main>
 <footer><div class="wrap"><p>© 2026 FORGE SIGNAL · Class project (SMU Cox MS in AI in Business). Not a real product; sample data only. <a href="index.html">Home</a></p></div></footer>
-<script>
-var v=document.getElementById("hv"),b=document.getElementById("vb");
-v.muted=true;var p=v.play();if(p&&p.catch)p.catch(function(){});
-b.onclick=function(){if(v.paused){v.play();b.textContent="Pause video";b.setAttribute("aria-pressed","false");}else{v.pause();b.textContent="Play video";b.setAttribute("aria-pressed","true");}};
-</script>
 <script src="chat.js?v=5"></script>
 </body>
 </html>

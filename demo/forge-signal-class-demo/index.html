@@ -63,7 +63,7 @@ button.btn{font:600 .85rem var(--font-body);background:var(--accent);color:var(-
 button.btn.sec{background:transparent;color:var(--accent)}
 button.btn.sm{padding:3px 9px;font-size:.78rem}
 button.btn:hover{filter:brightness(1.08)}
-input[type=text],select,textarea{font:inherit;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:7px 9px;max-width:100%}
+input[type=text],input[type=date],select,textarea{font:inherit;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:7px 9px;max-width:100%}
 textarea{width:100%;font-family:var(--font-mono);font-size:.82rem;line-height:1.5;min-height:150px;resize:vertical}
 label{font-weight:500;font-size:.85rem}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
@@ -175,8 +175,20 @@ footer{margin-top:32px;font-size:.8rem;color:var(--muted);border-top:1px solid v
       <button class="btn sec sm" id="btnReset">Reset sample data</button>
     </div>
     <div class="tw"><table>
-      <thead><tr><th>Opportunity</th><th>Unit</th><th>Deadline</th><th>Runway</th><th>Status</th><th>Verified</th></tr></thead>
+      <thead><tr><th>Opportunity</th><th>Unit</th><th>Deadline</th><th>Runway</th><th>Status</th><th>Verified</th><th>Links</th></tr></thead>
       <tbody id="feedBody"></tbody></table></div>
+    <details style="margin-top:14px"><summary><b>Add a record (manual entry)</b></summary>
+      <div class="grid2" style="margin-top:10px">
+        <div><label for="mTitle">Program title</label><br><input type="text" id="mTitle" style="width:100%"></div>
+        <div><label for="mSponsor">Sponsor</label><br><input type="text" id="mSponsor" style="width:100%"></div>
+        <div><label for="mUnit">Unit</label><br><select id="mUnit"></select></div>
+        <div><label for="mKind">Deadline type</label><br><select id="mKind"><option value="dated">Dated</option><option value="rolling">Rolling</option><option value="anticipated">Anticipated</option></select> <input type="date" id="mDate" aria-label="Deadline date"></div>
+        <div><label for="mAnn">Program announcement link (https)</label><br><input type="text" id="mAnn" style="width:100%" placeholder="https://..."></div>
+        <div><label for="mSp">Sponsor site link (https)</label><br><input type="text" id="mSp" style="width:100%" placeholder="https://..."></div>
+      </div>
+      <div class="row" style="margin-top:10px"><button class="btn sm" id="btnAdd">Add as Unverified</button><span class="small muted" id="addMsg" aria-live="polite"></span></div>
+      <p class="small muted">New records start Unverified. A person must open the announcement and click Verify before the record reaches the feed. Links are labelled by the BRD source tiers; a link outside official domains is a lead, not evidence.</p>
+    </details>
     <h3 style="margin-top:18px">Held back from the feed</h3>
     <div class="tw"><table><thead><tr><th>Opportunity</th><th>Why</th><th>Action</th></tr></thead><tbody id="heldBody"></tbody></table></div>
     <h3 style="margin-top:18px">Change log</h3>
@@ -358,6 +370,7 @@ function seed(){
    {id:'SAMPLE-0106',title:'Legacy Instrumentation Call',sponsor:'Sample Federal Agency B',unit:'Physics',kind:'dated',deadline:addDays(-6),verified:true,vOn:today,updated:false},
    {id:'SAMPLE-0107',title:'Business Analytics for Healthcare Operations',sponsor:'Sample Federal Agency A',unit:'Business Analytics',kind:'dated',deadline:addDays(60),verified:true,vOn:today,updated:false}
   ];
+  opps.forEach(o=>{ o.ann='https://example.org/sample/'+o.id; o.sp='https://example.org/sponsors/'+o.sponsor.toLowerCase().replace(/[^a-z0-9]+/g,'-'); });
 }
 function addLog(src,msg){ log.unshift({t:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),src,msg}); renderLog(); }
 function renderLog(){ $('#logList').innerHTML=log.length?log.map(l=>`<li><span class="t">${esc(l.t)}</span><span class="pill p-mute">${esc(l.src)}</span><span>${esc(l.msg)}</span></li>`).join(''):'<li class="muted">No changes yet.</li>'; }
@@ -385,6 +398,20 @@ $('#scopeTree').addEventListener('change',e=>{
 });
 
 /* ---------- feed ---------- */
+const OFFICIAL=['grants.gov','nsf.gov','nih.gov','energy.gov','osti.gov','sam.gov','cprit.texas.gov','simonsfoundation.org','sloan.org','acs.org','welch1.org','dreyfus.org'];
+function linkInfo(u){
+  if(!u) return null; let h;
+  try{ const x=new URL(u); if(x.protocol!=='https:') return null; h=x.hostname.toLowerCase(); }catch(e){ return null; }
+  const on=d=>h===d||h.endsWith('.'+d);
+  if(on('example.org')) return ['Sample link','p-mute'];
+  if(h.endsWith('.gov')||OFFICIAL.some(on)) return ['Tier 1 official domain','p-good'];
+  if(on('smu.edu')) return ['Tier 3 institutional','p-info'];
+  return ['Tier 4 lead: verify at source','p-warn'];
+}
+function linksHtml(o){
+  const mk=(u,label)=>{ const i=linkInfo(u); return i?`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${label}</a> <span class="pill ${i[1]}">${i[0]}</span>`:`<span class="muted">${label}: none</span>`; };
+  return `<div class="small">${mk(o.ann,'Program announcement')}</div><div class="small" style="margin-top:3px">${mk(o.sp,'Sponsor site')}</div>`;
+}
 function closed(o){ return o.kind==='dated' && runway(o.deadline)<0; }
 function band(o){
   if(o.kind==='rolling') return ['Rolling','p-info'];
@@ -399,8 +426,8 @@ function renderFeed(){
   const held=opps.filter(o=>reasons(o).length>0);
   $('#feedSummary').textContent=`${pub.length} published, ${held.length} held back. Runway bands: Standard 30+ days, Short 15 to 29, Urgent under 15. An anticipated date is never shown as a confirmed deadline.`;
   $('#feedBody').innerHTML=pub.length?pub.map(o=>{ const b=band(o), s=status(o); const dl=o.kind==='dated'?fmt(o.deadline):(o.kind==='rolling'?'Rolling':'Not announced'); const rw=o.kind==='dated'?runway(o.deadline)+' days':'n/a';
-    return `<tr><td><b>${esc(o.title)}</b><br><span class="mono muted">${esc(o.id)}</span> · <span class="small muted">${esc(o.sponsor)}</span></td><td>${esc(o.unit)}</td><td class="num">${esc(dl)}</td><td><span class="pill ${b[1]}">${b[0]}</span> <span class="small muted">${rw}</span></td><td><span class="pill ${s[1]}">${s[0]}</span></td><td class="num">${o.vOn?fmt(o.vOn):'—'}</td></tr>`;}).join(''):'<tr><td colspan="6" class="muted">Nothing in scope and verified.</td></tr>';
-  $('#heldBody').innerHTML=held.length?held.map(o=>`<tr><td><b>${esc(o.title)}</b><br><span class="mono muted">${esc(o.id)}</span></td><td>${reasons(o).map(esc).join('<br>')}</td><td>${!o.verified?`<button class="btn sm" data-verify="${esc(o.id)}">Verify (I opened the source)</button>`:'<span class="muted small">None</span>'}</td></tr>`).join(''):'<tr><td colspan="3" class="muted">Nothing held back.</td></tr>';
+    return `<tr><td><b>${esc(o.title)}</b><br><span class="mono muted">${esc(o.id)}</span> · <span class="small muted">${esc(o.sponsor)}</span></td><td>${esc(o.unit)}</td><td class="num">${esc(dl)}</td><td><span class="pill ${b[1]}">${b[0]}</span> <span class="small muted">${rw}</span></td><td><span class="pill ${s[1]}">${s[0]}</span></td><td class="num">${o.vOn?fmt(o.vOn):'—'}</td><td style="min-width:240px">${linksHtml(o)}</td></tr>`;}).join(''):'<tr><td colspan="7" class="muted">Nothing in scope and verified.</td></tr>';
+  $('#heldBody').innerHTML=held.length?held.map(o=>`<tr><td><b>${esc(o.title)}</b><br><span class="mono muted">${esc(o.id)}</span>${linksHtml(o)}</td><td>${reasons(o).map(esc).join('<br>')}</td><td>${!o.verified?`<button class="btn sm" data-verify="${esc(o.id)}" ${linkInfo(o.ann)?'':'disabled'}>Verify (I opened the source)</button>${linkInfo(o.ann)?'':'<div class="small muted">Add an official announcement link first.</div>'}`:'<span class="muted small">None</span>'}</td></tr>`).join(''):'<tr><td colspan="3" class="muted">Nothing held back.</td></tr>';
 }
 $('#heldBody').addEventListener('click',e=>{ const id=e.target.dataset&&e.target.dataset.verify; if(!id) return; const o=opps.find(x=>x.id===id); o.verified=true; o.vOn=today; addLog('Verify',`${id} verified against the official page on ${fmt(today)}`); renderFeed(); });
 $('#btnReingest').addEventListener('click',()=>{
@@ -490,6 +517,22 @@ function renderScan(){
 }
 $('#scanText').value=SCAN_BAD; $('#scanText').addEventListener('input',renderScan); $('#btnScanClean').addEventListener('click',()=>{$('#scanText').value=SCAN_OK;renderScan();});
 
+/* ---------- manual entry ---------- */
+$('#mUnit').innerHTML=COLLEGES.flatMap(c=>c.units).map(u=>`<option>${esc(u)}</option>`).join('');
+let manualN=0;
+$('#btnAdd').addEventListener('click',()=>{
+  const m=$('#addMsg'), title=$('#mTitle').value.trim(), spn=$('#mSponsor').value.trim(), kind=$('#mKind').value, ds=$('#mDate').value, ann=$('#mAnn').value.trim(), spu=$('#mSp').value.trim();
+  if(!title||!spn){ m.textContent='Title and sponsor are required.'; return; }
+  if(kind==='dated'&&!ds){ m.textContent='A dated opportunity needs a deadline date.'; return; }
+  if(ann&&!linkInfo(ann)){ m.textContent='The announcement link must be a valid https address.'; return; }
+  if(spu&&!linkInfo(spu)){ m.textContent='The sponsor link must be a valid https address.'; return; }
+  manualN++; const id='MANUAL-'+String(manualN).padStart(4,'0');
+  opps.push({id,title,sponsor:spn,unit:$('#mUnit').value,kind,deadline:kind==='dated'?new Date(ds+'T00:00:00'):null,verified:false,vOn:null,updated:false,ann,sp:spu});
+  addLog('Manual entry',id+' added as Unverified'+(ann?'':' (no announcement link yet)'));
+  ['#mTitle','#mSponsor','#mDate','#mAnn','#mSp'].forEach(x=>{ $(x).value=''; });
+  m.textContent=id+' added. Find it under Held back and verify it.'; renderFeed();
+});
+
 /* ---------- AI layer + retrieval ---------- */
 const STOP=new Set('the and for are who what which that this with from has have can must before her his their them they you your any all not too but how when will would should could about into than then also its our was were been being does did'.split(' '));
 const tok=t=>(String(t).toLowerCase().match(/[a-z0-9$]+/g)||[]).filter(w=>w.length>1&&!STOP.has(w));
@@ -497,7 +540,7 @@ function buildCorpus(){
   const c=[];
   opps.filter(o=>scope[o.unit]&&o.verified).forEach(o=>{
     const when=o.kind==='dated'?`Deadline ${fmtLong(o.deadline)} (${runway(o.deadline)} days from today, band ${band(o)[0]}).`:o.kind==='rolling'?'Rolling deadline.':'Anticipated next cycle; no confirmed date.';
-    c.push({src:'Feed record '+o.id,text:`${o.id}: ${o.title}. Sponsor: ${o.sponsor}. Unit: ${o.unit}. ${when} Status ${status(o)[0]}. Verified ${fmt(o.vOn)}.`});
+    c.push({src:'Feed record '+o.id,text:`${o.id}: ${o.title}. Sponsor: ${o.sponsor}. Unit: ${o.unit}. ${when} Status ${status(o)[0]}. Verified ${fmt(o.vOn)}. Program announcement: ${o.ann||'none'}. Sponsor site: ${o.sp||'none'}.`});
   });
   $('#nofoText').value.split('\n').forEach((ln,i)=>{ if(ln.trim()) c.push({src:'Solicitation line '+(i+1),text:ln.trim()}); });
   [['A','Dr. Rivera (sample)'],['B','Dr. Okafor (sample)']].forEach(([k,n])=>c.push({src:'PI profile, '+n,text:`${n}: research themes ${PROFILES[k].join(', ')}. Career stage: Missing. Appointment type: Missing.`}));
@@ -534,7 +577,7 @@ async function ask(){
   try{ sample=(window.claude&&window.claude.use)?await window.claude.use('sample'):null; }catch(e){ sample=null; }
   if(!sample){ doSearch(q); $('#aiMode').textContent='The model is not available in this view, so only retrieval ran. Open the published page inside Claude to use it.'; out.innerHTML='<h3>Top retrieved passages</h3>'+passageHtml([...retrieved.values()]); return; }
   aiCtl=new AbortController(); $('#btnAsk').disabled=true; $('#btnAskStop').hidden=false; $('#aiMode').textContent='Thinking...'; out.innerHTML='<div class="answer muted">Retrieving and answering...</div>';
-  const prompt=['You are the answering layer of FORGE SIGNAL, an evidence-first grant opportunity assistant for a university research office.','Rules:','1. Call search_passages first, more than once if needed. Answer ONLY from the passages it returns.','2. Cite every factual statement with the passage id in square brackets, like [P4]. Never cite an id you did not receive.','3. If the passages do not establish a fact, write: NOT FOUND in retrieved sources, verify with the sponsor or institution.','4. Never state that a person or institution IS eligible; use PRELIMINARY or REQUIRES VERIFICATION. Never give award chances, percentages or predictions. Never imply institutional approval.','5. Keep research fit separate from eligibility. Give ADVANCE, INVESTIGATE or PASS only when the passages support a reason, and state the reason.','6. At most 160 words, plain text, no tables.','Today is '+fmtLong(today)+'.','Question: '+q].join('\n');
+  const prompt=['You are the answering layer of FORGE SIGNAL, an evidence-first grant opportunity assistant for a university research office.','Rules:','1. Call search_passages first, more than once if needed. Answer ONLY from the passages it returns.','2. Cite every factual statement with the passage id in square brackets, like [P4]. Never cite an id you did not receive.','3. If the passages do not establish a fact, write: NOT FOUND in retrieved sources, verify with the sponsor or institution.','4. Never state that a person or institution IS eligible; use PRELIMINARY or REQUIRES VERIFICATION. Never give award chances, percentages or predictions. Never imply institutional approval.','5. Keep research fit separate from eligibility. Give ADVANCE, INVESTIGATE or PASS only when the passages support a reason, and state the reason.','6. At most 160 words, plain text, no tables. When you mention an opportunity, include its program announcement link exactly as shown in the passage.','Today is '+fmtLong(today)+'.','Question: '+q].join('\n');
   try{
     const res=await sample(prompt,{signal:aiCtl.signal,modelTier:'quick',
       onText:({text})=>{ const a=out.querySelector('.answer'); if(a){ a.classList.remove('muted'); a.textContent=text; } },
@@ -559,7 +602,7 @@ const RISKS=[
  ['R03','Eligibility overstated','Accuracy',4,4,'Fixed status vocabulary; guardrail blocks "eligible" without confirmed evidence; eligibility rated separately from fit.','Demonstrated',1,4,'panel-guard'],
  ['R04','Award-probability or certainty claims','Accuracy',3,4,'Guardrail blocks percentages, "chance" and "likely to win"; no probability field exists.','Demonstrated',1,4,'panel-guard'],
  ['R05','Stale or expired opportunities shown','Data quality',4,3,'Runway bands from today; closed items leave the active feed; anticipated dates are never shown as deadlines.','Demonstrated',2,2,'panel-feed'],
- ['R06','Unverified records published','Data quality',4,4,'Verify gate: a record cannot enter the feed until a person records the official-page check.','Demonstrated',1,4,'panel-feed'],
+ ['R06','Unverified records published','Data quality',4,4,'Verify gate: a record cannot enter the feed until a person records the official-page check, and Verify stays disabled until an announcement link is on file.','Demonstrated',1,4,'panel-feed'],
  ['R07','Duplicate records','Data quality',4,2,'Opportunity number is the key; re-ingestion merges instead of adding.','Demonstrated',1,2,'panel-feed'],
  ['R08','Out-of-scope units or people surfaced','Access',3,3,'Admin scope filters feed, matching and briefs; every scope change needs a logged reason.','Demonstrated',1,3,'panel-scope'],
  ['R09','Restricted data entered (SSN, card, health)','Privacy',3,5,'Upload scanner blocks and redacts; warnings on every upload screen.','Demonstrated',2,5,'panel-scan'],

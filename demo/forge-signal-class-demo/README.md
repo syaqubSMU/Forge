@@ -12,3 +12,7 @@ Standalone, no-build demo for the Generative AI class. Open `index.html` in a br
 
 Preliminary screening only: not institutional approval, legal advice or a final eligibility determination.
 Before wider use, review accessibility (WCAG 2.1 AA), SSO, data protection, hosting and ownership with SMU OIT.
+
+## Links
+
+Every record carries a program announcement link and a sponsor site link, labelled by BRD source tier (official domain, institutional, or a lead to verify). Sample records use `example.org` placeholders. Use "Add a record" to enter a real opportunity with real links; Verify stays disabled until an announcement link is on file.

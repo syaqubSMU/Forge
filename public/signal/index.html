@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FORGE SIGNAL — Federal Grant Discovery for University Research Teams</title>
+<meta name="description" content="FORGE SIGNAL helps university researchers and research administrators discover, filter and save federal funding opportunities in one place.">
+<link rel="icon" href="assets/logo-dark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+<header class="nav"><div class="wrap">
+ <a class="brand" href="index.html" aria-label="FORGE SIGNAL home"><svg width="30" height="26" viewBox="0 0 30 26" aria-hidden="true" fill="none" stroke="#F28C28" stroke-width="2.4" stroke-linecap="round"><path d="M7 11a11 11 0 0 1 16 0"/><path d="M10.5 15a6 6 0 0 1 9 0"/><circle cx="15" cy="20" r="2" fill="#F28C28" stroke="none"/></svg><span>FORGE<small>SIGNAL</small></span></a>
+ <nav aria-label="Main"><ul><li><a href="index.html" aria-current="page">Home</a></li><li><a href="#explorer">Try it</a></li><li><a href="about.html">About SIGNAL</a></li></ul></nav>
+</div></header>
+
+<main id="main">
+<section class="hero" style="padding:0;background-image:url(assets/poster.jpg)">
+ <video id="hv" autoplay muted loop playsinline preload="auto" poster="assets/poster.jpg" aria-label="Animated FORGE SIGNAL brand introduction"><source src="assets/forge-signal-hero.mp4" type="video/mp4"></video>
+ <div class="wrap">
+  <p class="eyebrow">Grant discovery, simplified</p>
+  <h1>Find the right funding signal.</h1>
+  <p class="lead">FORGE SIGNAL gives university researchers and research administrators one searchable view of selected official U.S. federal funding opportunities, with clear sources and no login required.</p>
+  <div class="btns"><a class="btn" href="about.html">Learn More About SIGNAL →</a><a class="btn ghost" href="#explorer">Try the Explorer</a></div>
+ </div>
+ <button class="vctl" id="vb" type="button" aria-pressed="false">Pause video</button>
+</section>
+
+<section class="band"><div class="wrap">
+ <h2>The problem: too many opportunities, too little time</h2>
+ <div class="cards">
+  <div class="card"><h3>Scattered announcements</h3><p>Solicitations, deadlines and guidelines live across sponsor portals, PDFs and spreadsheets.</p></div>
+  <div class="card"><h3>Hard to scan</h3><p>Teams need to filter by sponsor, status and deadline without opening dozens of tabs.</p></div>
+  <div class="card"><h3>Easy to lose</h3><p>Promising opportunities get forgotten. SIGNAL lets you save a shortlist right in your browser.</p></div>
+ </div>
+</div></section>
+
+<section id="explorer"><div class="wrap">
+ <h2>Signal Explorer</h2>
+ <p class="note"><strong>Illustrative demo.</strong> The records below are fictional SAMPLE data created for this class project. They are not real funding opportunities. Always verify requirements in the sponsor announcement.</p>
+ <div class="xf" style="margin-top:16px">
+  <div class="tabs" role="group" aria-label="View">
+   <button class="tab" type="button" data-view="discover" aria-pressed="true">Discover</button>
+   <button class="tab" type="button" data-view="saved" aria-pressed="false">Saved (<span id="savedN">0</span>)</button>
+  </div>
+  <div id="filters" class="tools">
+   <div class="q"><label for="q">Search</label><input id="q" type="search" placeholder="Search research topics, sponsors, or opportunity numbers"></div>
+   <div><label for="sp">Sponsor</label><select id="sp"><option value="">All sponsors</option></select></div>
+   <div><label for="st">Status</label><select id="st"><option value="">All statuses</option><option value="open">Open / verify</option><option value="forecasted">Forecasted</option></select></div>
+   <div><label for="lt">Minimum lead time</label><select id="lt"><option value="30">30 days (default)</option><option value="0">None</option><option value="60">60 days</option><option value="90">90 days</option></select></div>
+  </div>
+  <div id="chips" class="chips" aria-label="Active filters"></div>
+  <p id="count" class="meta" aria-live="polite"></p>
+  <div id="results"></div>
+ </div>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+ <div class="xdesc"><strong>X-Factor: Signal Explorer.</strong> Search sample funding opportunities, filter by sponsor, status and minimum lead time, and save a shortlist that persists in your browser. It previews SIGNAL's discover, filter and save workflow.</div>
+ <p>© 2026 FORGE SIGNAL · Class project (SMU Cox MS in AI in Business). Not a real product; sample data only. <a href="about.html">About SIGNAL</a></p>
+</div></footer>
+<script>
+var v=document.getElementById("hv"),b=document.getElementById("vb");
+v.muted=true;var p=v.play();if(p&&p.catch)p.catch(function(){});
+b.onclick=function(){if(v.paused){v.play();b.textContent="Pause video";b.setAttribute("aria-pressed","false");}else{v.pause();b.textContent="Play video";b.setAttribute("aria-pressed","true");}};
+</script>
+<script src="explorer.js"></script>
+<script src="chat.js"></script>
+</body>
+</html>

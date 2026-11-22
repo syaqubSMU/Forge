@@ -89,6 +89,9 @@ label{font-weight:500;font-size:.85rem}
 .flow .arr{align-self:center;color:var(--muted)}
 ul.clean{margin:0;padding-left:18px} ul.clean li{margin-bottom:4px}
 code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:1px 5px;border-radius:4px}
+.passage{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:6px 0;font-size:.84rem;background:var(--surface)}
+.passage b{font-family:var(--font-mono);font-size:.78rem;color:var(--accent)}
+.answer{white-space:pre-wrap;background:var(--code-bg);border-radius:8px;padding:12px;font-size:.92rem}
 footer{margin-top:32px;font-size:.8rem;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
 .small{font-size:.82rem}
 </style>
@@ -127,6 +130,7 @@ footer{margin-top:32px;font-size:.8rem;color:var(--muted);border-top:1px solid v
         <li><b>Live demo, scope:</b> switch Cox School on and off and watch the feed change.</li>
         <li><b>Live demo, feed:</b> verify the held-back record, then simulate a deadline change.</li>
         <li><b>Live demo, assessment:</b> delete the indirect-cost line and the eligibility line; watch NOT FOUND and the label change.</li>
+        <li><b>Live demo, AI layer:</b> ask the sample question, then read the retrieved passages and the Critic result. Turn Cox School on and ask about business analytics.</li>
         <li><b>Live demo, guardrails:</b> run the bad sentence, then the safe one; paste the injection sample into the scanner.</li>
         <li><b>Risk register:</b> every row names the control and links to where it runs.</li>
       </ol>
@@ -135,8 +139,9 @@ footer{margin-top:32px;font-size:.8rem;color:var(--muted);border-top:1px solid v
       <h3>What is real and what is simulated</h3>
       <ul class="clean">
         <li><b>Live code:</b> scope filtering, runway bands, deduplication, verify gate, change log, quote-or-NOT-FOUND extraction, decision rule, guardrail checker, data scanner.</li>
-        <li><b>Stand-ins:</b> a rule-based extractor plays the part of the LLM; opportunities, PIs and the NOFO text are invented samples marked SAMPLE.</li>
-        <li><b>Not included:</b> live sponsor feeds, a real model call, sign-in. Section "Agents and RAG" shows what replaces the stand-ins.</li>
+        <li><b>Real AI layer:</b> the Ask SIGNAL panel calls a real model through your Claude account. The model retrieves passages with a search tool, cites them, and a Critic checks the answer. Where the model is unavailable it falls back to retrieval only.</li>
+        <li><b>Stand-ins:</b> the assessment extractor is rule-based; opportunities, PIs and the NOFO text are invented samples marked SAMPLE.</li>
+        <li><b>Not included:</b> live retrieval from sponsor websites (a published page cannot call other sites, so this needs a backend), sign-in. Section "Agents and RAG" shows what replaces the stand-ins.</li>
       </ul>
     </div>
   </div>
@@ -199,6 +204,16 @@ footer{margin-top:32px;font-size:.8rem;color:var(--muted);border-top:1px solid v
     <p class="small muted" id="ovMsg" aria-live="polite"></p>
   </div>
 
+  <div class="card" id="panel-ai">
+    <header><span class="tag">AI layer + retrieval · controls R02, R17</span><h3>Ask SIGNAL</h3>
+    <p class="muted small">A real model answers using only passages it retrieves from the in-scope, verified feed, the solicitation above and the PI profiles. Every claim must cite a passage. The Critic blocks answers that are uncited or break the language rules.</p></header>
+    <div class="row"><label for="aiQ">Question</label>
+      <input type="text" id="aiQ" style="flex:1;min-width:240px" value="Which verified opportunities fit Dr. Rivera, and what must be checked before contacting her?">
+      <button class="btn" id="btnAsk">Ask</button><button class="btn sec sm" id="btnAskStop" hidden>Stop</button></div>
+    <p class="small muted" id="aiMode" aria-live="polite"></p>
+    <div id="aiOut" aria-live="polite"></div>
+  </div>
+
   <div class="grid2">
     <div class="card" id="panel-guard">
       <header><span class="tag">Guardrail checker · controls R03, R04</span><h3>Check a draft before it is saved</h3></header>
@@ -219,7 +234,7 @@ footer{margin-top:32px;font-size:.8rem;color:var(--muted);border-top:1px solid v
 <!-- RISKS -->
 <section class="panel" id="tab-risks" hidden>
   <h2>Risk register</h2>
-  <p>Sixteen risks, each with a control built into the system. Residual risk counts only where the control exists and has been shown working. A control that is still open keeps its inherent score.</p>
+  <p>Eighteen risks, each with a control built into the system. Residual risk counts only where the control exists and has been shown working. A control that is still open keeps its inherent score.</p>
   <div class="kpis" id="riskKpis"></div>
   <div class="row">
     <label for="riskFilter">Show</label>
@@ -280,6 +295,15 @@ footer{margin-top:32px;font-size:.8rem;color:var(--muted);border-top:1px solid v
         <li><b>Freshness:</b> every chunk keeps its fetch date; stale chunks are re-verified before use.</li>
       </ul></div>
   </div>
+
+  <div class="card"><h3>Live retrieval in the product</h3>
+    <p>A chat assistant with web search shows the pattern: a model calls a search tool and answers from what it finds. FORGE SIGNAL uses the same pattern, with four differences the BRD requires.</p>
+    <ul class="clean">
+      <li><b>Official sources only:</b> a retrieval service fetches from an allowlist of sponsor domains such as Grants.gov, NSF and NIH, and tags each page with its BRD source tier and fetch date. Third-party listings are leads, never evidence.</li>
+      <li><b>Tools, not open browsing:</b> the model gets search_official_sources, fetch_page and search_passages. The service stores what it fetched, so every answer can be replayed and audited.</li>
+      <li><b>Verify before publish:</b> a retrieved fact still needs a person's Verify click before it enters the feed.</li>
+      <li><b>Approved service:</b> the model and search provider must be approved by OIT for Private data before real use.</li>
+    </ul></div>
 
   <div class="card"><h3>How you will know it works</h3>
     <ul class="clean">
@@ -466,6 +490,68 @@ function renderScan(){
 }
 $('#scanText').value=SCAN_BAD; $('#scanText').addEventListener('input',renderScan); $('#btnScanClean').addEventListener('click',()=>{$('#scanText').value=SCAN_OK;renderScan();});
 
+/* ---------- AI layer + retrieval ---------- */
+const STOP=new Set('the and for are who what which that this with from has have can must before her his their them they you your any all not too but how when will would should could about into than then also its our was were been being does did'.split(' '));
+const tok=t=>(String(t).toLowerCase().match(/[a-z0-9$]+/g)||[]).filter(w=>w.length>1&&!STOP.has(w));
+function buildCorpus(){
+  const c=[];
+  opps.filter(o=>scope[o.unit]&&o.verified).forEach(o=>{
+    const when=o.kind==='dated'?`Deadline ${fmtLong(o.deadline)} (${runway(o.deadline)} days from today, band ${band(o)[0]}).`:o.kind==='rolling'?'Rolling deadline.':'Anticipated next cycle; no confirmed date.';
+    c.push({src:'Feed record '+o.id,text:`${o.id}: ${o.title}. Sponsor: ${o.sponsor}. Unit: ${o.unit}. ${when} Status ${status(o)[0]}. Verified ${fmt(o.vOn)}.`});
+  });
+  $('#nofoText').value.split('\n').forEach((ln,i)=>{ if(ln.trim()) c.push({src:'Solicitation line '+(i+1),text:ln.trim()}); });
+  [['A','Dr. Rivera (sample)'],['B','Dr. Okafor (sample)']].forEach(([k,n])=>c.push({src:'PI profile, '+n,text:`${n}: research themes ${PROFILES[k].join(', ')}. Career stage: Missing. Appointment type: Missing.`}));
+  return c;
+}
+function searchCorpus(corpus,query,k){
+  const q=tok(query), N=corpus.length, docs=corpus.map(d=>tok(d.text)), df={};
+  docs.forEach(ts=>new Set(ts).forEach(t=>{df[t]=(df[t]||0)+1;}));
+  const avg=docs.reduce((a,d)=>a+d.length,0)/N||1;
+  return docs.map((ts,i)=>{ let sc=0; q.forEach(t=>{ const f=ts.filter(x=>x===t).length; if(!f) return; const n=df[t]||0; sc+=Math.log(1+(N-n+.5)/(n+.5))*(f*2.2)/(f+1.2*(.25+.75*ts.length/avg)); }); return {i,sc}; })
+    .filter(x=>x.sc>0).sort((a,b)=>b.sc-a.sc).slice(0,k).map(x=>({id:'P'+(x.i+1),source:corpus[x.i].src,text:corpus[x.i].text}));
+}
+function critic(text,retrieved){
+  const cites=[...text.matchAll(/\[(P\d+)\]/g)].map(m=>m[1]); const bad=[...new Set(cites.filter(c=>!retrieved.has(c)))];
+  const checks=[[cites.length>0,'Cites at least one retrieved passage'],[bad.length===0,'Every citation matches a passage that was retrieved'+(bad.length?' (unknown: '+bad.join(', ')+')':'')]];
+  RULES.forEach(r=>{ const hit=r[1](text); checks.push([r[0].startsWith('Deadline')?!(hit&&cites.length===0):!hit,r[0]]); });
+  return checks;
+}
+function passageHtml(list){ return list.length?list.map(p=>`<div class="passage"><b>[${p.id}]</b> <span class="muted">${esc(p.source)}</span><br>${esc(p.text)}</div>`).join(''):'<p class="muted small">None retrieved.</p>'; }
+function renderAI(text,retrieved,trace){
+  const checks=critic(text,retrieved), fails=checks.filter(c=>!c[0]).length;
+  $('#aiOut').innerHTML=`<div class="answer">${esc(text)}</div>`
+   +`<div class="callout ${fails?'bad':'ok'}"><b>Critic: ${fails?`blocked, ${fails} issue${fails>1?'s':''}, answer not saved`:'passed, safe to save'}</b></div>`
+   +`<ul class="clean small">${checks.map(c=>`<li><span class="pill ${c[0]?'p-good':'p-crit'}">${c[0]?'PASS':'FAIL'}</span> ${esc(c[1])}</li>`).join('')}</ul>`
+   +`<h3 style="margin-top:14px">Retrieved passages (the evidence)</h3>`+passageHtml([...retrieved.values()])
+   +`<h3 style="margin-top:14px">Tool trace</h3><ul class="clean small mono">${trace.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`;
+}
+let aiCtl=null;
+async function ask(){
+  const q=$('#aiQ').value.trim(); if(!q) return;
+  const corpus=buildCorpus(), retrieved=new Map(), trace=[], out=$('#aiOut');
+  const doSearch=query=>{ const r=searchCorpus(corpus,query,5); r.forEach(p=>retrieved.set(p.id,p)); trace.push(`search_passages("${query}") returned ${r.length?r.map(p=>p.id).join(', '):'no passages'}`); return r; };
+  let sample=null;
+  try{ sample=(window.claude&&window.claude.use)?await window.claude.use('sample'):null; }catch(e){ sample=null; }
+  if(!sample){ doSearch(q); $('#aiMode').textContent='The model is not available in this view, so only retrieval ran. Open the published page inside Claude to use it.'; out.innerHTML='<h3>Top retrieved passages</h3>'+passageHtml([...retrieved.values()]); return; }
+  aiCtl=new AbortController(); $('#btnAsk').disabled=true; $('#btnAskStop').hidden=false; $('#aiMode').textContent='Thinking...'; out.innerHTML='<div class="answer muted">Retrieving and answering...</div>';
+  const prompt=['You are the answering layer of FORGE SIGNAL, an evidence-first grant opportunity assistant for a university research office.','Rules:','1. Call search_passages first, more than once if needed. Answer ONLY from the passages it returns.','2. Cite every factual statement with the passage id in square brackets, like [P4]. Never cite an id you did not receive.','3. If the passages do not establish a fact, write: NOT FOUND in retrieved sources, verify with the sponsor or institution.','4. Never state that a person or institution IS eligible; use PRELIMINARY or REQUIRES VERIFICATION. Never give award chances, percentages or predictions. Never imply institutional approval.','5. Keep research fit separate from eligibility. Give ADVANCE, INVESTIGATE or PASS only when the passages support a reason, and state the reason.','6. At most 160 words, plain text, no tables.','Today is '+fmtLong(today)+'.','Question: '+q].join('\n');
+  try{
+    const res=await sample(prompt,{signal:aiCtl.signal,modelTier:'quick',
+      onText:({text})=>{ const a=out.querySelector('.answer'); if(a){ a.classList.remove('muted'); a.textContent=text; } },
+      tools:[{name:'search_passages',description:'Search the in-scope, verified FORGE SIGNAL corpus: feed records, the solicitation text and PI profiles. Returns up to 5 passages, each with an id such as P3, a source and text. Call it before answering and again with different words if the first results are thin.',inputSchema:{type:'object',properties:{query:{type:'string',description:'Words to search for'}},required:['query']},execute:async inp=>doSearch(String((inp&&inp.query)||q))}]});
+    $('#aiMode').textContent='Answered by the model using live retrieval over the in-scope, verified corpus.'+(res.truncated?' The answer was cut short.':'');
+    renderAI(res.text,retrieved,trace);
+  }catch(e){
+    const copy={not_granted:'Claude access was not allowed for this page. The rest of the demo still works.',sampling_disabled:'Claude is not available for this account.',rate_limited:'Too many requests. Try again in a moment.',cancelled:'Stopped.',session_expired:'Sign in again to use the model.'};
+    $('#aiMode').textContent=copy[e&&e.code]||'The AI call failed and nothing was saved. Try again.';
+    out.innerHTML=trace.length?'<h3>Passages retrieved before the stop</h3>'+passageHtml([...retrieved.values()]):'';
+  }finally{ $('#btnAsk').disabled=false; $('#btnAskStop').hidden=true; aiCtl=null; }
+}
+$('#btnAsk').addEventListener('click',ask);
+$('#aiQ').addEventListener('keydown',e=>{ if(e.key==='Enter') ask(); });
+$('#btnAskStop').addEventListener('click',()=>{ if(aiCtl) aiCtl.abort(); });
+$('#aiMode').textContent='Runs on your own Claude account when you click Ask; the first use asks your permission.';
+
 /* ---------- risks ---------- */
 const RISKS=[
  ['R01','AI service not approved for Private data','Governance',3,5,'Build starts only after OIT confirms the service; the AI step can be stubbed so the rest still runs.','Open',null,null,null],
@@ -483,7 +569,9 @@ const RISKS=[
  ['R13','Source outage or page format change','Reliability',3,3,'Failed source marks records UNVERIFIED; manual entry uses the same fields and gate.','Designed',2,2,null],
  ['R14','Prototype mistaken for a production system','Governance',3,4,'Prototype banner on every page; OIT hosting, SSO and accessibility review before wider use.','Designed',2,3,null],
  ['R15','Interface not accessible','Compliance',3,3,'Target WCAG 2.1 AA; keyboard and contrast checks. This page is built for it, but no formal audit has been run.','Open',null,null,null],
- ['R16','Matching based on department name alone','Fairness',3,3,'A match must show the shared evidence; with none, the rating is Weak/unknown, not a guess.','Demonstrated',2,3,'panel-assess']
+ ['R16','Matching based on department name alone','Fairness',3,3,'A match must show the shared evidence; with none, the rating is Weak/unknown, not a guess.','Demonstrated',2,3,'panel-assess'],
+ ['R17','Model answers without using, or against, the retrieved sources','Accuracy',4,4,'The model must call retrieval and cite passage ids; the Critic blocks answers with no citation or an unknown one.','Demonstrated',2,3,'panel-ai'],
+ ['R18','Live web retrieval returns unofficial or outdated pages','Data quality',4,4,'Retrieval service limited to an allowlist of official sponsor domains; every chunk keeps its source tier and fetch date. Needs a backend, so it is not live in this static page.','Designed',2,3,null]
 ];
 let riskFilter='all';
 function renderRisks(){

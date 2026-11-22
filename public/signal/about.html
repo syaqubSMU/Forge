@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>About SIGNAL — Scope, Sources and Roadmap | FORGE SIGNAL</title>
+<meta name="description" content="What FORGE SIGNAL v0.1 does, the data it uses, what it deliberately leaves out, and how it will be validated.">
+<link rel="icon" href="assets/logo-dark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+<header class="nav solid"><div class="wrap">
+ <a class="brand" href="index.html" aria-label="FORGE SIGNAL home"><svg width="30" height="26" viewBox="0 0 30 26" aria-hidden="true" fill="none" stroke="#F28C28" stroke-width="2.4" stroke-linecap="round"><path d="M7 11a11 11 0 0 1 16 0"/><path d="M10.5 15a6 6 0 0 1 9 0"/><circle cx="15" cy="20" r="2" fill="#F28C28" stroke="none"/></svg><span>FORGE<small>SIGNAL</small></span></a>
+ <nav aria-label="Main"><ul><li><a href="index.html">Home</a></li><li><a href="index.html#explorer">Try it</a></li><li><a href="about.html" aria-current="page">About SIGNAL</a></li></ul></nav>
+</div></header>
+<main id="main">
+<section><div class="wrap">
+ <p class="eyebrow" style="color:#c2563a">About the project</p>
+ <h1>What FORGE SIGNAL is, and what it is not</h1>
+ <p style="font-size:1.15rem;max-width:68ch">FORGE SIGNAL v0.1 is a lightweight, public grant discovery application for university research teams. It indexes a limited, clearly disclosed set of U.S. federal funding opportunity records, makes them searchable and filterable, shows normalized details with links to the official announcement, and lets users save a shortlist in their browser. Its value is a fast, reliable discovery experience backed by clear provenance and freshness information.</p>
+ <p><a class="btn dark" href="index.html">← Back to home</a></p>
+</div></section>
+
+<section class="band"><div class="wrap">
+ <h2>Who it serves</h2>
+ <div class="cards">
+  <div class="card"><h3>Research administrators</h3><p>Find opportunities to share with faculty using broad search, sponsor filters, deadlines and official links.</p></div>
+  <div class="card"><h3>Faculty researchers</h3><p>Discover opportunities by topic with readable details and a saved list.</p></div>
+  <div class="card"><h3>Department administrators</h3><p>Track upcoming deadlines and revisit a chosen shortlist.</p></div>
+  <div class="card"><h3>Research development staff</h3><p>Scan across sponsors and disciplines with multiple filters and visible provenance.</p></div>
+ </div>
+</div></section>
+
+<section><div class="wrap">
+ <h2>Core capabilities in v0.1</h2>
+ <ul class="lists">
+  <li><strong>Discover and search:</strong> by title, synopsis, sponsor, opportunity number and program metadata.</li>
+  <li><strong>Filter:</strong> sponsor, research area, status, funding instrument and deadline, with a default 30-day minimum lead time users can change or remove.</li>
+  <li><strong>Inspect:</strong> structured details with unknown fields shown as "Not specified", plus a prominent link to the official announcement.</li>
+  <li><strong>Save:</strong> save and remove opportunities with no account. Saves live in the browser's local storage, so they are specific to that browser and device.</li>
+ </ul>
+ <h2 style="margin-top:36px">Trust and data integrity</h2>
+ <ul class="lists">
+  <li>Primary source is the public Grants.gov opportunity API, called from the server, never from the browser.</li>
+  <li>Every record carries its source system, source ID, source link and last-verified time, or an explicit missing state.</li>
+  <li>SIGNAL never invents a deadline, award amount, eligibility or status. Missing values stay visibly missing.</li>
+  <li>A failed sync never overwrites valid cached data, and the last successful refresh time is always shown.</li>
+ </ul>
+</div></section>
+
+<section class="band"><div class="wrap">
+ <h2>Coverage and limitations</h2>
+ <p class="note">SIGNAL currently indexes selected official federal sources. Always verify requirements in the sponsor announcement. It does not claim to list all federal funding opportunities.</p>
+ <p>NSF opportunities will be validated against NSF's official Funding Search using a test set of at least 20 active records. Where Grants.gov coverage has material gaps, SIGNAL will link out to NSF rather than imply complete automated coverage.</p>
+ <table>
+  <caption style="text-align:left;font-weight:600;padding:8px 0">Scope boundaries for release 0.1</caption>
+  <thead><tr><th scope="col">In scope</th><th scope="col">Deliberately out of scope</th></tr></thead>
+  <tbody><tr>
+   <td>Public discovery, search and filters<br>Opportunity detail with source links<br>Saved list in the browser<br>Freshness and coverage disclosure<br>Responsive, accessible layout</td>
+   <td>PI matching or recommendations<br>Eligibility determinations<br>Alerts and reminders<br>Proposal or award management<br>Institutional system integrations</td>
+  </tr></tbody>
+ </table>
+</div></section>
+
+<section><div class="wrap">
+ <h2>Planned architecture</h2>
+ <p>A Next.js and React front end, a Python FastAPI backend, a PostgreSQL database with full-text search, and a scheduled Python worker that syncs and normalizes Grants.gov records while retaining the raw payloads. Browse the live demo on the <a href="index.html#explorer">home page</a>; it uses fictional sample data only.</p>
+ <h2 style="margin-top:36px">Questions?</h2>
+ <p>Use the chat assistant at the bottom right of this page. Please do not enter confidential or restricted information.</p>
+</div></section>
+</main>
+<footer><div class="wrap"><p>© 2026 FORGE SIGNAL · Class project (SMU Cox MS in AI in Business). Not a real product; sample data only. <a href="index.html">Home</a></p></div></footer>
+<script src="chat.js"></script>
+</body>
+</html>

@@ -12,16 +12,28 @@
 </head>
 <body>
 <a class="skip" href="#main">Skip to main content</a>
-<header class="nav solid"><div class="wrap">
+<header class="nav"><div class="wrap">
  <a class="brand" href="index.html" aria-label="FORGE SIGNAL home"><svg width="30" height="26" viewBox="0 0 30 26" aria-hidden="true" fill="none" stroke="#F28C28" stroke-width="2.4" stroke-linecap="round"><path d="M7 11a11 11 0 0 1 16 0"/><path d="M10.5 15a6 6 0 0 1 9 0"/><circle cx="15" cy="20" r="2" fill="#F28C28" stroke="none"/></svg><span>FORGE<small>SIGNAL</small></span></a>
  <nav aria-label="Main"><ul><li><a href="index.html">Home</a></li><li><a href="index.html#explorer">Try it</a></li><li><a href="about.html" aria-current="page">About SIGNAL</a></li></ul></nav>
 </div></header>
 <main id="main">
+<section class="hero">
+ <div class="wrap hero-grid">
+  <div class="hero-text">
+   <p class="eyebrow">About the project</p>
+   <h1>What FORGE SIGNAL is, and what it is not</h1>
+   <p class="lead">A lightweight, public grant discovery application for university research teams, built on clear sources, honest coverage and no invented data.</p>
+   <div class="btns"><a class="btn" href="index.html#explorer">Try the Explorer</a><a class="btn ghost" href="index.html">← Back to home</a></div>
+  </div>
+  <figure class="hero-video">
+   <video id="hv" autoplay muted loop playsinline preload="auto" poster="assets/poster.jpg" aria-label="FORGE SIGNAL explainer video: too many opportunities, discover and match, FORGE SIGNAL"><source src="assets/forge-signal-explainer.mp4" type="video/mp4"></video>
+   <button class="vctl" id="vb" type="button" aria-pressed="false">Pause video</button>
+  </figure>
+ </div>
+</section>
+
 <section><div class="wrap">
- <p class="eyebrow" style="color:#c2563a">About the project</p>
- <h1>What FORGE SIGNAL is, and what it is not</h1>
  <p style="font-size:1.15rem;max-width:68ch">FORGE SIGNAL v0.1 is a lightweight, public grant discovery application for university research teams. It indexes a limited, clearly disclosed set of U.S. federal funding opportunity records, makes them searchable and filterable, shows normalized details with links to the official announcement, and lets users save a shortlist in their browser. Its value is a fast, reliable discovery experience backed by clear provenance and freshness information.</p>
- <p><a class="btn dark" href="index.html">← Back to home</a></p>
 </div></section>
 
 <section class="band"><div class="wrap">
@@ -73,6 +85,11 @@
 </div></section>
 </main>
 <footer><div class="wrap"><p>© 2026 FORGE SIGNAL · Class project (SMU Cox MS in AI in Business). Not a real product; sample data only. <a href="index.html">Home</a></p></div></footer>
+<script>
+var v=document.getElementById("hv"),b=document.getElementById("vb");
+v.muted=true;var p=v.play();if(p&&p.catch)p.catch(function(){});
+b.onclick=function(){if(v.paused){v.play();b.textContent="Pause video";b.setAttribute("aria-pressed","false");}else{v.pause();b.textContent="Play video";b.setAttribute("aria-pressed","true");}};
+</script>
 <script src="chat.js"></script>
 </body>
 </html>

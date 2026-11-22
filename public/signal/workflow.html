@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SIGNAL Workflow — Match and Calendar | FORGE SIGNAL</title>
+<meta name="description" content="Run both SIGNAL workflows: opportunity to faculty, and faculty to opportunities. Builds the prompt and an outreach calendar.">
+<link rel="icon" href="assets/logo-dark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css?v=5">
+<style>
+.pane{margin:16px 0}.pane[hidden]{display:none}
+label{display:block;font-weight:600;margin:12px 0 4px}
+textarea{width:100%;min-height:110px;padding:10px;border:1px solid #9fb0c0;border-radius:6px;font:inherit}
+pre{white-space:pre-wrap;background:var(--soft);border:1px solid #dde5ec;border-radius:8px;padding:14px;font-size:.88rem;max-height:420px;overflow:auto}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+table{border-collapse:collapse;width:100%;margin:12px 0}th,td{border:1px solid #dde5ec;padding:8px;text-align:left;font-size:.92rem}
+.sr{position:absolute;left:-9999px}</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+<header class="nav"><div class="wrap">
+ <a class="brand" href="index.html" aria-label="FORGE SIGNAL home"><span>FORGE<small>SIGNAL</small></span></a>
+ <nav aria-label="Main"><ul><li><a href="index.html">Home</a></li><li><a href="workflow.html" aria-current="page">Workflow</a></li><li><a href="about.html">About SIGNAL</a></li></ul></nav>
+</div></header>
+<main id="main"><div class="wrap">
+<h1>SIGNAL workflow</h1>
+<p class="note">Prototype. Runs in your browser; nothing is sent or stored on a server. It builds a prompt for you to run in an approved AI tool and a calendar file. A person reviews every result before anything goes to a PI or chair. Use Public or Private data only (no Restricted data).</p>
+
+<div class="tabs" role="group" aria-label="Choose workflow">
+ <button class="tab" type="button" data-p="b" aria-pressed="true">Opportunity → Faculty</button>
+ <button class="tab" type="button" data-p="a" aria-pressed="false">Faculty → Opportunities</button>
+ <button class="tab" type="button" data-p="c" aria-pressed="false">Calendar</button>
+</div>
+
+<section id="pb" class="pane">
+ <h2>Path B: a new opportunity needs matching to faculty</h2>
+ <label for="b_link">Funding opportunity link(s)</label><input id="b_link" placeholder="https://www.grants.gov/... or sponsor page">
+ <label for="b_text">NOFO text or excerpts (optional if the link is readable)</label><textarea id="b_text"></textarea>
+ <label for="b_dept">Departments to consider (optional)</label><input id="b_dept" placeholder="e.g. Biological Sciences, Physics, History">
+</section>
+
+<section id="pa" class="pane" hidden>
+ <h2>Path A: a PI asks what is coming up</h2>
+ <div class="row">
+  <div><label for="a_pi">PI name</label><input id="a_pi"></div>
+  <div><label for="a_dept">Department</label><input id="a_dept"></div>
+  <div><label for="a_stage">Career stage</label><input id="a_stage" placeholder="optional"></div>
+ </div>
+ <label for="a_topics">Research interests confirmed by the PI (their words)</label><textarea id="a_topics"></textarea>
+ <div class="row">
+  <div><label for="a_sp">Preferred sponsors</label><input id="a_sp" placeholder="NSF, NIH, NEH..."></div>
+  <div><label for="a_win">Window</label><select id="a_win"><option>next 60 days</option><option selected>next 90 days</option><option>next 6 months</option><option>next 12 months</option></select></div>
+ </div>
+</section>
+
+<section id="pcal" class="pane" hidden>
+ <h2>Outreach calendar</h2>
+ <p>Enter a sponsor deadline to generate working-backward milestones. Offsets are <strong>placeholders</strong>; replace them with Research Development's actual internal policy.</p>
+ <div class="row">
+  <div><label for="c_title">Opportunity</label><input id="c_title" placeholder="Short title"></div>
+  <div><label for="c_date">Sponsor deadline</label><input id="c_date" type="date"></div>
+  <div><label for="c_url">Sponsor link</label><input id="c_url"></div>
+ </div>
+ <table><caption class="sr">Milestones</caption><thead><tr><th>Milestone</th><th>Days before deadline</th><th>Date</th></tr></thead><tbody id="c_rows"></tbody></table>
+ <button class="btn dark" type="button" id="c_ics">Download calendar (.ics)</button>
+ <p class="note" style="margin-top:12px">Verify the deadline on the sponsor page first. Time of day and time zone are set by the sponsor; these are all-day reminders.</p>
+</section>
+
+<section id="out" class="pane">
+ <h2 id="out_h">Prompt to run</h2>
+ <pre id="prompt" tabindex="0"></pre>
+ <button class="btn dark" type="button" id="copy">Copy prompt</button> <span id="msg" role="status"></span>
+ <h3>Before sending anything</h3>
+ <ul><li>Confirm deadline and eligibility on the sponsor page.</li><li>Confirm every High/Medium match against the quoted evidence.</li><li>Confirm profiles are Verified; the AI may not rate unverified profiles High.</li><li>Edit and send the email yourself. This is an informational alert, not a mandate.</li></ul>
+</section>
+</div></main>
+<footer><div class="wrap"><p>© 2026 FORGE SIGNAL · Class project. <a href="index.html">Home</a></p></div></footer>
+<script src="workflow.js"></script>
+</body>
+</html>

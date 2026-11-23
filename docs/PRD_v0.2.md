@@ -150,6 +150,7 @@ Two kinds of input are kept apart. **Criteria** (the rubric, source hierarchy, s
 | FR-44 | **Words:** Direct and Very strong show **High**; Strong shows **Medium**; Conditional shows **Low**; Excluded is hidden from results and kept in the run log. |
 | FR-45 | **Transparency:** each result lists the factor values, the quote behind each, and the rule that fired. A factor with no supported quote defaults to the conservative value (centrality "none" or repositioning "stretch" cannot be assumed away; unsupported claims reduce the tier). |
 | FR-46 | **Eligibility is separate from fit.** It uses the stated career-stage, citizenship, institutional and team conditions and is "Needs verification" when sources are silent. Only a stated career-stage exclusion removes an item from fit results. |
+| FR-48 | **Publish gate:** a rubric can be published only if it passes validation (every factor combination gets a tier; no unreachable rules; known names only), has at least one worked example, and all its worked examples pass. Each run logs the `rubric_version` (content hash) and the IDs of the rules that fired. |
 | FR-47 | **Admin-editable:** the tier rules, the factor definitions and the positioning-rule templates are part of the fit criteria in section 5.8 (draft, diff, publish, versioned). |
 
 | Centrality | Repositioning | PI can lead | Tier | Shown as |

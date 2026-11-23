@@ -139,6 +139,30 @@ Two kinds of input are kept apart. **Criteria** (the rubric, source hierarchy, s
 - Computed by code: days to next date, rolling vs fixed grouping, 45-day action list.
 - Not feasible to automate fully by Dec 2: open-ended web discovery across foundations, Halo, ProposalCentral and GrantWatch; verification of every lead against its official page. Pilot approach: Grants.gov live plus a curated list of official source pages (FR-40), with other sources as discovery links.
 
+### 5.9 How fit is calculated (explicit criteria)
+**Step 0 is the investigator profile; fit is calculated from it.** The model never decides a tier on its own. It extracts **factor values**, each with a citation. **Plain code** turns the factors into a tier (`backend/app/fit.py`, with tests). The page shows "How this fit was calculated" for every result.
+
+| ID | Requirement |
+|---|---|
+| FR-41 | **Profile builder (step 0):** from a PI name, fetch public publication records (OpenAlex) and the faculty page live, and propose research lanes, each backed by quoted evidence (titles, abstract text, profile text). A human (admin or the PI) edits and confirms the lanes, career stage and positioning rules before any matching. The confirmed profile is used for that run only and is not stored (O15). |
+| FR-42 | **Factors the model extracts (each with a quote):** (a) *centrality*: is the PI's established science central, partial, adjacent or absent in the program scope; (b) *repositioning needed*: none, sponsor framing, a partner or bridge, or a stretch; (c) *can the PI lead*; (d) *career-stage restriction* that excludes the PI; (e) *positioning-rule violation* (for example cancer with no real mechanism bridge). |
+| FR-43 | **Tier calculation (code):** ordered rules. Career-stage exclusion, no centrality, or a stretch gives **Excluded**. Adjacent gives **Conditional**. Central with no repositioning gives **Direct** (or **Very strong** if the PI cannot lead). Central needing framing gives **Very strong**. Central needing a partner, or partial overlap, gives **Strong**. A positioning violation caps the result at **Conditional**. |
+| FR-44 | **Words:** Direct and Very strong show **High**; Strong shows **Medium**; Conditional shows **Low**; Excluded is hidden from results and kept in the run log. |
+| FR-45 | **Transparency:** each result lists the factor values, the quote behind each, and the rule that fired. A factor with no supported quote defaults to the conservative value (centrality "none" or repositioning "stretch" cannot be assumed away; unsupported claims reduce the tier). |
+| FR-46 | **Eligibility is separate from fit.** It uses the stated career-stage, citizenship, institutional and team conditions and is "Needs verification" when sources are silent. Only a stated career-stage exclusion removes an item from fit results. |
+| FR-47 | **Admin-editable:** the tier rules, the factor definitions and the positioning-rule templates are part of the fit criteria in section 5.8 (draft, diff, publish, versioned). |
+
+| Centrality | Repositioning | PI can lead | Tier | Shown as |
+|---|---|---|---|---|
+| central | none | yes | Direct | High |
+| central | none | no | Very strong | High |
+| central | framing | any | Very strong | High |
+| central | partner | any | Strong | Medium |
+| partial | none, framing or partner | any | Strong | Medium |
+| adjacent | none, framing or partner | any | Conditional | Low |
+| none, or any with "stretch", or career-stage excluded | | | Excluded | hidden |
+| any above, with a positioning violation | | | at most Conditional | Low |
+
 ## 6. Data: the run log (the only database)
 One record per run (plus child rows):
 
@@ -230,3 +254,4 @@ Removed from the product: the Workbench, Prompt Builder, browser-only profile re
 - **O15** Confirm: criteria are stored and admin-reviewed, while the investigator profile is uploaded per run and not stored (default here). Or does the customer approve saving profiles for repeat refreshes?
 - **O16** Which official source pages should the pilot read live (the "Official source" column of the example is a candidate seed list)?
 - **O17** The example mixes combined statuses (e.g., "OPEN - LIMITED SUBMISSION"). Confirm the status-plus-flags split in FR-38.
+- **O18** Confirm the tier rules in section 5.9 against how you score by hand (especially "partial overlap = Strong" and "cannot lead = Very strong"). Test them on 5 to 10 rows of your workbook.

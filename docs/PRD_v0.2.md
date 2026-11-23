@@ -63,7 +63,7 @@ No other roles in v0.2.
 ### 5.2 Fit and eligibility
 | ID | Requirement |
 |---|---|
-| FR-8 | Rate alignment **High / Medium / Low** and eligibility **Eligible / Not eligible / Needs verification**, each with citation(s). |
+| FR-8 | Rate alignment **High / Medium / Low** (from the fit tiers in section 5.7) and eligibility **Eligible / Not eligible / Needs verification**, each with citation(s). |
 | FR-9 | Flag **archived or replaced** postings (e.g., an NSF solicitation superseded by a newer one) by plain-code status checks plus the source's own status text, and show the replacement link if found. |
 | FR-10 | The citation validator checks every quote against the fetched source text. Failures display "No explicit support found in the provided sources." and are counted in the run log. |
 | FR-11 | Model output must conform to a fixed JSON schema. Invalid output is retried once, then shown as a failed step (never silently dropped). |
@@ -71,7 +71,7 @@ No other roles in v0.2.
 ### 5.3 Calendar and export
 | ID | Requirement |
 |---|---|
-| FR-12 | Every match appears on a calendar with **sponsor deadline** and **internal deadline** (sponsor deadline minus lead time). Defaults: next **3 months**; lead time **14 days**; both admin-editable and changeable per run. |
+| FR-12 | Every match appears on a calendar with **sponsor deadline** and **internal deadline** (sponsor deadline minus lead time). Defaults: next **3 months**; lead time **14 days**; both admin-editable and changeable per run. A search profile may set a longer horizon (e.g., rolling 12 months, per section 5.7). |
 | FR-13 | Export the calendar to **.xlsx** and **.ics**. Deadlines missing from the source stay "Not specified" (never zero or invented). All-day events; the sponsor sets time zone. |
 | FR-14 | All date arithmetic is deterministic code with unit tests, including the 14-day default and the holiday period. |
 
@@ -95,6 +95,28 @@ No other roles in v0.2.
 
 ### 5.6 Public pages
 Home, Match (with Results, Calendar and Review views), About, and a Settings page that is admin-only. All from the final wireframe/design canvas. About states plainly what the agent does, what it does not do, and the AI/human boundaries (reuse `docs/SIGNAL_BOUNDARIES.md`, updated).
+
+### 5.7 Search profile and fit rubric (customer methodology)
+The customer's funding-search method is a **template**, not hard-coded for one person. Each run uses a **search profile** (supplied by the visitor, or a saved admin default). A de-identified worked example is in `docs/examples/search_profile_example.md`.
+
+| ID | Requirement |
+|---|---|
+| FR-25 | **Search profile fields:** investigator (name, institution); career stage (and an exclusion rule, e.g., skip early-career-only programs); research lanes (terms the science is genuinely about); positioning rules (e.g., "cancer only with a real mechanism bridge"; "defense only where sensing/biophysics is central"); search horizon (rolling N months from today); minimum award (none by default); generic calls allowed (yes/no); sponsor types to search (federal, defense, state, foundation, international, industry); trainee search on/off. |
+| FR-26 | **Never infer a new research identity from a solicitation keyword.** Fit is judged against the profile's lanes only. The reason must name the concrete bridge to the investigator's established science, or state the collaboration/repositioning required. |
+| FR-27 | **Fit rubric (four tiers plus exclude).** The agent assigns a tier; the page shows the High/Medium/Low word and the tier label. Never a percentage. |
+| FR-28 | **Source hierarchy:** (1) official sponsor/solicitation page, (2) Grants.gov/Simpler.Grants.gov/SAM.gov, (3) institutional guidance, (4) ProposalCentral/foundation portals, (5) Halo/corporate portals, (6) aggregators. A deadline, eligibility or status claim must cite level 1 or 2. A claim supported only by levels 3 to 6 shows **"Unverified: discovery source only"** and stays "Needs verification". |
+| FR-29 | **Fixed vs rolling vs watch:** each result is labelled Open / Upcoming / Rolling / Invitation only / Watch / Closed. Rolling programs show "rolling/anytime" (no invented deadline) and the prerequisite step (program-officer contact, white paper). An expected annual cycle is **WATCH: date not yet announced**, never shown as a deadline. |
+| FR-30 | **Calendar table columns:** Opportunity, Sponsor, Type, NOFO/Call ID (own column), Fit, Relevance, Next fixed date, Application period/milestones, Other dates in window, Status, Amount/scale, Eligibility/conditions, Recommended next action, Official source, Date verified. Fixed, rolling and watch items are shown in separate groups, and the export keeps the same columns. |
+| FR-31 | **Closing summary:** top 5 opportunities for the window, anything needing action within 45 days (computed by code, not the model), and a watch list. The trainee table (graduate students and postdocs) is a profile option and is **future** unless the customer moves it into the pilot (O12). |
+
+**Fit tiers**
+| Tier | Definition | Page word | Treatment |
+|---|---|---|---|
+| Direct fit | Close match to established research; little or no repositioning; investigator can lead. | **High** | Pursue. |
+| Very strong fit | Strong alignment; may need sponsor-specific framing, a collaborator or interdisciplinary positioning. | **High** | Pursue after a targeted check. |
+| Strong fit | Relevant, but depends on a specific topic, partner or application bridge. | **Medium** | Keep active with the stated condition. |
+| Conditional fit | Scientifically adjacent; only with a clear solicitation, topic or collaborator bridge. | **Low** | Secondary or watch. |
+| Low priority | Keyword overlap only; science would be stretched. | (excluded) | Not shown in results; kept in the run log only. |
 
 ## 6. Data: the run log (the only database)
 One record per run (plus child rows):
@@ -180,3 +202,7 @@ Removed from the product: the Workbench, Prompt Builder, browser-only profile re
 - **O8** NSF validation: kept as a manual pilot-report check, not a product feature. Confirm.
 - **O9** Admin sign-in method for the pilot (simple password for now; SSO later).
 - **O10** Real API key and daily cap values.
+- **O11** Confirm the tier-to-word mapping (Direct and Very strong = High; Strong = Medium; Conditional = Low; below that excluded), or keep the 5-point numbers on the page instead of words. The Business Case says "High, Medium or Low".
+- **O12** Is the trainee (graduate student and postdoc) search in the pilot? Default here: future.
+- **O13** The 12-month horizon in the example versus the Business Case default of 3 months: keep 3 months as the app default with the profile able to extend it?
+- **O14** Sources such as ProposalCentral, Halo, GrantWatch and CPRIT may have no public API or may restrict automated reading. Which are in the pilot? Default here: Grants.gov plus official sponsor pages read live; the rest as discovery links.

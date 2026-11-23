@@ -17,8 +17,11 @@ def test_central_cannot_lead_is_very_strong():
 def test_framing_very_strong_high():
     r = t(repositioning="framing"); assert (r.tier, r.word) == ("Very strong", "High")
 
-def test_partner_needed_is_strong_medium():
-    r = t(repositioning="partner"); assert (r.tier, r.word) == ("Strong", "Medium")
+def test_partner_needed_and_cannot_lead_is_strong_medium():
+    r = t(repositioning="partner", pi_can_lead=False); assert (r.tier, r.word) == ("Strong", "Medium")
+
+def test_partner_helpful_and_can_lead_is_very_strong():
+    assert t(repositioning="partner").tier == "Very strong"
 
 def test_partial_is_strong():
     assert t(centrality="partial").tier == "Strong"

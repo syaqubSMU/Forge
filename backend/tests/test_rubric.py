@@ -47,7 +47,7 @@ def test_publish_gate_requires_examples():
 
 def test_editing_a_rule_changes_version_and_shows_in_diff():
     rb = copy.deepcopy(DEFAULT_RUBRIC)
-    rb["rules"][8]["tier"] = "Conditional"    # admin makes "partial overlap" less generous
+    next(r for r in rb["rules"] if r["id"] == "R9")["tier"] = "Conditional"    # admin makes "partial overlap" less generous
     assert R.version(rb) != R.version(DEFAULT_RUBRIC)
     assert R.diff(DEFAULT_RUBRIC, rb) == ["changed rule R9"]
     assert R.evaluate(rb, {"centrality": "partial", "repositioning": "none", "pi_can_lead": "yes",

@@ -3,38 +3,249 @@
  "name": "Forge Signal fit rubric (default)",
  "description": "Customer methodology: tiers Direct, Very strong, Strong, Conditional, Excluded. The model extracts factor values with quotes; this rubric turns them into a tier.",
  "factors": {
-  "centrality": {"description": "Is the investigator's established science in the opportunity's scope?",
-                 "values": {"central": "Core of the program scope", "partial": "Overlaps part of the scope", "adjacent": "Scientifically next to the scope", "none": "Not in scope"}},
-  "repositioning": {"description": "What must change for the investigator to compete?",
-                    "values": {"none": "Nothing", "framing": "Sponsor-specific framing", "partner": "A partner, topic or application bridge", "stretch": "The science would be stretched"}},
-  "pi_can_lead": {"description": "Can the investigator lead or be central?", "values": {"yes": "Yes", "no": "No"}},
-  "career_stage_excluded": {"description": "Does the sponsor restrict to a career stage the investigator is not in?", "values": {"yes": "Yes", "no": "No"}},
-  "positioning_violation": {"description": "Does it break a profile positioning rule (e.g., cancer with no mechanism bridge)?", "values": {"yes": "Yes", "no": "No"}}
+  "centrality": {
+   "description": "Is the investigator's established science in the opportunity's scope?",
+   "values": {
+    "central": "Core of the program scope",
+    "partial": "Overlaps part of the scope",
+    "adjacent": "Scientifically next to the scope",
+    "none": "Not in scope"
+   }
+  },
+  "repositioning": {
+   "description": "What must change for the investigator to compete?",
+   "values": {
+    "none": "Nothing",
+    "framing": "Sponsor-specific framing",
+    "partner": "A partner, topic or application bridge",
+    "stretch": "The science would be stretched"
+   }
+  },
+  "pi_can_lead": {
+   "description": "Can the investigator lead or be central?",
+   "values": {
+    "yes": "Yes",
+    "no": "No"
+   }
+  },
+  "career_stage_excluded": {
+   "description": "Does the sponsor restrict to a career stage the investigator is not in?",
+   "values": {
+    "yes": "Yes",
+    "no": "No"
+   }
+  },
+  "positioning_violation": {
+   "description": "Does it break a profile positioning rule (e.g., cancer with no mechanism bridge)?",
+   "values": {
+    "yes": "Yes",
+    "no": "No"
+   }
+  }
  },
  "tiers": [
-  {"name": "Excluded", "word": null, "treatment": "Not shown; kept in the run log."},
-  {"name": "Conditional", "word": "Low", "treatment": "Secondary or watch unless the condition is already met."},
-  {"name": "Strong", "word": "Medium", "treatment": "Keep active with the stated condition."},
-  {"name": "Very strong", "word": "High", "treatment": "Pursue after a targeted fit check."},
-  {"name": "Direct", "word": "High", "treatment": "Pursue."}
+  {
+   "name": "Excluded",
+   "word": null,
+   "treatment": "Not shown; kept in the run log."
+  },
+  {
+   "name": "Conditional",
+   "word": "Low",
+   "treatment": "Secondary or watch unless the condition is already met."
+  },
+  {
+   "name": "Strong",
+   "word": "Medium",
+   "treatment": "Keep active with the stated condition."
+  },
+  {
+   "name": "Very strong",
+   "word": "High",
+   "treatment": "Pursue after a targeted fit check."
+  },
+  {
+   "name": "Direct",
+   "word": "High",
+   "treatment": "Pursue."
+  }
  ],
  "rules": [
-  {"id": "R1", "kind": "decide", "when": {"career_stage_excluded": "yes"}, "tier": "Excluded", "reason": "Sponsor restricts to a career stage the investigator is not in: excluded."},
-  {"id": "R2", "kind": "decide", "when": {"centrality": "none"}, "tier": "Excluded", "reason": "Established science is not in the program scope: excluded."},
-  {"id": "R3", "kind": "decide", "when": {"repositioning": "stretch"}, "tier": "Excluded", "reason": "Science would have to be stretched to fit: excluded (keyword overlap only)."},
-  {"id": "R4", "kind": "decide", "when": {"centrality": "adjacent"}, "tier": "Conditional", "reason": "Scientifically adjacent: Conditional, only with a clear topic or partner bridge."},
-  {"id": "R5", "kind": "decide", "when": {"centrality": "central", "repositioning": "none", "pi_can_lead": "yes"}, "tier": "Direct", "reason": "Central science, no repositioning, investigator can lead: Direct."},
-  {"id": "R6", "kind": "decide", "when": {"centrality": "central", "repositioning": "none", "pi_can_lead": "no"}, "tier": "Very strong", "reason": "Central science, no repositioning, investigator cannot lead: Very strong."},
-  {"id": "R7", "kind": "decide", "when": {"centrality": "central", "repositioning": "framing"}, "tier": "Very strong", "reason": "Central science; needs sponsor-specific framing: Very strong."},
-  {"id": "R8", "kind": "decide", "when": {"centrality": "central", "repositioning": "partner"}, "tier": "Strong", "reason": "Central science but depends on a partner or bridge: Strong."},
-  {"id": "R9", "kind": "decide", "when": {"centrality": "partial"}, "tier": "Strong", "reason": "Partial overlap that depends on a topic, partner or bridge: Strong."},
-  {"id": "C1", "kind": "cap", "when": {"positioning_violation": "yes"}, "tier": "Conditional", "reason": "Profile positioning rule not met: capped at Conditional."}
+  {
+   "id": "R1",
+   "kind": "decide",
+   "when": {
+    "career_stage_excluded": "yes"
+   },
+   "tier": "Excluded",
+   "reason": "Sponsor restricts to a career stage the investigator is not in: excluded."
+  },
+  {
+   "id": "R2",
+   "kind": "decide",
+   "when": {
+    "centrality": "none"
+   },
+   "tier": "Excluded",
+   "reason": "Established science is not in the program scope: excluded."
+  },
+  {
+   "id": "R3",
+   "kind": "decide",
+   "when": {
+    "repositioning": "stretch"
+   },
+   "tier": "Excluded",
+   "reason": "Science would have to be stretched to fit: excluded (keyword overlap only)."
+  },
+  {
+   "id": "R4",
+   "kind": "decide",
+   "when": {
+    "centrality": "adjacent"
+   },
+   "tier": "Conditional",
+   "reason": "Scientifically adjacent: Conditional, only with a clear topic or partner bridge."
+  },
+  {
+   "id": "R5",
+   "kind": "decide",
+   "when": {
+    "centrality": "central",
+    "repositioning": "none",
+    "pi_can_lead": "yes"
+   },
+   "tier": "Direct",
+   "reason": "Central science, no repositioning, investigator can lead: Direct."
+  },
+  {
+   "id": "R6",
+   "kind": "decide",
+   "when": {
+    "centrality": "central",
+    "repositioning": "none",
+    "pi_can_lead": "no"
+   },
+   "tier": "Very strong",
+   "reason": "Central science, no repositioning, investigator cannot lead: Very strong."
+  },
+  {
+   "id": "R7",
+   "kind": "decide",
+   "when": {
+    "centrality": "central",
+    "repositioning": "framing"
+   },
+   "tier": "Very strong",
+   "reason": "Central science; needs sponsor-specific framing: Very strong."
+  },
+  {
+   "id": "R8",
+   "kind": "decide",
+   "when": {
+    "centrality": "central",
+    "repositioning": "partner",
+    "pi_can_lead": "yes"
+   },
+   "tier": "Very strong",
+   "reason": "Central science; a collaborator or bridge helps and the investigator can lead: Very strong."
+  },
+  {
+   "id": "R8b",
+   "kind": "decide",
+   "when": {
+    "centrality": "central",
+    "repositioning": "partner",
+    "pi_can_lead": "no"
+   },
+   "tier": "Strong",
+   "reason": "Central science but depends on a partner or team the investigator cannot lead: Strong."
+  },
+  {
+   "id": "R9",
+   "kind": "decide",
+   "when": {
+    "centrality": "partial"
+   },
+   "tier": "Strong",
+   "reason": "Partial overlap that depends on a topic, partner or bridge: Strong."
+  },
+  {
+   "id": "C1",
+   "kind": "cap",
+   "when": {
+    "positioning_violation": "yes"
+   },
+   "tier": "Conditional",
+   "reason": "Profile positioning rule not met: capped at Conditional."
+  }
  ],
  "examples": [
-  {"name": "Core science, can lead", "factors": {"centrality": "central", "repositioning": "none", "pi_can_lead": "yes", "career_stage_excluded": "no", "positioning_violation": "no"}, "expected": "Direct"},
-  {"name": "Needs a collaborator", "factors": {"centrality": "central", "repositioning": "partner", "pi_can_lead": "yes", "career_stage_excluded": "no", "positioning_violation": "no"}, "expected": "Strong"},
-  {"name": "Early-career-only call", "factors": {"centrality": "central", "repositioning": "none", "pi_can_lead": "yes", "career_stage_excluded": "yes", "positioning_violation": "no"}, "expected": "Excluded"},
-  {"name": "Cancer call, no bridge", "factors": {"centrality": "central", "repositioning": "framing", "pi_can_lead": "yes", "career_stage_excluded": "no", "positioning_violation": "yes"}, "expected": "Conditional"},
-  {"name": "Keyword overlap only", "factors": {"centrality": "partial", "repositioning": "stretch", "pi_can_lead": "yes", "career_stage_excluded": "no", "positioning_violation": "no"}, "expected": "Excluded"}
+  {
+   "name": "Core science, can lead",
+   "factors": {
+    "centrality": "central",
+    "repositioning": "none",
+    "pi_can_lead": "yes",
+    "career_stage_excluded": "no",
+    "positioning_violation": "no"
+   },
+   "expected": "Direct"
+  },
+  {
+   "name": "Team grant, investigator is one member",
+   "factors": {
+    "centrality": "central",
+    "repositioning": "partner",
+    "pi_can_lead": "no",
+    "career_stage_excluded": "no",
+    "positioning_violation": "no"
+   },
+   "expected": "Strong"
+  },
+  {
+   "name": "Early-career-only call",
+   "factors": {
+    "centrality": "central",
+    "repositioning": "none",
+    "pi_can_lead": "yes",
+    "career_stage_excluded": "yes",
+    "positioning_violation": "no"
+   },
+   "expected": "Excluded"
+  },
+  {
+   "name": "Cancer call, no bridge",
+   "factors": {
+    "centrality": "central",
+    "repositioning": "framing",
+    "pi_can_lead": "yes",
+    "career_stage_excluded": "no",
+    "positioning_violation": "yes"
+   },
+   "expected": "Conditional"
+  },
+  {
+   "name": "Keyword overlap only",
+   "factors": {
+    "centrality": "partial",
+    "repositioning": "stretch",
+    "pi_can_lead": "yes",
+    "career_stage_excluded": "no",
+    "positioning_violation": "no"
+   },
+   "expected": "Excluded"
+  },
+  {
+   "name": "Team grant, investigator can lead the team",
+   "factors": {
+    "centrality": "central",
+    "repositioning": "partner",
+    "pi_can_lead": "yes",
+    "career_stage_excluded": "no",
+    "positioning_violation": "no"
+   },
+   "expected": "Very strong"
+  }
  ]
 }

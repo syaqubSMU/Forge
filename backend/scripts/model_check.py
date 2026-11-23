@@ -1,34 +1,58 @@
-"""Live model check: does the model return schema-valid JSON whose quotes the validator accepts?
-Usage: ANTHROPIC_API_KEY=... python scripts/model_check.py   (add --mock to dry-run)
-Cases are FICTIONAL. Replace/extend with real announcements for the gold set."""
-import json, sys
+"""Model check on the gold set (PRD section 9 measures).
+  python scripts/model_check.py --mock                    dry run, no model
+  python scripts/model_check.py --responses FILE.json     score saved model outputs {case_id: raw JSON string or object}
+  ANTHROPIC_API_KEY=... python scripts/model_check.py     live Claude
+Reports: schema-valid, citation pass rate, silent-eligibility handling, and agreement with the
+customer's expected labels (only for cases where she has filled them in)."""
+import json, sys, os
 sys.path.insert(0, ".")
-from app.adapters.base import SchemaError
+from app.adapters.base import ModelAdapter, SchemaError
 from app.validator import validate
 
-CASES = [
- {"q": "Researcher: studies machine learning for rural health access. Fit and eligibility?",
-  "sources": {"opp": "Sample NOFO. Supports data-driven methods that improve access to care in rural communities. Proposals are due March 15, 2027.",
-              "pi": "Sample PI A develops machine learning methods for rural health access."}},
- {"q": "Researcher: studies battery materials. Fit and eligibility?",
-  "sources": {"opp": "Sample NOFO. Supports digitization of cultural collections. Applicant eligibility is described in Section III.",
-              "pi": "Sample PI C studies battery materials discovery."}},
-]
+GOLD = os.path.join(os.path.dirname(__file__), "..", "evals", "gold_set.json")
+
+
+class PerCase(ModelAdapter):
+    name = "saved-responses"
+    def __init__(self, table): self.table, self.case = table, None
+    def complete(self, system, prompt):
+        r = self.table[self.case]
+        return r if isinstance(r, str) else json.dumps(r)
+
 
 def main():
-    if "--mock" in sys.argv:
-        from app.adapters.mock import MockAdapter
-        a = MockAdapter([json.dumps({"fit": "Low", "eligibility": "Needs verification", "rationale": "x", "fit_citations": [], "eligibility_citations": []})])
+    cases = json.load(open(GOLD))["cases"]
+    if "--responses" in sys.argv:
+        a = PerCase(json.load(open(sys.argv[sys.argv.index("--responses") + 1])))
+    elif "--mock" in sys.argv:
+        a = PerCase({c["id"]: {"fit": "Low", "eligibility": "Needs verification", "rationale": "mock",
+                               "fit_citations": [], "eligibility_citations": []} for c in cases})
     else:
         from app.adapters.claude import ClaudeAdapter
         a = ClaudeAdapter()
-    ok = 0
-    for i, c in enumerate(CASES, 1):
+    n = schema_ok = silent_n = silent_ok = cites = bad = lab = fit_agree = el_agree = 0
+    rows = []
+    for c in cases:
+        n += 1
+        if isinstance(a, PerCase): a.case = c["id"]
         try:
-            r = validate(a.judge(c["sources"], c["q"]), c["sources"])
-            ok += 1
-            print(i, r["fit"], r["eligibility"], "pass-rate", r["citation_pass_rate"], "failed:", len(r["failed_citations"]))
-        except SchemaError as e:
-            print(i, "SCHEMA FAIL", e)
-    print(f"{ok}/{len(CASES)} schema-valid")
+            j = a.judge(c["sources"], c["question"]); schema_ok += 1
+        except (SchemaError, KeyError) as e:
+            rows.append((c["id"], "SCHEMA FAIL", "", "", str(e)[:50])); continue
+        r = validate(j, c["sources"])
+        cites += len(j.fit_citations) + len(j.eligibility_citations); bad += len(r["failed_citations"])
+        if c["eligibility_silent"]:
+            silent_n += 1; silent_ok += r["eligibility"] == "Needs verification"
+        agree = ""
+        if c["expected_fit"] and c["expected_eligibility"]:
+            lab += 1; f = r["fit"] == c["expected_fit"]; e = r["eligibility"] == c["expected_eligibility"]
+            fit_agree += f; el_agree += e; agree = f"fit {'ok' if f else 'DIFF'}, elig {'ok' if e else 'DIFF'}"
+        rows.append((c["id"], r["fit"], r["eligibility"], f"{r['citation_pass_rate']:.0%}", agree or "(no expected label yet)"))
+    print(f"{'case':5} {'fit':7} {'eligibility':20} {'cites':6} agreement")
+    for x in rows: print(f"{x[0]:5} {x[1]:7} {x[2]:20} {x[3]:6} {x[4]}")
+    print(f"\nschema-valid: {schema_ok}/{n}")
+    print(f"citations supported: {cites - bad}/{cites}" + (f" ({(cites-bad)/cites:.0%})" if cites else ""))
+    print(f"silent-eligibility cases answered 'Needs verification': {silent_ok}/{silent_n}")
+    print(f"agreement with expected labels: " + (f"fit {fit_agree}/{lab}, eligibility {el_agree}/{lab}" if lab else "not scored (labels blank)"))
+
 main()

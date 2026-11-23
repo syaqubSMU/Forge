@@ -26,7 +26,7 @@ An **admin dashboard** (back end) sets defaults and shows the run log. A **run l
 | D5 | **One database: the run log** (inputs, outputs, citation-check results, outcomes, chatbot entries). | Customer |
 | D6 | Citations are required now. Every claim carries a quote and source; a validator rejects unsupported quotes. | Customer |
 | D7 | Email is a **dummy** for now (log-only or a test mailbox). Real SMU sending is deferred. | Customer |
-| D8 | Model: reuse an **existing chatbot** and obtain its API. Platform not yet chosen (open item O1). | Customer |
+| D8 | Model: our own agent behind the adapter. The demo key is personally funded (demo only); the admin console must be able to switch to an OIT-approved platform when OIT requires. Provider not final (O1). | Customer |
 | D9 | **Default scope** (Dedman College / SMU / organization / Texas, etc.) is set in the admin dashboard. | Customer |
 | D10 | Schedule: working demo **Dec 2**; show to people **Dec 2 to 4**; refine **Dec 4 to 6**; demo and final submission **Dec 6**. | Customer |
 
@@ -86,7 +86,7 @@ No other roles in v0.2.
 | ID | Requirement |
 |---|---|
 | FR-18 | **Scope defaults:** choose the default scope level (Dedman College / SMU / an organization / state, e.g. Texas), the units in scope, and funder types. Stored as admin settings and applied to every new run. |
-| FR-19 | **Model connection:** select the chatbot/model adapter and enter its API key (stored server-side, never displayed after saving). |
+| FR-19 | **Model connection and switch:** the admin selects the active model provider and enters each provider's API key (stored server-side, never displayed after saving). The demo uses a personally funded key; the admin can **switch the active provider to an OIT-approved platform at any time**, effective on the next run with no redeploy. Each run logs the provider and model used, and every switch is written to an admin audit entry (who, when, from, to). Matching, validation and calendar logic do not change. |
 | FR-20 | **Limits:** per-visitor rate limit, daily cap, faculty-per-run cap (25), calendar window (3 months), lead time (14 days), minimum fit. |
 | FR-21 | **Email:** dummy mode on/off, test mailbox address, sender label. |
 | FR-22 | **Run log viewer:** search, filter by date/user input/outcome, open one run to see inputs, sources, citations, validator results, calendar and email draft; export CSV. |

@@ -118,6 +118,27 @@ The customer's funding-search method is a **template**, not hard-coded for one p
 | Conditional fit | Scientifically adjacent; only with a clear solicitation, topic or collaborator bridge. | **Low** | Secondary or watch. |
 | Low priority | Keyword overlap only; science would be stretched. | (excluded) | Not shown in results; kept in the run log only. |
 
+### 5.8 Admin-reviewed fit criteria and template workbook
+Two kinds of input are kept apart. **Criteria** (the rubric, source hierarchy, status vocabulary, output columns, search rules) are institutional and are stored, versioned and reviewed by the admin. **Investigator profile** (research lanes, career stage, positioning rules) describes a named person, so it is supplied **per run** and kept only in that run's log record (hard rule 1), unless the customer later approves a stored index (future).
+
+| ID | Requirement |
+|---|---|
+| FR-32 | **Fit criteria editor (admin):** view and edit the rubric tiers and tier-to-word mapping, source hierarchy, status vocabulary and flags, output columns, search-profile field list, positioning-rule templates, and the prompt text sent to the model. |
+| FR-33 | **Draft, review, publish:** edits are saved as a draft with a diff against the published version. Only an explicit admin **Publish** makes them live. Every version is kept with who, when and why. |
+| FR-34 | **Run snapshot:** each run records the criteria version and the profile it used, so any result can be explained and reproduced. |
+| FR-35 | **Template workbook (.xlsx):** the admin can download a blank template and upload a completed one. A "Methodology" sheet with fixed section headings (Search decisions; Research profile; Methodology steps; Source hierarchy; Fit rubric; Required output fields; Repeat prompt) maps one-to-one to the criteria and profile fields. An uploaded workbook is parsed, shown as a **preview with errors and diffs**, and takes effect only after admin approval. Unknown or missing sections are reported, never guessed. |
+| FR-36 | **Per-run investigator profile upload:** a visitor or the admin can upload the same workbook (or fill a form) for one run. Its research lanes are treated as a **cited source**: fit reasons must quote the profile text, and the validator checks the quote against it. |
+| FR-37 | **Fit score normalization:** workbook scores such as "4.5-5/5", "4/5 team" or "5/5 for right candidate" are parsed into a tier (lower bound of a range) plus a free-text **condition** (team, conditional, institutional, invitation). The page shows the word (High/Medium/Low), the tier label and the condition. |
+| FR-38 | **Status and flags:** a status (Open / Upcoming / Rolling / Watch / Closed) plus separate flags (Limited submission, Nomination required, Invitation only, Institutional application, Reconfirm topic, Closing soon), instead of free-text combined statuses. |
+| FR-39 | **Computed columns:** "Days to next date", "needs action within 45 days" and the next fixed date are computed by code from the verified dates. A "Date verified" value is the date the app checked the official source, never copied from the upload. |
+| FR-40 | **Watched sources:** the profile or criteria may list official source URLs (sponsor pages, foundation program pages) that the agent reads live each run. Sources with no readable public page are shown as discovery links only (O14). |
+
+**Template review notes (from the customer's worked example)**
+- Translatable as configuration: search decisions, research lanes, SOP steps, source hierarchy, fit tiers, status vocabulary, output columns, and the trainee table as a second output table.
+- Translatable with the model plus citations: research relevance, fit tier, eligibility conditions, next action.
+- Computed by code: days to next date, rolling vs fixed grouping, 45-day action list.
+- Not feasible to automate fully by Dec 2: open-ended web discovery across foundations, Halo, ProposalCentral and GrantWatch; verification of every lead against its official page. Pilot approach: Grants.gov live plus a curated list of official source pages (FR-40), with other sources as discovery links.
+
 ## 6. Data: the run log (the only database)
 One record per run (plus child rows):
 
@@ -206,3 +227,6 @@ Removed from the product: the Workbench, Prompt Builder, browser-only profile re
 - **O12** Is the trainee (graduate student and postdoc) search in the pilot? Default here: future.
 - **O13** The 12-month horizon in the example versus the Business Case default of 3 months: keep 3 months as the app default with the profile able to extend it?
 - **O14** Sources such as ProposalCentral, Halo, GrantWatch and CPRIT may have no public API or may restrict automated reading. Which are in the pilot? Default here: Grants.gov plus official sponsor pages read live; the rest as discovery links.
+- **O15** Confirm: criteria are stored and admin-reviewed, while the investigator profile is uploaded per run and not stored (default here). Or does the customer approve saving profiles for repeat refreshes?
+- **O16** Which official source pages should the pilot read live (the "Official source" column of the example is a candidate seed list)?
+- **O17** The example mixes combined statuses (e.g., "OPEN - LIMITED SUBMISSION"). Confirm the status-plus-flags split in FR-38.

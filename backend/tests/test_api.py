@@ -57,7 +57,7 @@ def test_invalid_model_output_returns_502_and_logs_failure(client, monkeypatch):
 
 def test_input_validation(client):
     assert run(client, input_type="nope").status_code == 400
-    assert run(client, sources={}).status_code == 422
+    assert run(client, sources={}, input_text=" ").status_code == 422   # live mode needs a profile
 
 
 def test_admin_requires_token(client, monkeypatch):

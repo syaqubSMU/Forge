@@ -60,10 +60,16 @@ def write_template(path, rubric: dict, profile: dict = None):
     for k in ("id", "name", "description"):
         ws.append([k, rubric.get(k, "")])
     _wrap(ws)
-    ws = wb.create_sheet("Factors"); _head(ws, ["Factor", "Factor description", "Value", "Value meaning"], [24, 60, 16, 60])
+    ws = wb.create_sheet("Factors")
+    _head(ws, ["Factor", "Factor description", "Conservative default", "Evidence required", "Value", "Value meaning"],
+          [24, 52, 20, 16, 16, 52])
     for name, spec in rubric["factors"].items():
         for i, (v, meaning) in enumerate(spec["values"].items()):
-            ws.append([name, spec["description"] if i == 0 else "", v, meaning])
+            first = i == 0
+            ws.append([name, spec["description"] if first else "",
+                       (spec.get("conservative_default") or "") if first else "",
+                       ("yes" if spec.get("evidence_required") else "no") if first else "", v, meaning])
+    dv = DataValidation(type="list", formula1='"yes,no"', allow_blank=True); ws.add_data_validation(dv); dv.add("D2:D200")
     _wrap(ws)
     ws = wb.create_sheet("Tiers"); _head(ws, ["Tier (lowest first)", "Word shown", "Treatment"], [24, 16, 70])
     for t in rubric["tiers"]:
@@ -125,11 +131,18 @@ def parse_template(path):
         if s(r[0]) in ("id", "name", "description"): rub[s(r[0])] = s(r[1])
     if not rub["id"]: errors.append("Rubric sheet: 'id' is required")
     cur = None
-    for i, r in _sheet_rows(wb, "Factors", errors, ["Factor", "Factor description", "Value", "Value meaning"]):
+    for i, r in _sheet_rows(wb, "Factors", errors,
+                            ["Factor", "Factor description", "Conservative default", "Evidence required", "Value", "Value meaning"]):
         if s(r[0]):
-            cur = s(r[0]); rub["factors"].setdefault(cur, {"description": s(r[1]), "values": {}})
+            cur = s(r[0])
+            if cur not in rub["factors"]:
+                ev = s(r[3]).lower()
+                if ev not in ("yes", "no", ""):
+                    errors.append(f"Factors row {i}: 'Evidence required' must be yes or no")
+                rub["factors"][cur] = {"description": s(r[1]), "values": {},
+                                       "conservative_default": s(r[2]) or None, "evidence_required": ev == "yes"}
         if cur is None: errors.append(f"Factors row {i}: value listed before any factor name"); continue
-        if s(r[2]): rub["factors"][cur]["values"][s(r[2])] = s(r[3])
+        if s(r[4]): rub["factors"][cur]["values"][s(r[4])] = s(r[5])
     for i, r in _sheet_rows(wb, "Tiers", errors, ["Tier (lowest first)", "Word shown", "Treatment"]):
         if not s(r[0]): errors.append(f"Tiers row {i}: tier name is empty"); continue
         rub["tiers"].append({"name": s(r[0]), "word": s(r[1]) or None, "treatment": s(r[2])})

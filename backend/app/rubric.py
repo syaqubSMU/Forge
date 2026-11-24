@@ -61,6 +61,12 @@ def validate(rubric: dict) -> list:
     if len(set(ids)) != len(ids):
         p.append("rule ids must be unique")
     factors = rubric.get("factors", {})
+    for name, spec in factors.items():
+        default = spec.get("conservative_default")
+        if default is not None and default not in spec.get("values", {}):
+            p.append(f"factor '{name}': conservative_default '{default}' is not one of its values")
+        if spec.get("evidence_required") and default is None:
+            p.append(f"factor '{name}': evidence is required, so it needs a conservative_default")
     for r in rubric.get("rules", []):
         if r.get("kind") not in ("decide", "cap"):
             p.append(f"{r['id']}: kind must be 'decide' or 'cap'")

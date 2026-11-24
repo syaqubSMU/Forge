@@ -12,18 +12,28 @@ from . import rubric as R
 from .adapters.registry import available, get_adapter
 from .db import DEFAULT_SETTINGS, NOTICE, Database
 from .fit import DEFAULT_RUBRIC
+from .pipeline import run_match
 from .schemas import FIT, SchemaError
+from .sources.grants_gov import SourceError
 from .template_xlsx import preview
 from .validator import validate
 
 INPUT_TYPES = ("pi_name", "project", "keywords", "opportunity_unit")
 
 
+class Profile(BaseModel):
+    """Researcher evidence for ONE run. Never stored outside that run's log (hard rule 1)."""
+    career_stage: str = Field(default="", max_length=200)
+    lanes: list[str] = Field(default_factory=list, max_length=40)
+    positioning_rules: list[str] = Field(default_factory=list, max_length=20)
+
+
 class RunIn(BaseModel):
     input_type: str
     input_text: str = Field(min_length=1, max_length=4000)
     question: str = "Does this researcher fit this opportunity, and is the researcher's institution eligible?"
-    sources: dict[str, str] = {}      # supplied evidence for now; live pulls replace this (PRD FR-2 to FR-5)
+    profile: Profile = Field(default_factory=Profile)
+    sources: dict[str, str] = {}      # pasted evidence; omit it to pull live from Grants.gov (FR-5)
 
 
 class EmailIn(BaseModel):
@@ -42,7 +52,8 @@ def _csv_safe(v):
     return "'" + s if s[:1] in ("=", "+", "-", "@") else s    # block spreadsheet formula injection
 
 
-def create_app(db_path: str = None) -> FastAPI:
+def create_app(db_path: str = None, lister=None, detailer=None) -> FastAPI:
+    """lister/detailer override the live source functions; tests inject fakes so no test hits the network."""
     app = FastAPI(title="FORGE SIGNAL API", version="0.2-skeleton", docs_url=None, redoc_url=None)
     db = Database(db_path or os.environ.get("FORGE_DB", "forge.db"))
     app.state.db = db
@@ -72,7 +83,9 @@ def create_app(db_path: str = None) -> FastAPI:
     @app.post("/api/runs")
     def create_run(body: RunIn, request: Request):
         if body.input_type not in INPUT_TYPES: raise HTTPException(400, f"input_type must be one of {INPUT_TYPES}")
-        if not body.sources: raise HTTPException(422, "Supply source text for now; live source pulls are not built yet.")
+        live = not body.sources
+        if live and not (body.profile.lanes or body.input_text.strip()):
+            raise HTTPException(422, "Describe the researcher's established research areas before running a live match.")
         s, vh = db.settings(), visitor(request)
         hour_ago = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat(timespec="seconds")
         day_start = datetime.now(timezone.utc).strftime("%Y-%m-%dT00:00:00")
@@ -83,9 +96,25 @@ def create_app(db_path: str = None) -> FastAPI:
         except (ValueError, RuntimeError) as e:
             raise HTTPException(503, f"model not available: {e}")        # message never contains a key
         rid = db.create_run(vh, body.input_type, body.input_text, s, R.version(current_rubric()), adapter.name)
+        t0 = time.time()
+
+        if live:
+            profile = body.profile.model_dump()
+            if not profile["lanes"]:
+                profile["lanes"] = [body.input_text.strip()]
+            try:
+                out = run_match(db, rid, adapter, s, profile, body.question, lister=lister, detailer=detailer)
+            except SourceError as e:
+                db.finish_run(rid, "failed", int((time.time() - t0) * 1000), f"source unavailable: {e}")
+                raise HTTPException(503, "The funding source could not be read right now. The attempt was logged.")
+            c = out["counters"]
+            db.finish_run(rid, "ok", c["latency_ms"], None, c["input_tokens"], c["output_tokens"],
+                          c["opportunities_listed"], c["details_fetched"])
+            return {"run_id": rid, "results": out["results"], "counters": c,
+                    "retrieved_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "notice": NOTICE}
+
         for sid, text in body.sources.items():
             db.add_source(rid, sid, sid if sid.startswith("http") else "", hashlib.sha256(text.encode()).hexdigest()[:16])
-        t0 = time.time()
         try:
             j = adapter.judge(body.sources, body.question)
         except SchemaError as e:
@@ -101,7 +130,8 @@ def create_app(db_path: str = None) -> FastAPI:
                   "citations": [{"source_id": c.source_id, "quote": c.quote} for c in r["fit_citations"] + r["eligibility_citations"]],
                   "failed_citation_count": len(r["failed_citations"])}
         db.add_match(rid, result)
-        db.finish_run(rid, "ok", int((time.time() - t0) * 1000))
+        u = adapter.total_usage
+        db.finish_run(rid, "ok", int((time.time() - t0) * 1000), None, u.get("input_tokens", 0), u.get("output_tokens", 0))
         return {"run_id": rid, "result": result, "notice": NOTICE}
 
     @app.post("/api/runs/{rid}/email")

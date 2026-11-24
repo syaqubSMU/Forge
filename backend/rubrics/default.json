@@ -10,7 +10,9 @@
     "partial": "Overlaps part of the scope",
     "adjacent": "Scientifically next to the scope",
     "none": "Not in scope"
-   }
+   },
+   "conservative_default": "none",
+   "evidence_required": true
   },
   "repositioning": {
    "description": "What must change for the investigator to compete?",
@@ -19,28 +21,36 @@
     "framing": "Sponsor-specific framing",
     "partner": "A partner, topic or application bridge",
     "stretch": "The science would be stretched"
-   }
+   },
+   "conservative_default": "stretch",
+   "evidence_required": true
   },
   "pi_can_lead": {
    "description": "Can the investigator lead or be central?",
    "values": {
     "yes": "Yes",
     "no": "No"
-   }
+   },
+   "conservative_default": "no",
+   "evidence_required": true
   },
   "career_stage_excluded": {
    "description": "Does the sponsor restrict to a career stage the investigator is not in?",
    "values": {
     "yes": "Yes",
     "no": "No"
-   }
+   },
+   "conservative_default": "no",
+   "evidence_required": false
   },
   "positioning_violation": {
    "description": "Does it break a profile positioning rule (e.g., cancer with no mechanism bridge)?",
    "values": {
     "yes": "Yes",
     "no": "No"
-   }
+   },
+   "conservative_default": "no",
+   "evidence_required": false
   }
  },
  "tiers": [

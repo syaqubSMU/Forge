@@ -45,3 +45,42 @@ def validate(judgment: Judgment, sources: dict) -> dict:
 def _rate(j: Judgment, failures: list) -> float:
     total = len(j.fit_citations) + len(j.eligibility_citations)
     return 1.0 if total == 0 else (total - len(failures)) / total
+
+
+def validate_factors(judgment, sources: dict, rubric: dict) -> dict:
+    """Check every quote against its source (hard rule 2), then apply PRD FR-45:
+    a factor whose evidence is required but unsupported falls back to its conservative default,
+    so an unsupported claim can never raise the tier. Eligibility defaults to Needs verification."""
+    failures, factors, kept = [], {}, {}
+
+    def keep(cites):
+        ok = []
+        for c in cites:
+            if c.source_id in sources and quote_supported(c.quote, sources[c.source_id]):
+                ok.append(c)
+            else:
+                failures.append({"quote": c.quote, "source_id": c.source_id})
+        return ok
+
+    notes = []
+    for name, spec in rubric["factors"].items():
+        supported = keep(judgment.factor_citations.get(name, []))
+        value = judgment.factors[name]
+        if spec.get("evidence_required") and not supported:
+            default = spec.get("conservative_default")
+            if default is not None and value != default:
+                notes.append(f"{name}: no supported quote, using the conservative value '{default}' instead of '{value}'")
+                value = default
+        factors[name] = value
+        kept[name] = supported
+
+    elig_cites = keep(judgment.eligibility_citations)
+    eligibility = judgment.eligibility if elig_cites else "Needs verification"
+    if not elig_cites and judgment.eligibility != "Needs verification":
+        notes.append("eligibility: no supported quote, so it stays 'Needs verification'")
+
+    total = sum(len(v) for v in judgment.factor_citations.values()) + len(judgment.eligibility_citations)
+    return {"factors": factors, "eligibility": eligibility, "rationale": judgment.rationale,
+            "factor_citations": kept, "eligibility_citations": elig_cites,
+            "failed_citations": failures, "adjustments": notes,
+            "citation_pass_rate": 1.0 if total == 0 else (total - len(failures)) / total}

@@ -154,3 +154,43 @@ def test_source_outage_is_reported_not_faked(client):
                      detailer=lambda ids, **k: ([], []))
     r = live(TestClient(app))
     assert r.status_code == 503 and "could not be read" in r.json()["detail"]
+
+
+# ---------------------------------------------------------------- calendar endpoints (FR-12, FR-13)
+def test_calendar_json_groups_and_computes_internal_deadlines(client):
+    rid = live(client).json()["run_id"]
+    cal = client.get(f"/api/runs/{rid}/calendar").json()
+    assert cal["lead_days"] == 14
+    fixed = cal["groups"]["Fixed"]
+    assert fixed and all(r["internal_deadline"] for r in fixed)
+    from datetime import date as _d, timedelta as _t
+    for r in fixed:
+        assert _d.fromisoformat(r["internal_deadline"]) == _d.fromisoformat(r["close_date"]) - _t(days=14)
+    assert all("how_calculated" not in r for r in fixed)      # evidence stays on the results page
+
+
+def test_calendar_downloads_are_real_files(client):
+    rid = live(client).json()["run_id"]
+    ics = client.get(f"/api/runs/{rid}/calendar.ics")
+    assert ics.status_code == 200 and ics.content.startswith(b"BEGIN:VCALENDAR")
+    assert "attachment" in ics.headers["content-disposition"] and ics.headers["content-disposition"].endswith('.ics"')
+    xl = client.get(f"/api/runs/{rid}/calendar.xlsx")
+    assert xl.status_code == 200 and xl.content[:2] == b"PK"   # a real zip-based workbook
+    import io, openpyxl
+    wb = openpyxl.load_workbook(io.BytesIO(xl.content))
+    assert "Fixed deadlines" in wb.sheetnames
+
+
+def test_calendar_is_scoped_to_the_visitor_who_ran_it(client):
+    live(client)
+    assert client.get("/api/runs/does-not-exist/calendar").status_code == 404
+    assert client.get("/api/runs/does-not-exist/calendar.ics").status_code == 404
+
+
+def test_lead_time_setting_changes_the_internal_deadline(client):
+    client.put("/api/admin/settings", json={"lead_time_days": 30}, headers=H)
+    rid = live(client).json()["run_id"]
+    cal = client.get(f"/api/runs/{rid}/calendar").json()
+    from datetime import date as _d, timedelta as _t
+    r = cal["groups"]["Fixed"][0]
+    assert _d.fromisoformat(r["internal_deadline"]) == _d.fromisoformat(r["close_date"]) - _t(days=30)

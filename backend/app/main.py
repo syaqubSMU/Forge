@@ -2,7 +2,7 @@
 Hard rules enforced here: keys only from the server environment and never returned; human confirmation
 before any email; per-visitor rate limit and daily cap; no raw source text returned to the public."""
 import csv, hashlib, hmac, io, os, re, tempfile, time
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from fastapi import Depends, FastAPI, File, Header, HTTPException, Request, UploadFile
 from fastapi.responses import Response
@@ -12,6 +12,8 @@ from . import rubric as R
 from .adapters.registry import available, get_adapter
 from .db import DEFAULT_SETTINGS, NOTICE, Database
 from .fit import DEFAULT_RUBRIC
+from .calendar import build_calendar
+from .exports import to_ics, to_xlsx
 from .pipeline import run_match
 from .schemas import FIT, SchemaError
 from .sources.grants_gov import SourceError
@@ -143,6 +145,48 @@ def create_app(db_path: str = None, lister=None, detailer=None) -> FastAPI:
         mode = db.settings()["email_mode"]
         db.add_email(rid, body.draft, body.recipient, True, mode)
         return {"status": "logged", "mode": mode, "message": "Dummy mode: the alert was logged and no email was sent." if mode == "dummy" else "Test mode."}
+
+    # ---------------------------------------------------------------- calendar (FR-12, FR-13)
+    def _calendar_for(rid, request):
+        run = db.get_run(rid)
+        if run is None or run["visitor_hash"] != visitor(request):
+            raise HTTPException(404, "run not found")
+        rows = []
+        for m in run["matches"]:
+            if not m.get("fit"):
+                continue
+            r = dict(m)
+            r["close_date"] = date.fromisoformat(m["close_date"]) if m.get("close_date") else None
+            rows.append(r)
+        lead = run["settings_snapshot"].get("lead_time_days", 14)
+        return run, build_calendar(rows, lead_days=lead)
+
+    def _slug(run):
+        return "forge-signal-" + (run["created_at"][:10] if run.get("created_at") else "calendar")
+
+    @app.get("/api/runs/{rid}/calendar")
+    def calendar_json(rid: str, request: Request):
+        run, cal = _calendar_for(rid, request)
+        def out(r):
+            return {k: (v.isoformat() if isinstance(v, date) else v)
+                    for k, v in r.items() if k not in ("how_calculated", "citations")}
+        return {"run_id": rid, "lead_days": cal["lead_days"], "today": cal["today"].isoformat(),
+                "groups": {g: [out(r) for r in rows] for g, rows in cal["groups"].items()},
+                "needs_action": [out(r) for r in cal["needs_action"]],
+                "top": [out(r) for r in cal["top"]], "watch": [out(r) for r in cal["watch"]]}
+
+    @app.get("/api/runs/{rid}/calendar.ics")
+    def calendar_ics(rid: str, request: Request):
+        run, cal = _calendar_for(rid, request)
+        return Response(to_ics(cal), media_type="text/calendar; charset=utf-8",
+                        headers={"Content-Disposition": f'attachment; filename="{_slug(run)}.ics"'})
+
+    @app.get("/api/runs/{rid}/calendar.xlsx")
+    def calendar_xlsx(rid: str, request: Request):
+        run, cal = _calendar_for(rid, request)
+        data = to_xlsx(cal, {"investigator": run.get("input_text")})
+        return Response(data, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        headers={"Content-Disposition": f'attachment; filename="{_slug(run)}.xlsx"'})
 
     # ---------------------------------------------------------------- admin
     @app.get("/api/admin/settings")

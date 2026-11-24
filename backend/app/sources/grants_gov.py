@@ -58,6 +58,16 @@ def clean_text(value) -> str:
     return re.sub(r"[ \t ]+", " ", s).strip()
 
 
+def parse_money(value):
+    """Grants.gov sends 'none', '' or a numeric string for award amounts. Anything that is not a
+    positive number is unstated, and stays unstated: it is never turned into zero (PRD FR-13)."""
+    try:
+        n = int(float(str(value).strip()))
+    except (TypeError, ValueError):
+        return None
+    return n if n > 0 else None
+
+
 def days_until(d, today=None):
     return None if d is None else (d - (today or date.today())).days
 
@@ -157,8 +167,8 @@ def _normalize_detail(d: dict, record_id: str) -> dict:
         "posting_date": parse_detail_date(syn.get("postingDate")),
         "archive_date": archive,
         "last_updated": parse_detail_date(syn.get("lastUpdatedDate")),
-        "award_floor": syn.get("awardFloor"),
-        "award_ceiling": syn.get("awardCeiling"),
+        "award_floor": parse_money(syn.get("awardFloor")),
+        "award_ceiling": parse_money(syn.get("awardCeiling")),
         "cost_sharing": syn.get("costSharing"),
         "related_opportunity_ids": related,
         "currency_flags": flags,                  # FR-9: never inferred, read from the sponsor record

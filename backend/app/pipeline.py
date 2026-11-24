@@ -68,6 +68,9 @@ def run_match(db, run_id, adapter, settings, profile, question, lister=None, det
                          limit=settings["max_detail_fetches"])
     details, failures = detailer([r["source_record_id"] for r in short],
                                  timeout=settings["source_timeout_s"], concurrency=settings["source_concurrency"])
+    source_status = {r["source_record_id"]: r.get("status") for r in short}
+    for d in details:
+        d.setdefault("source_status", source_status.get(d.get("source_record_id")))
     for f in failures:
         db.add_source_failure(run_id, f.get("source_record_id", ""), f.get("error", ""))
 
@@ -95,7 +98,9 @@ def run_match(db, run_id, adapter, settings, profile, question, lister=None, det
             db.add_citation(run_id, f["source_id"], f["quote"], False, "quote not found in source")
         row = {
             "title": d["title"], "sponsor": d["sponsor"], "number": d["number"], "url": d["url"],
-            "close_date": str(d["close_date"]) if d.get("close_date") else "Not specified",
+            "close_date": d["close_date"].isoformat() if d.get("close_date") else None,
+            "source_status": d.get("source_status"),
+            "cost_sharing": d.get("cost_sharing"),
             "days_to_deadline": gg.days_until(d.get("close_date")),
             "award_floor": d.get("award_floor"), "award_ceiling": d.get("award_ceiling"),
             "currency_flags": d.get("currency_flags", []),

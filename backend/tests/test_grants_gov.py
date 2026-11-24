@@ -151,3 +151,11 @@ def test_shortlist_respects_limit():
 def test_malformed_dates_do_not_crash():
     assert g.parse_list_date("not a date") is None and g.parse_detail_date(None) is None
     assert g.shortlist([{"source_record_id": "x", "close_date": None}], 3) == []
+
+
+def test_award_amounts_from_the_real_api_are_cleaned(api):
+    assert g.parse_money("none") is None and g.parse_money("") is None and g.parse_money(None) is None
+    assert g.parse_money(0) is None                       # never turned into an award of zero
+    assert g.parse_money("500000") == 500000 and g.parse_money(500000.0) == 500000
+    d = g._normalize_detail({"synopsis": {"awardFloor": "none", "awardCeiling": "500000"}}, "1")
+    assert d["award_floor"] is None and d["award_ceiling"] == 500000

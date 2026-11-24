@@ -9,6 +9,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from . import rubric as R
+from . import store
 from .adapters.registry import available, get_adapter
 from .db import DEFAULT_SETTINGS, NOTICE, Database
 from .fit import DEFAULT_RUBRIC
@@ -59,6 +60,8 @@ def create_app(db_path: str = None, lister=None, detailer=None) -> FastAPI:
     app = FastAPI(title="FORGE SIGNAL API", version="0.2-skeleton", docs_url=None, redoc_url=None)
     db = Database(db_path or os.environ.get("FORGE_DB", "forge.db"))
     app.state.db = db
+    if lister is None and detailer is None:                    # not under test: use the stored copy once it exists
+        lister, detailer = store.sources(db)
 
     def visitor(request: Request) -> str:
         ip = request.client.host if request.client else "unknown"
@@ -113,7 +116,8 @@ def create_app(db_path: str = None, lister=None, detailer=None) -> FastAPI:
             db.finish_run(rid, "ok", c["latency_ms"], None, c["input_tokens"], c["output_tokens"],
                           c["opportunities_listed"], c["details_fetched"])
             return {"run_id": rid, "results": out["results"], "counters": c,
-                    "retrieved_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "notice": NOTICE}
+                    "retrieved_at": store.as_of(db) if store.status(db)["with_full_text"] else datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                    "notice": NOTICE}
 
         for sid, text in body.sources.items():
             db.add_source(rid, sid, sid if sid.startswith("http") else "", hashlib.sha256(text.encode()).hexdigest()[:16])
@@ -238,6 +242,23 @@ def create_app(db_path: str = None, lister=None, detailer=None) -> FastAPI:
         if db.get_run(rid) is None: raise HTTPException(404, "run not found")
         db.add_annotation(rid, body.label, body.note); db.audit(actor, "annotation", {"run": rid, "label": body.label})
         return {"ok": True}
+
+    @app.post("/api/admin/ingest")
+    def run_ingest(actor=Depends(admin)):
+        try:
+            out = store.ingest(db)
+        except SourceError as e:
+            raise HTTPException(503, f"Grants.gov could not be read: {e}")
+        db.audit(actor, "ingest", out)
+        return out
+
+    @app.get("/api/admin/ingest/status")
+    def ingest_status(_=Depends(admin)):
+        return store.status(db)
+
+    @app.get("/api/admin/api-calls")
+    def api_calls(limit: int = 100, _=Depends(admin)):
+        return {"calls": [dict(r) for r in db.q("SELECT at,source,endpoint,params,ok,http_status,latency_ms,error,ingest_id FROM api_calls ORDER BY id DESC LIMIT ?", (min(max(limit, 1), 500),))]}
 
     @app.post("/api/admin/retention/run")
     def retention(actor=Depends(admin)):

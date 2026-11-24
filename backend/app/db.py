@@ -18,6 +18,12 @@ CREATE TABLE IF NOT EXISTS annotations(id INTEGER PRIMARY KEY, run_id TEXT, labe
 CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT);
 CREATE TABLE IF NOT EXISTS admin_audit(id INTEGER PRIMARY KEY, at TEXT, actor TEXT, action TEXT, detail TEXT);
 CREATE TABLE IF NOT EXISTS rubric_versions(version TEXT PRIMARY KEY, body TEXT, status TEXT, created_at TEXT, published_at TEXT, note TEXT);
+CREATE TABLE IF NOT EXISTS opportunities(source_record_id TEXT PRIMARY KEY, source_system TEXT, number TEXT, title TEXT, sponsor TEXT,
+  agency_code TEXT, status TEXT, open_date TEXT, close_date TEXT, url TEXT, detail TEXT, text_hash TEXT, listed_at TEXT, detail_at TEXT);
+CREATE TABLE IF NOT EXISTS api_calls(id INTEGER PRIMARY KEY, at TEXT, source TEXT, endpoint TEXT, params TEXT, ok INTEGER,
+  http_status INTEGER, latency_ms INTEGER, error TEXT, ingest_id TEXT);
+CREATE INDEX IF NOT EXISTS ix_opps_close ON opportunities(close_date);
+CREATE INDEX IF NOT EXISTS ix_calls_at ON api_calls(at);
 CREATE INDEX IF NOT EXISTS ix_runs_visitor ON runs(visitor_hash, created_at);
 """
 

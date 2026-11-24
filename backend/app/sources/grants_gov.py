@@ -21,6 +21,7 @@ PAGE_ROWS = 500
 USER_AGENT = "ForgeSignal/0.2 (university research-development pilot)"   # no personal details
 
 _cache: dict = {}
+call_hook = None      # optional callable(endpoint, params, ok, http_status, latency_ms, error); set by the ingest job
 _cache_lock = threading.Lock()
 
 
@@ -73,11 +74,23 @@ def days_until(d, today=None):
 
 
 # ---------------------------------------------------------------- HTTP
+def _log(endpoint, body, ok, status, t0, error=None):
+    hook = call_hook
+    if hook:
+        try:
+            params = {k: v for k, v in body.items() if k in ("rows", "startRecordNum", "oppStatuses", "opportunityId")}
+            hook(endpoint, params, ok, status, int((time.time() - t0) * 1000), error)
+        except Exception:
+            pass                                 # logging must never break a pull
+
+
 def _post(client: httpx.Client, endpoint: str, body: dict) -> dict:
     last = None
     for attempt in range(3):
+        t0, status = time.time(), None
         try:
             r = client.post(f"{BASE}/{endpoint}", json=body)
+            status = r.status_code
             if r.status_code >= 500:
                 last = SourceError(f"{endpoint}: HTTP {r.status_code}")
             else:
@@ -85,9 +98,13 @@ def _post(client: httpx.Client, endpoint: str, body: dict) -> dict:
                 data = r.json()
                 if data.get("errorcode") not in (0, None):
                     raise SourceError(f"{endpoint}: {data.get('msg') or data.get('errorcode')}")
+                _log(endpoint, body, True, status, t0)
                 return data.get("data") or {}
         except httpx.HTTPError as e:
             last = SourceError(f"{endpoint}: {type(e).__name__}")
+        except SourceError as e:
+            _log(endpoint, body, False, status, t0, str(e)[:200]); raise
+        _log(endpoint, body, False, status, t0, str(last)[:200])
         time.sleep(0.4 * (2 ** attempt))      # backoff; fair use
     raise last or SourceError(f"{endpoint}: failed")
 

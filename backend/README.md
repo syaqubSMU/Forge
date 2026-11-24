@@ -27,3 +27,10 @@ Admin (`X-Admin-Token`): settings (incl. the model switch), audit, run log + det
 ## Not built yet
 Live source pulls (Grants.gov, OpenAlex, faculty pages), calendar and .xlsx/.ics exports, real email delivery,
 model factor extraction for the rubric, the front end. `POST /api/runs` currently requires supplied `sources`.
+
+## Stored Grants.gov copy (replaces the live-only pull)
+`POST /api/admin/ingest` (admin token) lists every posted and forecasted opportunity, reads full text for records
+that have none or close within 12 months, and logs every Grants.gov request in `api_calls`
+(`GET /api/admin/api-calls`, `GET /api/admin/ingest/status`). Runs then read the stored copy and report when it was
+retrieved; until the first ingest they pull live, as before. Measured on 2026-11-24: 1,372 records with full text
+in 72 s, 0 failures. Researcher profiles and judgments are never stored in this table.

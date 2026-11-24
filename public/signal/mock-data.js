@@ -4,14 +4,14 @@
 window.MOCK = {
   profile: {
     investigator: "Dr. R. Alvarez (fictional)",
-    institution: "Sample University, Dedman College",
+    institution: "Sample University, Sample College",
     career_stage: "Established investigator. Exclude programs restricted to early-career investigators.",
     lanes: ["Photochemistry and flavin chemistry", "Structural biology and protein dynamics",
             "Biological sensing and signal transduction", "Protein engineering and molecular tools"],
     positioning_rules: ["Cancer only where a real mechanism or collaborator bridge exists",
                         "Defense only where sensing or biophysics is central"]
   },
-  settings: { horizon_months: 3, lead_time_days: 14, funder_types: ["federal"], min_fit: "Low", scope_level: "Dedman College" },
+  settings: { horizon_months: 3, lead_time_days: 14, funder_types: ["federal"], min_fit: "Low", scope_level: "A named organization" },
   retrieved_at: "2026-11-24T14:05:00Z",
   counters: { opportunities_listed: 790, in_horizon: 251, details_fetched: 251, judged: 25,
               not_judged_due_to_cap: 226, source_failures: 2, latency_ms: 18400,

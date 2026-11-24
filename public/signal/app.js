@@ -1,110 +1,343 @@
-(function(){
-var $=function(i){return document.getElementById(i);};
-var KEY="signalWorkbenchV1";
-var SAMPLE={profiles:[
- {id:"p1",name:"Sample PI A (fictional)",dept:"Sample Biology",url:"",status:"Verified",ret:"2026-11-01",areas:["Machine learning methods for rural health access","Community health data analysis"]},
- {id:"p2",name:"Sample PI B (fictional)",dept:"Sample History",url:"",status:"Unverified",ret:"2026-06-01",areas:["Digitization of archival collections","Public access to cultural heritage"]},
- {id:"p3",name:"Sample PI C (fictional)",dept:"Sample Physics",url:"",status:"Verified",ret:"2026-10-15",areas:["Battery materials discovery","Energy storage characterization"]}],
- opps:[
- {id:"o1",title:"Sample: ML for Rural Health Access",sponsor:"Sample Sponsor",url:"",dl:"",elig:"Unclear",notes:"Fictional record",pri:["Data-driven methods that improve access to care in rural communities (Sec. I)"]},
- {id:"o2",title:"Sample: Humanities Collections and Digital Access",sponsor:"Sample Sponsor",url:"",dl:"",elig:"Clear",notes:"Fictional record",pri:["Digitization and public access for cultural collections (Sec. I)"]}]};
-var S=load();
-function load(){try{var s=JSON.parse(localStorage.getItem(KEY));if(s&&s.profiles&&s.opps)return s;}catch(e){}return JSON.parse(JSON.stringify(SAMPLE));}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
-function uid(){return "x"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
-function h(tag,attrs,kids){var e=document.createElement(tag);for(var k in (attrs||{}))e.setAttribute(k,attrs[k]);(kids||[]).forEach(function(c){e.appendChild(typeof c==="string"?document.createTextNode(c):c);});return e;}
-function clear(n){while(n.firstChild)n.removeChild(n.firstChild);}
-function fmt(d){return d?new Date(d+"T00:00:00").toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"}):"Not stated";}
+/* Shared rendering for the FORGE SIGNAL interface.
+   Reads window.MOCK today; the same functions take the API response once wired.
+   All text is inserted as text nodes, never as HTML: opportunity text is sponsor-supplied. */
+(function () {
+  "use strict";
+  var M = window.MOCK || {};
 
-// matching: overlap of stemmed terms; evidence shown, never inferred
-var STOP="a an and are as at be by for from in into of on or that the their to with using use via data new based study research approach approaches methods method sec section improve support supports".split(" ");
-function terms(arr){var o={};arr.join(" ").toLowerCase().replace(/[^a-z0-9 ]/g," ").split(/\s+/).forEach(function(w){if(w.length<4||STOP.indexOf(w)>-1)return;o[w.replace(/(ing|ed|es|s|ion|al)$/,"")]=w;});return o;}
-function match(p,o){
- var a=terms(p.areas),b=terms(o.pri),sh=[];for(var k in a)if(b[k])sh.push(a[k]);
- var r;
- if(o.elig==="Blocked")r="Not eligible";
- else if(sh.length>=2&&p.status==="Verified"&&o.elig==="Clear")r="High";
- else if(sh.length>=2)r="Medium";
- else r="Low";
- var risks=[];
- if(p.status!=="Verified")risks.push("Profile "+p.status+": cannot be High until verified");
- if(o.elig==="Unclear")risks.push("Eligibility unclear: RD to verify");
- if(o.elig==="Blocked")risks.push("Eligibility blocker");
- if(o.notes)risks.push(o.notes);
- if(!o.dl)risks.push("Deadline not stated");
- if(sh.length===1)risks.push("Only one shared term: treated as Low unless RD sees real alignment");
- return {p:p,o:o,r:r,sh:sh,risks:risks};}
-var ORD={"High":0,"Medium":1,"Low":2,"Not eligible":3};
-function cls(r){return r==="Not eligible"?"r-NE":"r-"+r;}
+  function el(tag, attrs, kids) {
+    var n = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(function (k) {
+      if (k === "class") n.className = attrs[k]; else n.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach(function (c) { n.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+    return n;
+  }
+  function $(id) { return document.getElementById(id); }
+  function clear(n) { while (n && n.firstChild) n.removeChild(n.firstChild); }
+  function money(v) { return v == null ? null : "$" + Number(v).toLocaleString("en-US"); }
+  function dateLong(iso) {
+    if (!iso) return null;
+    var p = String(iso).split("-");
+    return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+  }
+  function orNot(v, word) { return v == null || v === "" ? el("span", { class: "nostate" }, [word || "Not specified"]) : document.createTextNode(String(v)); }
 
-// deliverables
-var cur=null;
-var MS=[["Verify NOFO, deadline, eligibility",70],["Send targeted alerts",60],["PI go/no-go reply",45],["Budget and partner commitments",30],["Draft to internal review",14],["Final package ready",7],["Sponsor deadline",0]];
-function mailFor(o,ms){
- var depts=[];ms.forEach(function(m){if(depts.indexOf(m.p.dept)<0)depts.push(m.p.dept);});
- return "Subject: Funding opportunity for your consideration: "+o.title+(o.dl?" (due "+fmt(o.dl)+")":"")+"\n\nDear [Chair, "+(depts.join(" / ")||"Department")+"],\n\nResearch Development is sharing a funding opportunity that may be relevant to faculty in your department: "+o.title+" from "+o.sponsor+". Sponsor page: "+(o.url||"[add link]")+".\n\nDeadline: "+(o.dl?fmt(o.dl):"not stated in the source; please see the sponsor page")+".\nParticipation: "+(o.notes||"[add high-level eligibility, lead vs. partner, required collaborators]")+" Eligibility has "+(o.elig==="Clear"?"been confirmed by Research Development.":"not yet been fully confirmed by Research Development.")+"\n\nThis is a targeted informational alert, not a request or mandate. We are glad to discuss fit, partners, or timelines.\n\n[Research Development signature]\n\n(DRAFT: edit before sending.)";}
-function promptFor(o,ms){
- return "ROLE: Research development analyst, SMU Dedman College. You support human decisions; you do not send or commit anyone.\nRULES: Cite sponsor claims by section/page and SMU claims by URL + exact quote + date. Evidence tiers: E1 direct quote, E2 Scholar/ORCID corroboration, E3 your reasoning (caps at Medium). If unsupported write exactly: \"No explicit support found in the provided sources.\" Never state a deadline/award/eligibility rule not in the sponsor text. Only Verified profiles can be High. No Restricted data.\n\nTASK: Check the tool's screening results below against the sources. Confirm, downgrade or reject each rating, add missed matches from Dedman pages, and list eligibility risks and gaps.\n\nOPPORTUNITY: "+o.title+" ("+o.sponsor+") "+(o.url||"")+"\nDeadline: "+fmt(o.dl)+" | Eligibility status: "+o.elig+" | Notes: "+(o.notes||"none")+"\nPriorities (quoted):\n- "+o.pri.join("\n- ")+"\n\nSCREENING RESULTS:\n"+ms.map(function(m){return "- "+m.p.name+" ("+m.p.dept+", "+m.p.status+", retrieved "+(m.p.ret||"n/a")+") "+m.r+"; shared terms: "+(m.sh.join(", ")||"none")+"; areas quoted: "+m.p.areas.join(" | ");}).join("\n");}
-function ics(o){
- if(!o.dl)return null;var p=o.dl.split("-"),base=new Date(+p[0],+p[1]-1,+p[2]);
- function pad(n){return (n<10?"0":"")+n;}function ymd(d){return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate());}
- function esc(s){return String(s).replace(/\\/g,"\\\\").replace(/;/g,"\;").replace(/,/g,"\\,").replace(/\n/g,"\\n");}
- var st=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+/,""),L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//FORGE SIGNAL//Workbench//EN"];
- MS.forEach(function(m,i){var d=new Date(base);d.setDate(d.getDate()-m[1]);var e=new Date(d);e.setDate(e.getDate()+1);
-  L.push("BEGIN:VEVENT","UID:"+o.id+"-"+i+"-"+st+"@forge-signal","DTSTAMP:"+st,"DTSTART;VALUE=DATE:"+ymd(d),"DTEND;VALUE=DATE:"+ymd(e),"SUMMARY:"+esc(o.title+": "+m[0]),"DESCRIPTION:"+esc("Placeholder offset. Verify on sponsor page. "+(o.url||"")),"END:VEVENT");});
- L.push("END:VCALENDAR");return L.join("\r\n");}
-function showDeliver(o,ms,head){cur={o:o};$("deliver").hidden=false;$("dh").textContent=head;$("mail").textContent=mailFor(o,ms);$("prm").textContent=promptFor(o,ms);$("ci").disabled=!o.dl;$("ci").title=o.dl?"":"No deadline stated";}
-function copy(id){var m=$("msg");(navigator.clipboard?navigator.clipboard.writeText($(id).textContent):Promise.reject()).then(function(){m.textContent="Copied.";},function(){m.textContent="Copy failed; select and copy manually.";});}
-$("cm").onclick=function(){copy("mail");};$("cp").onclick=function(){copy("prm");};
-$("ci").onclick=function(){var t=ics(cur.o);if(!t)return;var a=h("a",{href:URL.createObjectURL(new Blob([t],{type:"text/calendar"})),download:"signal-"+cur.o.title.toLowerCase().replace(/[^a-z0-9]+/g,"-").slice(0,40)+".ics"});document.body.appendChild(a);a.click();a.remove();};
+  /* badges always carry words, so colour is never the only signal */
+  function fitBadge(r) {
+    if (!r.fit) return el("span", { class: "badge b-excluded" }, ["Excluded · " + r.tier]);
+    return el("span", { class: "badge b-" + r.fit.toLowerCase() }, [r.fit + " · " + r.tier + " fit"]);
+  }
+  function eligBadge(e) {
+    var c = e === "Eligible" ? "b-elig" : e === "Not eligible" ? "b-notelig" : "b-needs";
+    return el("span", { class: "badge " + c }, ["Eligibility: " + e]);
+  }
 
-// tables
-function matchTable(rows,firstCol){
- var t=h("table"),hd=h("tr");[firstCol,"Rating","Shared terms (evidence)","Notes / risks"].forEach(function(x){hd.appendChild(h("th",{},[x]));});t.appendChild(h("thead",{},[hd]));
- var tb=h("tbody");rows.forEach(function(m){var tr=h("tr");
-  var who=firstCol==="Faculty"?[m.p.name+" · "+m.p.dept,h("br"),h("span",{class:"small"},[m.p.areas.join("; ")])]:[m.o.title+" · "+m.o.sponsor,h("br"),h("span",{class:"small"},["Deadline: "+fmt(m.o.dl)+" · "+m.o.pri.join("; ")])];
-  tr.appendChild(h("td",{},who));tr.appendChild(h("td",{class:cls(m.r)},[m.r]));
-  tr.appendChild(h("td",{},[m.sh.length?m.sh.join(", "):"No explicit support found in the provided sources."]));tr.appendChild(h("td",{},[m.risks.join(" · ")||"None flagged"]));tb.appendChild(tr);});
- t.appendChild(tb);return t;}
-function fillSel(sel,items,label){var v=sel.value;clear(sel);items.forEach(function(x){sel.appendChild(h("option",{value:x.id},[label(x)]));});if(items.some(function(x){return x.id===v;}))sel.value=v;}
-function runB(){var o=S.opps.filter(function(x){return x.id===$("b_o").value})[0],out=$("b_out");clear(out);$("deliver").hidden=true;
- if(!o){out.appendChild(h("p",{},["Add an opportunity first."]));return;}
- var ms=S.profiles.map(function(p){return match(p,o);}).sort(function(a,b){return ORD[a.r]-ORD[b.r]||b.sh.length-a.sh.length;});
- var shown=ms.filter(function(m){return $("b_low").checked||m.r!=="Low";});
- out.appendChild(h("p",{class:"small"},[shown.length+" of "+ms.length+" profiles shown."]));
- out.appendChild(shown.length?matchTable(shown,"Faculty"):h("p",{},["No Medium or High matches. Low matches hidden."]));
- var alertSet=ms.filter(function(m){return m.r==="High"||m.r==="Medium";});
- if(alertSet.length){var b=h("button",{class:"btn dark",type:"button"},["Prepare alert, prompt and calendar"]);b.onclick=function(){showDeliver(o,alertSet,"Drafts for: "+o.title);$("deliver").scrollIntoView();};out.appendChild(b);}}
-function runA(){var p=S.profiles.filter(function(x){return x.id===$("a_p").value})[0],out=$("a_out");clear(out);$("deliver").hidden=true;
- if(!p){out.appendChild(h("p",{},["Add a profile first."]));return;}
- var w=parseInt($("a_w").value,10),now=new Date();now.setHours(0,0,0,0);
- var ms=S.opps.filter(function(o){if(!w)return true;if(!o.dl)return true;var d=(new Date(o.dl+"T00:00:00")-now)/864e5;return d>=0&&d<=w;}).map(function(o){return match(p,o);}).filter(function(m){return m.r==="High"||m.r==="Medium";}).sort(function(a,b){return ORD[a.r]-ORD[b.r]||b.sh.length-a.sh.length;});
- out.appendChild(ms.length?matchTable(ms,"Opportunity"):h("p",{},["No High or Medium matches in this window."]));
- if(p.status!=="Verified")out.appendChild(h("p",{class:"note"},["This profile is "+p.status+". Verify it before relying on these results; it cannot receive High."]));
- ms.forEach(function(m){var b=h("button",{class:"btn dark s",type:"button",style:"margin:4px 6px 4px 0"},["Drafts: "+m.o.title]);b.onclick=function(){showDeliver(m.o,[m],"Drafts for "+p.name+": "+m.o.title);$("deliver").scrollIntoView();};out.appendChild(b);});}
+  function citationBlock(c) {
+    var src = c.source_id === "researcher-profile"
+      ? el("span", {}, ["Researcher profile, supplied for this run"])
+      : el("a", { href: c.source_id, rel: "noopener noreferrer", target: "_blank" }, ["Official source"]);
+    return el("div", { class: "quote" }, [
+      el("span", { class: "for-tag" }, [String(c["for"]).replace(/_/g, " ")]),
+      el("q", {}, [c.quote]),
+      el("span", { class: "src" }, [src, document.createTextNode(" · retrieved " + (dateLong((M.retrieved_at || "").slice(0, 10)) || "today"))])
+    ]);
+  }
 
-// lists + forms
-function renderLists(){
- var pl=$("profList");clear(pl);S.profiles.forEach(function(p){var d=h("div",{class:"item"},[h("div",{},[h("strong",{},[p.name]),h("div",{class:"small"},[p.dept+" · "+p.status+" · retrieved "+(p.ret||"n/a")+(p.url?" · ":"")]),h("div",{class:"small"},[p.areas.join("; ")])]),h("div",{})]);
-  if(p.url){d.firstChild.children[1].appendChild(h("a",{href:p.url,rel:"noopener"},["profile"]));}
-  var e=h("button",{class:"btn s dark",type:"button"},["Edit"]);e.onclick=function(){$("pf_n").value=p.name;$("pf_d").value=p.dept;$("pf_u").value=p.url;$("pf_s").value=p.status;$("pf_r").value=p.ret;$("pf_a").value=p.areas.join("\n");pf.dataset.id=p.id;$("pfH").textContent="Edit profile";$("pf_n").focus();};
-  var x=h("button",{class:"btn s ghost",type:"button",style:"color:var(--blue);border-color:var(--blue)"},["Delete"]);x.onclick=function(){if(confirm("Delete "+p.name+"?")){S.profiles=S.profiles.filter(function(q){return q.id!==p.id;});save();renderAll();}};
-  d.lastChild.appendChild(e);d.lastChild.appendChild(document.createTextNode(" "));d.lastChild.appendChild(x);pl.appendChild(d);});
- var ol=$("oppList");clear(ol);S.opps.forEach(function(o){var d=h("div",{class:"item"},[h("div",{},[h("strong",{},[o.title]),h("div",{class:"small"},[o.sponsor+" · Deadline: "+fmt(o.dl)+" · Eligibility: "+o.elig]),h("div",{class:"small"},[o.pri.join("; ")])]),h("div",{})]);
-  var x=h("button",{class:"btn s ghost",type:"button",style:"color:var(--blue);border-color:var(--blue)"},["Delete"]);x.onclick=function(){if(confirm("Delete "+o.title+"?")){S.opps=S.opps.filter(function(q){return q.id!==o.id;});save();renderAll();}};d.lastChild.appendChild(x);ol.appendChild(d);});}
-function renderAll(){renderLists();fillSel($("b_o"),S.opps,function(o){return o.title;});fillSel($("a_p"),S.profiles,function(p){return p.name+" ("+p.dept+")";});runB();runA();}
-var pf=$("pf");
-function lines(s){return s.split("\n").map(function(x){return x.trim();}).filter(Boolean);}
-function resetPf(){pf.reset();delete pf.dataset.id;$("pfH").textContent="Add profile";}
-pf.onsubmit=function(e){e.preventDefault();var rec={id:pf.dataset.id||uid(),name:$("pf_n").value.trim(),dept:$("pf_d").value.trim(),url:$("pf_u").value.trim(),status:$("pf_s").value,ret:$("pf_r").value,areas:lines($("pf_a").value)};
- var i=S.profiles.findIndex(function(p){return p.id===rec.id;});if(i>-1)S.profiles[i]=rec;else S.profiles.push(rec);save();resetPf();renderAll();};
-$("pf_c").onclick=resetPf;
-$("of").onsubmit=function(e){e.preventDefault();S.opps.push({id:uid(),title:$("of_t").value.trim(),sponsor:$("of_s").value.trim(),url:$("of_u").value.trim(),dl:$("of_d").value,elig:$("of_e").value,notes:$("of_x").value.trim(),pri:lines($("of_p").value)});save();$("of").reset();renderAll();};
-$("b_o").onchange=runB;$("b_low").onchange=runB;$("a_p").onchange=runA;$("a_w").onchange=runA;
-$("ex").onclick=function(){var a=h("a",{href:URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:"application/json"})),download:"signal-workbench.json"});document.body.appendChild(a);a.click();a.remove();};
-$("im").onchange=function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var s=JSON.parse(r.result);if(!Array.isArray(s.profiles)||!Array.isArray(s.opps))throw 0;S=s;save();renderAll();$("dmsg").textContent="Imported.";}catch(e){$("dmsg").textContent="Import failed: not a Workbench file.";}};r.readAsText(f);};
-$("reset").onclick=function(){if(confirm("Replace all data with the sample set?")){S=JSON.parse(JSON.stringify(SAMPLE));save();renderAll();}};
-document.querySelectorAll(".tab[data-t]").forEach(function(t){t.onclick=function(){document.querySelectorAll(".tab[data-t]").forEach(function(x){x.setAttribute("aria-pressed",x===t);});
- ["prof","opp","b","a","data"].forEach(function(k){$("p-"+k).hidden=k!==t.dataset.t;});$("deliver").hidden=true;};});
-renderAll();
+  function howCalculated(r) {
+    var h = r.how_calculated || {}, d = el("details", { class: "calc" });
+    d.appendChild(el("summary", {}, ["How this fit was calculated"]));
+    var body = el("div", { class: "body" });
+    body.appendChild(el("p", { class: "hint" }, ["The model reported these factor values with quotes. The rating itself is calculated from the published rubric, not chosen by the model."]));
+    var kv = el("dl", { class: "kv" });
+    Object.keys(h.factors || {}).forEach(function (k) {
+      kv.appendChild(el("dt", {}, [k.replace(/_/g, " ")]));
+      kv.appendChild(el("dd", {}, [String(h.factors[k])]));
+    });
+    body.appendChild(kv);
+    var ul = el("ul", { class: "rule-list" });
+    (h.reasons || []).forEach(function (reason, i) {
+      ul.appendChild(el("li", {}, [reason + " ", el("span", { class: "pill" }, [(h.rules_fired || [])[i] || "rule"])]));
+    });
+    body.appendChild(ul);
+    (h.adjustments || []).forEach(function (a) { body.appendChild(el("div", { class: "adjust" }, ["Adjusted: " + a])); });
+    if (r.failed_citation_count) {
+      body.appendChild(el("div", { class: "adjust" }, [r.failed_citation_count +
+        " quote(s) could not be found in the source and were discarded. Unsupported claims never raise a rating."]));
+    }
+    if ((r.prefilter_shared_terms || []).length) {
+      body.appendChild(el("p", { class: "hint", style: "margin-top:9px" },
+        ["Chosen for screening because these terms appear in both the profile and the announcement: " +
+         r.prefilter_shared_terms.join(", ") + ". That ranking only controls cost; it is not the fit judgment."]));
+    }
+    d.appendChild(body);
+    return d;
+  }
+
+  function resultCard(r) {
+    var card = el("article", { class: "result r-" + (r.fit || "Excluded") });
+    card.appendChild(el("h3", {}, [el("a", { href: r.url, rel: "noopener noreferrer", target: "_blank" }, [r.title])]));
+    var meta = el("div", { class: "meta" }, [r.sponsor, el("span", { class: "sep" }, ["|"]),
+      el("span", { class: "mono" }, [r.number]), el("span", { class: "sep" }, ["|"])]);
+    meta.appendChild(document.createTextNode("Sponsor deadline: "));
+    meta.appendChild(orNot(dateLong(r.close_date), "Not stated"));
+    if (r.days_to_deadline != null) meta.appendChild(document.createTextNode(" (" + r.days_to_deadline + " days)"));
+    card.appendChild(meta);
+
+    var badges = el("div", { class: "badges" }, [fitBadge(r), eligBadge(r.eligibility)]);
+    if (r.status) badges.appendChild(el("span", { class: "flag info" }, ["Status: " + r.status]));
+    (r.flags || []).forEach(function (f) { badges.appendChild(el("span", { class: "flag info" }, [f])); });
+    (r.currency_flags || []).forEach(function (f) { badges.appendChild(el("span", { class: "flag" }, ["⚠ " + f])); });
+    card.appendChild(badges);
+
+    card.appendChild(el("p", {}, [r.rationale]));
+    (r.citations || []).forEach(function (c) { card.appendChild(citationBlock(c)); });
+    if (!(r.citations || []).length) {
+      card.appendChild(el("div", { class: "quote" }, [el("q", {}, ["No explicit support found in the provided sources."])]));
+    }
+    card.appendChild(howCalculated(r));
+    return card;
+  }
+
+  function counters(c) {
+    var wrap = el("div", { class: "counters" });
+    [["Listed", c.opportunities_listed], ["In deadline window", c.in_horizon], ["Full text read", c.details_fetched],
+     ["Screened", c.judged], ["Not screened (cap)", c.not_judged_due_to_cap], ["Source failures", c.source_failures]
+    ].forEach(function (p) {
+      wrap.appendChild(el("div", {}, [el("span", { class: "n" }, [String(p[1])]), el("span", { class: "l" }, [p[0]])]));
+    });
+    return wrap;
+  }
+
+  /* ---------------------------------------------------------------- pages */
+  var pages = {
+    results: function () {
+      var all = M.results.filter(function (r) { return r.fit; });
+      var list = $("list"), chips = $("chips");
+      var controls = { q: $("q"), fit: $("f-fit"), elig: $("f-elig"), status: $("f-status"), sponsor: $("f-sponsor") };
+
+      /* fill the selects from the run itself, so a filter never offers a value with no results */
+      function fill(sel, values) {
+        values.forEach(function (v) { sel.appendChild(el("option", { value: v }, [v])); });
+      }
+      fill(controls.status, [...new Set(all.map(function (r) { return r.status; }).filter(Boolean))].sort());
+      fill(controls.sponsor, [...new Set(all.map(function (r) { return r.sponsor; }).filter(Boolean))].sort());
+
+      $("count").textContent = all.length + " of " + M.counters.judged +
+        " screened opportunities are shown. Excluded items are kept in the run log, not here.";
+      $("counters").appendChild(counters(M.counters));
+      var f = $("failures");
+      (M.source_failures || []).forEach(function (x) { f.appendChild(el("li", {}, [x.source_id + " \u2014 " + x.error])); });
+      $("failcount").textContent = (M.source_failures || []).length;
+
+      function matches(r) {
+        var term = controls.q.value.trim().toLowerCase();
+        if (term) {
+          var hay = [r.title, r.sponsor, r.number, r.rationale].join(" ").toLowerCase();
+          if (hay.indexOf(term) < 0) return false;
+        }
+        if (controls.fit.value && r.fit !== controls.fit.value) return false;
+        if (controls.elig.value && r.eligibility !== controls.elig.value) return false;
+        if (controls.status.value && r.status !== controls.status.value) return false;
+        if (controls.sponsor.value && r.sponsor !== controls.sponsor.value) return false;
+        return true;
+      }
+
+      function chip(label, reset) {
+        var c = el("span", { class: "chip" }, [label]);
+        var b = el("button", { type: "button", "aria-label": "Remove filter: " + label }, ["\u00d7"]);
+        b.onclick = function () { reset(); render(); };
+        c.appendChild(b); chips.appendChild(c);
+      }
+
+      function render() {
+        clear(chips); clear(list);
+        if (controls.q.value.trim()) chip('Search: "' + controls.q.value.trim() + '"', function () { controls.q.value = ""; });
+        [["fit", "Fit"], ["elig", "Eligibility"], ["status", "Status"], ["sponsor", ""]].forEach(function (p) {
+          var c = controls[p[0]];
+          if (c.value) chip((p[1] ? p[1] + ": " : "") + c.value, function () { c.value = ""; });
+        });
+        if (chips.children.length > 1) {
+          var b = el("button", { class: "clear-all", type: "button" }, ["Clear all filters"]);
+          b.onclick = function () {
+            Object.keys(controls).forEach(function (k) { controls[k].value = ""; });
+            render(); controls.q.focus();
+          };
+          chips.appendChild(b);
+        }
+        var shown = all.filter(matches);
+        $("shown").textContent = shown.length === all.length
+          ? "Showing all " + all.length + " results, highest fit first."
+          : "Showing " + shown.length + " of " + all.length + " results.";
+        if (!shown.length) {
+          list.appendChild(el("div", { class: "empty" }, [
+            el("strong", {}, ["No results match these filters"]),
+            el("span", {}, ["Every screened opportunity is still in the run. Remove a filter above to see it."])]));
+          return;
+        }
+        shown.forEach(function (r) { list.appendChild(resultCard(r)); });
+      }
+
+      Object.keys(controls).forEach(function (k) {
+        controls[k].addEventListener(k === "q" ? "input" : "change", render);
+      });
+      render();
+    },
+
+    calendar: function () {
+      var groups = { Fixed: [], Rolling: [], Watch: [] };
+      M.results.filter(function (r) { return r.fit; }).forEach(function (r) {
+        (r.status === "Rolling" ? groups.Rolling : r.status === "Watch" ? groups.Watch : groups.Fixed).push(r);
+      });
+      var cols = ["Opportunity", "Sponsor", "NOFO / Call ID", "Fit", "Status & conditions", "Sponsor deadline",
+                  "Internal deadline", "Days left", "Amount / scale", "Eligibility", "Recommended next action", "Official source"];
+      var host = $("tables");
+      Object.keys(groups).forEach(function (g) {
+        if (!groups[g].length) return;
+        var scroll = el("div", { class: "table-scroll", style: "margin-bottom:22px" }), t = el("table");
+        t.appendChild(el("caption", {}, [g === "Fixed" ? "Fixed deadlines" : g === "Rolling" ? "Rolling or anytime (no invented deadline)" : "Watch: dates not yet announced"]));
+        var hr = el("tr"); cols.forEach(function (c) { hr.appendChild(el("th", { scope: "col" }, [c])); });
+        t.appendChild(el("thead", {}, [hr]));
+        var tb = el("tbody");
+        groups[g].forEach(function (r) {
+          var cells = [
+            [r.title], [r.sponsor], [el("span", { class: "mono" }, [r.number])], [fitBadge(r)],
+            [(function () {
+              var d = el("span", {}, [r.status || "Open"]);
+              (r.flags || []).concat(r.currency_flags || []).forEach(function (f) {
+                d.appendChild(document.createTextNode(" ")); d.appendChild(el("span", { class: "flag info" }, [f]));
+              });
+              return d;
+            })()],
+            [orNot(dateLong(r.close_date), "Rolling / not stated")],
+            [orNot(dateLong(r.internal_deadline), "Set once the sponsor date is known")],
+            [r.days_to_deadline == null ? el("span", { class: "nostate" }, ["—"]) : document.createTextNode(String(r.days_to_deadline))],
+            [orNot(r.award_ceiling ? "up to " + money(r.award_ceiling) : null, "Not specified")],
+            [el("span", {}, [r.eligibility])],
+            [r.eligibility === "Needs verification" ? "Verify eligibility on the sponsor page before any outreach."
+              : r.status === "Rolling" ? "Contact the program officer to confirm topic fit."
+              : "Confirm the deadline, then prepare outreach."],
+            [el("a", { href: r.url, rel: "noopener noreferrer", target: "_blank" }, ["Open announcement"])]
+          ];
+          var tr = el("tr");
+          cells.forEach(function (c, i) { tr.appendChild(el("td", { "data-label": cols[i] }, c)); });
+          tb.appendChild(tr);
+        });
+        t.appendChild(tb); scroll.appendChild(t); host.appendChild(scroll);
+      });
+
+      var lead = (M.settings && M.settings.lead_time_days) || 14;
+      var decide = M.results.filter(function (r) {
+        return (r.fit === "High" || r.fit === "Medium") && r.days_to_deadline != null &&
+               r.days_to_deadline >= 0 && r.days_to_deadline < lead && r.status !== "Watch";
+      });
+      if (decide.length) {
+        $("decide").hidden = false;
+        var dl = $("decidelist");
+        decide.forEach(function (r) {
+          dl.appendChild(el("li", {}, [
+            el("strong", {}, [r.title]), document.createTextNode(" \u2014 " + r.days_to_deadline +
+              " day" + (r.days_to_deadline === 1 ? "" : "s") + " to the sponsor deadline, inside the " +
+              lead + "-day lead time. "), fitBadge(r)]));
+        });
+      }
+      var soon = M.results.filter(function (r) { return r.fit && r.days_to_deadline != null && r.days_to_deadline <= 45; });
+      var ul = $("soon");
+      soon.forEach(function (r) {
+        ul.appendChild(el("li", {}, [r.title + " — ", el("strong", {}, [r.days_to_deadline + " days"]),
+          document.createTextNode(" (internal deadline " + (dateLong(r.internal_deadline) || "not set") + ")")]));
+      });
+      if (!soon.length) ul.appendChild(el("li", { class: "nostate" }, ["Nothing inside 45 days."]));
+      var top = $("top5");
+      M.results.filter(function (r) { return r.fit; }).slice(0, 5).forEach(function (r) {
+        top.appendChild(el("li", {}, [r.title + " ", fitBadge(r)]));
+      });
+      var watch = $("watchlist");
+      groups.Watch.concat(groups.Rolling).forEach(function (r) {
+        watch.appendChild(el("li", {}, [r.title + " — " + (r.status === "Rolling" ? "rolling; confirm topic" : "next cycle not announced")]));
+      });
+      if (!groups.Watch.length && !groups.Rolling.length) watch.appendChild(el("li", { class: "nostate" }, ["Nothing on watch."]));
+    },
+
+    review: function () {
+      var surfaced = M.results.filter(function (r) { return r.fit === "High" || r.fit === "Medium"; });
+      var held = M.results.filter(function (r) { return r.fit === "Low"; });
+      var excluded = M.results.filter(function (r) { return !r.fit; });
+      function fill(id, rows, note) {
+        var ul = $(id);
+        rows.forEach(function (r) { ul.appendChild(el("li", {}, [r.title + " ", fitBadge(r)])); });
+        if (!rows.length) ul.appendChild(el("li", { class: "nostate" }, [note]));
+      }
+      fill("surfaced", surfaced, "Nothing would be sent.");
+      fill("held", held, "Nothing held back.");
+      fill("excluded", excluded, "Nothing excluded.");
+      $("draft").value =
+        "Subject: Funding opportunities for your consideration (" + surfaced.length + " to review)\n\n" +
+        "Dear Dr. " + M.profile.investigator.split(" ")[1] + ",\n\n" +
+        "Research Development screened current federal opportunities against your public profile. " +
+        surfaced.length + " may be worth a look:\n\n" +
+        surfaced.map(function (r) {
+          return "• " + r.title + " (" + r.sponsor + ", " + r.number + ")\n" +
+                 "  Deadline: " + (dateLong(r.close_date) || "rolling / not stated") +
+                 "  |  Internal deadline: " + (dateLong(r.internal_deadline) || "to be set") + "\n" +
+                 "  Why it may fit: " + r.rationale + "\n" +
+                 "  Eligibility: " + r.eligibility + "\n  " + r.url;
+        }).join("\n\n") +
+        "\n\nThis is an informational alert, not a recommendation to apply. Please verify every deadline and " +
+        "eligibility requirement on the sponsor page before committing time.\n\n[Your name]\nResearch Development";
+
+      var tick = $("confirm"), to = $("to"), send = $("send");
+      function sync() { send.disabled = !(tick.checked && /[^@\s]+@[^@\s]+\.[^@\s]+/.test(to.value)); }
+      tick.addEventListener("change", sync); to.addEventListener("input", sync); sync();
+      $("sendform").addEventListener("submit", function (e) {
+        e.preventDefault();
+        $("sent").textContent = "Logged in dummy mode at " + new Date().toLocaleTimeString() +
+          ". Recipient " + to.value + " recorded in the run log. No email was sent.";
+        $("sent").hidden = false;
+      });
+    },
+
+    match: function () {
+      var form = $("runform"), steps = $("progress"), done = $("done");
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        steps.hidden = false; done.hidden = true;
+        var items = steps.querySelectorAll("li"), i = 0;
+        items.forEach(function (li) { li.className = "todo"; });
+        (function tick() {
+          if (i > 0) items[i - 1].className = "done";
+          if (i < items.length) { items[i].className = "now"; i++; setTimeout(tick, 650); }
+          else { done.hidden = false; done.focus(); }
+        })();
+      });
+      document.querySelectorAll("[data-panel]").forEach(function (radio) {
+        radio.addEventListener("change", function () {
+          document.querySelectorAll(".input-panel").forEach(function (p) { p.hidden = true; });
+          var panel = $(radio.getAttribute("data-panel"));
+          if (panel) panel.hidden = false;
+        });
+      });
+    }
+  };
+
+  function heroVideo() {
+    var v = $("hv"), b = $("vb");
+    if (!v || !b) return;
+    var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    function label(playing) {
+      b.textContent = playing ? "Pause video" : "Play video";
+      b.setAttribute("aria-pressed", playing ? "false" : "true");
+    }
+    if (!still) { var p = v.play(); if (p && p.catch) p.catch(function () { label(false); }); }
+    label(!still);
+    b.addEventListener("click", function () {
+      if (v.paused) { v.play(); label(true); } else { v.pause(); label(false); }
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    heroVideo();
+    var p = document.body.getAttribute("data-page");
+    if (pages[p]) pages[p]();
+  });
 })();

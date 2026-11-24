@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Results | FORGE SIGNAL</title>
+<meta name="description" content="Screened funding opportunities with the quote behind every claim and how each rating was calculated.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body data-page="results">
+<a class="skip" href="#main">Skip to main content</a>
+<p class="mock-banner">Interface preview &middot; every figure below is fictional sample data</p>
+<header class="nav"><div class="wrap">
+ <a class="brand" href="index.html">FORGE<small>SIGNAL</small></a>
+ <nav aria-label="Main"><ul><li><a href="index.html">Home</a></li><li><a href="match.html">Match</a></li><li><a href="results.html" aria-current="page">Results</a></li><li><a href="calendar.html">Calendar</a></li><li><a href="review.html">Review</a></li><li><a href="about.html">About</a></li><li><a href="settings.html">Settings<span class="admin-tag">admin</span></a></li></ul></nav>
+</div></header>
+<main id="main">
+<section class="hero"><div class="wrap">
+ <p class="eyebrow">Step 2 of 3 &middot; screened 24 Nov 2026, 2:05 pm UTC</p>
+ <h1>Results</h1>
+ <p class="lead" id="count">Loading&hellip;</p>
+ <div class="btn-row"><a class="btn accent" href="calendar.html">Open the calendar</a><a class="btn ghost" href="review.html">Draft an alert</a><a class="btn ghost" href="match.html">Change the run</a></div>
+</div></section>
+
+<div class="wrap">
+<section>
+ <div id="counters"></div>
+
+ <div class="filters">
+  <div class="tools">
+   <div class="q"><label for="q">Search</label>
+    <input id="q" type="search" placeholder="Title, sponsor, call ID or reason"></div>
+   <div><label for="f-fit">Fit</label><select id="f-fit"><option value="">Any fit</option><option>High</option><option>Medium</option><option>Low</option></select></div>
+   <div><label for="f-elig">Eligibility</label><select id="f-elig"><option value="">Any</option><option>Eligible</option><option>Needs verification</option><option>Not eligible</option></select></div>
+   <div><label for="f-status">Status</label><select id="f-status"><option value="">Any status</option></select></div>
+   <div><label for="f-sponsor">Sponsor</label><select id="f-sponsor"><option value="">All sponsors</option></select></div>
+  </div>
+  <div id="chips" class="chips" aria-label="Active filters"></div>
+ </div>
+
+ <p id="shown" class="meta" aria-live="polite" style="margin-bottom:12px"></p>
+
+ <div class="notice" style="margin-bottom:18px"><strong>These are screening results, not decisions.</strong>
+ Confirm every deadline and eligibility requirement on the sponsor page before acting. A rating of High means the
+ established science is central to the program, not that an award is likely.</div>
+
+ <div id="list"></div>
+</section>
+
+<section>
+ <h3>Could not be read (<span id="failcount">0</span>)</h3>
+ <p class="hint" style="margin-top:6px">Recorded rather than dropped, so nothing disappears silently.</p>
+ <ul id="failures" class="rule-list" style="margin-top:9px"></ul>
+</section>
+</div>
+</main>
+<footer><div class="wrap"><p>FORGE SIGNAL &middot; capstone project, SMU Cox MS in AI in Business. Preview with sample data only; not an approved or endorsed university service. <a href="about.html">What this is and is not</a></p></div></footer>
+<script src="mock-data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

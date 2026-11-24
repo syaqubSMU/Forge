@@ -1,5 +1,6 @@
 """Run log (the only database, PRD section 6) plus admin settings, audit trail and rubric versions.
-SQLite for the pilot; the same schema ports to Postgres. No opportunity, faculty or profile tables (hard rule 1)."""
+SQLite by default (a file path or :memory:); Postgres when FORGE_DB is a postgres:// or postgresql:// URL.
+No opportunity, faculty or profile tables (hard rule 1)."""
 import json, sqlite3, threading, uuid
 from datetime import datetime, timedelta, timezone
 
@@ -37,19 +38,63 @@ def now():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+def is_postgres(target) -> bool:
+    return str(target).startswith(("postgres://", "postgresql://"))
+
+
+def _clean(v):
+    """Postgres text cannot hold NUL characters; SQLite can. Strip them so a stray byte never fails a run."""
+    return v.replace("\x00", "") if isinstance(v, str) else v
+
+
 class Database:
     def __init__(self, path=":memory:"):
-        self.conn = sqlite3.connect(path, check_same_thread=False)
-        self.conn.row_factory = sqlite3.Row
+        self.pg = is_postgres(path)
+        self.target = path
         self.lock = threading.Lock()
+        self._connect()
         with self.lock:
-            self.conn.executescript(SCHEMA); self.conn.commit()
+            if self.pg:
+                for stmt in filter(None, (x.strip() for x in SCHEMA.replace("id INTEGER PRIMARY KEY", "id BIGSERIAL PRIMARY KEY").split(";"))):
+                    self.conn.execute(stmt)
+                self.conn.commit()
+            else:
+                self.conn.executescript(SCHEMA); self.conn.commit()
+
+    def _connect(self):
+        if self.pg:
+            import psycopg                                   # imported lazily: SQLite users do not need it
+            from psycopg.rows import dict_row
+            self._psycopg = psycopg
+            self.conn = psycopg.connect(self.target, row_factory=dict_row, connect_timeout=15)
+        else:
+            self.conn = sqlite3.connect(self.target, check_same_thread=False)
+            self.conn.row_factory = sqlite3.Row
+
+    def _run(self, sql, args):
+        if self.pg:
+            return self.conn.execute(sql.replace("?", "%s"), tuple(_clean(a) for a in args))
+        return self.conn.execute(sql, args)
 
     def q(self, sql, args=(), one=False, write=False):
         with self.lock:
-            cur = self.conn.execute(sql, args)
-            if write: self.conn.commit(); return cur.lastrowid
-            rows = cur.fetchall()
+            for attempt in (1, 2):
+                try:
+                    cur = self._run(sql, args)
+                    if write:
+                        self.conn.commit()
+                        return None if self.pg else cur.lastrowid
+                    rows = cur.fetchall()
+                    if self.pg: self.conn.commit()           # end the read transaction
+                    break
+                except Exception as e:
+                    if not self.pg: raise
+                    try: self.conn.rollback()
+                    except Exception: pass
+                    # An idle serverless Postgres drops connections; reconnect once, then give up.
+                    if attempt == 1 and isinstance(e, self._psycopg.OperationalError):
+                        self._connect(); continue
+                    raise
         return (rows[0] if rows else None) if one else rows
 
     # settings -------------------------------------------------------------
@@ -114,7 +159,7 @@ class Database:
         sql, args = ("SELECT id,created_at,input_type,input_text,model,status,latency_ms,rubric_version,archived,"
                      "input_tokens,output_tokens,opportunities_listed,details_fetched FROM runs WHERE 1=1"), []
         if not include_archived: sql += " AND archived=0"
-        if q: sql += " AND input_text LIKE ?"; args.append(f"%{q}%")
+        if q: sql += " AND LOWER(input_text) LIKE LOWER(?)"; args.append(f"%{q}%")
         sql += " ORDER BY created_at DESC, id LIMIT ? OFFSET ?"; args += [limit, offset]
         return [dict(r) for r in self.q(sql, args)]
 
@@ -136,7 +181,9 @@ class Database:
 
     def publish_rubric(self, version, body: dict, note=""):
         self.q("UPDATE rubric_versions SET status='archived' WHERE status='published'", write=True)
-        self.q("INSERT OR REPLACE INTO rubric_versions(version,body,status,created_at,published_at,note) VALUES(?,?,?,?,?,?)",
+        self.q("INSERT INTO rubric_versions(version,body,status,created_at,published_at,note) VALUES(?,?,?,?,?,?)"
+               " ON CONFLICT(version) DO UPDATE SET body=excluded.body, status=excluded.status,"
+               " created_at=excluded.created_at, published_at=excluded.published_at, note=excluded.note",
                (version, json.dumps(body), "published", now(), now(), note), write=True)
 
     def rubric_versions(self):

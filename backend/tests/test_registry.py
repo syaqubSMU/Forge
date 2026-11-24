@@ -13,7 +13,9 @@ def test_unknown_provider_fails_clearly():
 
 
 def test_claude_needs_server_key(monkeypatch):
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    from app.adapters.claude import KEY_VARS
+    for name in KEY_VARS:                      # every accepted name, so a real key in the environment cannot leak in
+        monkeypatch.delenv(name, raising=False)
     pytest.importorskip("anthropic")
     with pytest.raises(RuntimeError):
         get_adapter({"active_model": "claude"})

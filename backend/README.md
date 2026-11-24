@@ -15,7 +15,7 @@ Scope: `docs/PRD_v0.2.md` (governed by the Business Case). Nothing here calls a 
 | Name | Purpose |
 |---|---|
 | `ADMIN_TOKEN` | Admin API sign-in. Required for every `/api/admin/*` call. |
-| `FORGE_DB` | SQLite path for the run log. |
+| `FORGE_DB` | Run log location: a SQLite file path (default `forge.db`, `:memory:` for a throwaway run) or a `postgresql://` URL (Neon, Render, Supabase or any Postgres 14+). The tables are created on first start. |
 | `FORGE_SALT` | Salt for the visitor hash used by rate limiting. |
 | `ANTHROPIC_API_KEY` | Only when the active model is `claude`. Never returned by the API. |
 | `FORGE_MODEL` | Optional model id for the Claude adapter. |

@@ -204,11 +204,49 @@ def test_amount_text_survives_the_strings_sponsors_actually_send():
     assert amount_text("50000.0", "500000.0") == "$50,000 to $500,000"
 
 
-def test_a_deadline_inside_the_lead_time_is_flagged():
+def test_a_deadline_inside_the_lead_time_is_flagged_with_the_days_left():
     """A real pull showed deadlines days away, whose internal deadline is already past.
-    The arithmetic is right; the office needs to be told."""
+    The arithmetic is right; the office needs to be told, and told how long it has."""
     cal = build_calendar([opp(close_date=date(2026, 11, 30))], 14, TODAY)     # 6 days away
     row = cal["groups"]["Fixed"][0]
     assert row["internal_deadline"] == date(2026, 11, 16)                    # genuinely in the past
-    assert "Internal lead time already passed" in row["flags"]
+    assert "Internal lead time already passed: 6 days to the sponsor deadline" in row["flags"]
     assert build_calendar([opp(close_date=date(2027, 3, 1))], 14, TODAY)["rows"][0]["flags"] == []
+
+
+def test_singular_day_reads_correctly():
+    cal = build_calendar([opp(close_date=date(2026, 11, 25))], 14, TODAY)
+    assert "1 day to the sponsor deadline" in " ".join(cal["rows"][0]["flags"])
+
+
+def test_decide_now_holds_the_good_fits_that_are_already_inside_the_lead_time():
+    """The customer's instruction: a short timeline is fine when the fit is good, and she wants
+    to be told. So this list is additive, and nothing is filtered out of the other lists."""
+    rows = [opp(title="good and urgent", fit="High", close_date=date(2026, 11, 28)),
+            opp(title="weak and urgent", fit="Low", tier="Conditional", close_date=date(2026, 11, 27)),
+            opp(title="good but not urgent", fit="High", close_date=date(2027, 2, 1)),
+            opp(title="archived and urgent", fit="High", close_date=date(2026, 11, 28),
+                currency_flags=["Archived on the sponsor site"])]
+    cal = build_calendar(rows, 14, TODAY)
+    assert [r["title"] for r in cal["decide_now"]] == ["good and urgent"]
+    # nothing is hidden: the weak one is still in the chronological action list and in its group
+    assert "weak and urgent" in [r["title"] for r in cal["needs_action"]]
+    assert "weak and urgent" in [r["title"] for r in cal["groups"]["Fixed"]]
+    assert "archived and urgent" in [r["title"] for r in cal["groups"]["Watch"]]
+
+
+def test_next_action_for_an_urgent_row_says_decide_now():
+    cal = build_calendar([opp(close_date=date(2026, 11, 28))], 14, TODAY)
+    action = cal["rows"][0]["next_action"]
+    assert action.startswith("Decide now") and "4 days" in action and "14-day lead time" in action
+
+
+def test_unverified_eligibility_still_comes_before_decide_now():
+    cal = build_calendar([opp(close_date=date(2026, 11, 28), eligibility="Needs verification")], 14, TODAY)
+    assert "Verify eligibility" in cal["rows"][0]["next_action"]
+
+
+def test_workbook_summary_lists_decide_now_first():
+    wb = load(to_xlsx(build_calendar([opp(close_date=date(2026, 11, 28))], 14, TODAY)))
+    text = "\n".join(str(c.value) for row in wb["Summary"].iter_rows() for c in row if c.value)
+    assert "Decide now" in text and text.index("Decide now") < text.index("Needs action within 45 days")

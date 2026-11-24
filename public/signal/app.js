@@ -112,17 +112,76 @@
   /* ---------------------------------------------------------------- pages */
   var pages = {
     results: function () {
-      var shown = M.results.filter(function (r) { return r.fit; });
-      $("count").textContent = shown.length + " of " + M.counters.judged +
+      var all = M.results.filter(function (r) { return r.fit; });
+      var list = $("list"), chips = $("chips");
+      var controls = { q: $("q"), fit: $("f-fit"), elig: $("f-elig"), status: $("f-status"), sponsor: $("f-sponsor") };
+
+      /* fill the selects from the run itself, so a filter never offers a value with no results */
+      function fill(sel, values) {
+        values.forEach(function (v) { sel.appendChild(el("option", { value: v }, [v])); });
+      }
+      fill(controls.status, [...new Set(all.map(function (r) { return r.status; }).filter(Boolean))].sort());
+      fill(controls.sponsor, [...new Set(all.map(function (r) { return r.sponsor; }).filter(Boolean))].sort());
+
+      $("count").textContent = all.length + " of " + M.counters.judged +
         " screened opportunities are shown. Excluded items are kept in the run log, not here.";
       $("counters").appendChild(counters(M.counters));
-      var list = $("list");
-      shown.forEach(function (r) { list.appendChild(resultCard(r)); });
       var f = $("failures");
-      (M.source_failures || []).forEach(function (x) {
-        f.appendChild(el("li", {}, [x.source_id + " — " + x.error]));
-      });
+      (M.source_failures || []).forEach(function (x) { f.appendChild(el("li", {}, [x.source_id + " \u2014 " + x.error])); });
       $("failcount").textContent = (M.source_failures || []).length;
+
+      function matches(r) {
+        var term = controls.q.value.trim().toLowerCase();
+        if (term) {
+          var hay = [r.title, r.sponsor, r.number, r.rationale].join(" ").toLowerCase();
+          if (hay.indexOf(term) < 0) return false;
+        }
+        if (controls.fit.value && r.fit !== controls.fit.value) return false;
+        if (controls.elig.value && r.eligibility !== controls.elig.value) return false;
+        if (controls.status.value && r.status !== controls.status.value) return false;
+        if (controls.sponsor.value && r.sponsor !== controls.sponsor.value) return false;
+        return true;
+      }
+
+      function chip(label, reset) {
+        var c = el("span", { class: "chip" }, [label]);
+        var b = el("button", { type: "button", "aria-label": "Remove filter: " + label }, ["\u00d7"]);
+        b.onclick = function () { reset(); render(); };
+        c.appendChild(b); chips.appendChild(c);
+      }
+
+      function render() {
+        clear(chips); clear(list);
+        if (controls.q.value.trim()) chip('Search: "' + controls.q.value.trim() + '"', function () { controls.q.value = ""; });
+        [["fit", "Fit"], ["elig", "Eligibility"], ["status", "Status"], ["sponsor", ""]].forEach(function (p) {
+          var c = controls[p[0]];
+          if (c.value) chip((p[1] ? p[1] + ": " : "") + c.value, function () { c.value = ""; });
+        });
+        if (chips.children.length > 1) {
+          var b = el("button", { class: "clear-all", type: "button" }, ["Clear all filters"]);
+          b.onclick = function () {
+            Object.keys(controls).forEach(function (k) { controls[k].value = ""; });
+            render(); controls.q.focus();
+          };
+          chips.appendChild(b);
+        }
+        var shown = all.filter(matches);
+        $("shown").textContent = shown.length === all.length
+          ? "Showing all " + all.length + " results, highest fit first."
+          : "Showing " + shown.length + " of " + all.length + " results.";
+        if (!shown.length) {
+          list.appendChild(el("div", { class: "empty" }, [
+            el("strong", {}, ["No results match these filters"]),
+            el("span", {}, ["Every screened opportunity is still in the run. Remove a filter above to see it."])]));
+          return;
+        }
+        shown.forEach(function (r) { list.appendChild(resultCard(r)); });
+      }
+
+      Object.keys(controls).forEach(function (k) {
+        controls[k].addEventListener(k === "q" ? "input" : "change", render);
+      });
+      render();
     },
 
     calendar: function () {
@@ -167,6 +226,21 @@
         t.appendChild(tb); scroll.appendChild(t); host.appendChild(scroll);
       });
 
+      var lead = (M.settings && M.settings.lead_time_days) || 14;
+      var decide = M.results.filter(function (r) {
+        return (r.fit === "High" || r.fit === "Medium") && r.days_to_deadline != null &&
+               r.days_to_deadline >= 0 && r.days_to_deadline < lead && r.status !== "Watch";
+      });
+      if (decide.length) {
+        $("decide").hidden = false;
+        var dl = $("decidelist");
+        decide.forEach(function (r) {
+          dl.appendChild(el("li", {}, [
+            el("strong", {}, [r.title]), document.createTextNode(" \u2014 " + r.days_to_deadline +
+              " day" + (r.days_to_deadline === 1 ? "" : "s") + " to the sponsor deadline, inside the " +
+              lead + "-day lead time. "), fitBadge(r)]));
+        });
+      }
       var soon = M.results.filter(function (r) { return r.fit && r.days_to_deadline != null && r.days_to_deadline <= 45; });
       var ul = $("soon");
       soon.forEach(function (r) {
@@ -246,7 +320,23 @@
     }
   };
 
+  function heroVideo() {
+    var v = $("hv"), b = $("vb");
+    if (!v || !b) return;
+    var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    function label(playing) {
+      b.textContent = playing ? "Pause video" : "Play video";
+      b.setAttribute("aria-pressed", playing ? "false" : "true");
+    }
+    if (!still) { var p = v.play(); if (p && p.catch) p.catch(function () { label(false); }); }
+    label(!still);
+    b.addEventListener("click", function () {
+      if (v.paused) { v.play(); label(true); } else { v.pause(); label(false); }
+    });
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
+    heroVideo();
     var p = document.body.getAttribute("data-page");
     if (pages[p]) pages[p]();
   });

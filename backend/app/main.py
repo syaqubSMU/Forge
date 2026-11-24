@@ -172,6 +172,7 @@ def create_app(db_path: str = None, lister=None, detailer=None) -> FastAPI:
                     for k, v in r.items() if k not in ("how_calculated", "citations")}
         return {"run_id": rid, "lead_days": cal["lead_days"], "today": cal["today"].isoformat(),
                 "groups": {g: [out(r) for r in rows] for g, rows in cal["groups"].items()},
+                "decide_now": [out(r) for r in cal["decide_now"]],
                 "needs_action": [out(r) for r in cal["needs_action"]],
                 "top": [out(r) for r in cal["top"]], "watch": [out(r) for r in cal["watch"]]}
 

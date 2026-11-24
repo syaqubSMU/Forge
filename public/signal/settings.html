@@ -16,9 +16,8 @@
  <a class="brand" href="index.html">FORGE<small>SIGNAL</small></a>
  <nav aria-label="Main"><ul><li><a href="index.html">Home</a></li><li><a href="match.html">Match</a></li><li><a href="results.html">Results</a></li><li><a href="calendar.html">Calendar</a></li><li><a href="review.html">Review</a></li><li><a href="about.html">About</a></li><li><a href="settings.html" aria-current="page">Settings<span class="admin-tag">admin</span></a></li></ul></nav>
 </div></header>
-<main id="main"><div class="wrap">
-
-<div class="page-head">
+<main id="main">
+<section class="hero"><div class="wrap">
  <p class="eyebrow">Administrator only</p>
  <h1>Settings</h1>
  <p class="lead">These settings apply to every run. Changes are recorded with who made them and when.</p>
@@ -33,7 +32,10 @@
   <div class="field"><label for="units">Units in scope</label><input type="text" id="units" placeholder="e.g. Biological Sciences; Chemistry; Physics"></div>
   <div class="field"><label for="ftypes">Funder types</label>
    <select id="ftypes"><option selected>Federal only</option><option>Federal and state</option><option>All available</option></select></div>
- </div>
+</div></section>
+
+<div class="wrap">
+<section>
 
  <div class="card">
   <h2>Model</h2>
@@ -103,7 +105,9 @@
 <div class="notice warn" style="margin-top:16px"><strong>Preview only.</strong> Nothing on this page is connected yet, and
 sign-in is not built. The pilot uses a single administrator password; SSO would come later.</div>
 
-</div></main>
+</div></section>
+</div>
+</main>
 <footer><div class="wrap"><p>FORGE SIGNAL &middot; pilot for Research Development, Dedman College &middot; ITOM 6216 capstone. Sample data only; not a live service. <a href="about.html">What this is and is not</a></p></div></footer>
 <script src="mock-data.js"></script>
 <script src="app.js"></script>

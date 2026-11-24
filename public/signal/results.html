@@ -16,30 +16,46 @@
  <a class="brand" href="index.html">FORGE<small>SIGNAL</small></a>
  <nav aria-label="Main"><ul><li><a href="index.html">Home</a></li><li><a href="match.html">Match</a></li><li><a href="results.html" aria-current="page">Results</a></li><li><a href="calendar.html">Calendar</a></li><li><a href="review.html">Review</a></li><li><a href="about.html">About</a></li><li><a href="settings.html">Settings<span class="admin-tag">admin</span></a></li></ul></nav>
 </div></header>
-<main id="main"><div class="wrap">
-
-<div class="page-head">
+<main id="main">
+<section class="hero"><div class="wrap">
  <p class="eyebrow">Step 2 of 3 &middot; screened 24 Nov 2026, 2:05 pm UTC</p>
  <h1>Results</h1>
- <p class="lead" id="count"></p>
- <div class="btn-row"><a class="btn" href="calendar.html">Open the calendar</a><a class="btn ghost" href="review.html">Draft an alert</a><a class="btn ghost" href="match.html">Change the run</a></div>
-</div>
+ <p class="lead" id="count">Loading&hellip;</p>
+ <div class="btn-row"><a class="btn accent" href="calendar.html">Open the calendar</a><a class="btn ghost" href="review.html">Draft an alert</a><a class="btn ghost" href="match.html">Change the run</a></div>
+</div></section>
 
-<div id="counters"></div>
+<div class="wrap">
+<section>
+ <div id="counters"></div>
 
-<div class="notice" style="margin-bottom:18px"><strong>These are screening results, not decisions.</strong>
-Confirm every deadline and eligibility requirement on the sponsor page before acting. A rating of High means the
-established science is central to the program, not that an award is likely.</div>
+ <div class="filters">
+  <div class="tools">
+   <div class="q"><label for="q">Search</label>
+    <input id="q" type="search" placeholder="Title, sponsor, call ID or reason"></div>
+   <div><label for="f-fit">Fit</label><select id="f-fit"><option value="">Any fit</option><option>High</option><option>Medium</option><option>Low</option></select></div>
+   <div><label for="f-elig">Eligibility</label><select id="f-elig"><option value="">Any</option><option>Eligible</option><option>Needs verification</option><option>Not eligible</option></select></div>
+   <div><label for="f-status">Status</label><select id="f-status"><option value="">Any status</option></select></div>
+   <div><label for="f-sponsor">Sponsor</label><select id="f-sponsor"><option value="">All sponsors</option></select></div>
+  </div>
+  <div id="chips" class="chips" aria-label="Active filters"></div>
+ </div>
 
-<div id="list"></div>
+ <p id="shown" class="meta" aria-live="polite" style="margin-bottom:12px"></p>
 
-<div class="card">
+ <div class="notice" style="margin-bottom:18px"><strong>These are screening results, not decisions.</strong>
+ Confirm every deadline and eligibility requirement on the sponsor page before acting. A rating of High means the
+ established science is central to the program, not that an award is likely.</div>
+
+ <div id="list"></div>
+</section>
+
+<section>
  <h3>Could not be read (<span id="failcount">0</span>)</h3>
  <p class="hint" style="margin-top:6px">Recorded rather than dropped, so nothing disappears silently.</p>
  <ul id="failures" class="rule-list" style="margin-top:9px"></ul>
+</section>
 </div>
-
-</div></main>
+</main>
 <footer><div class="wrap"><p>FORGE SIGNAL &middot; pilot for Research Development, Dedman College &middot; ITOM 6216 capstone. Sample data only; not a live service. <a href="about.html">What this is and is not</a></p></div></footer>
 <script src="mock-data.js"></script>
 <script src="app.js"></script>

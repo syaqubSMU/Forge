@@ -18,8 +18,17 @@ Static pages served at the site root by `.github/workflows/deploy.yml`. Scope: `
 **Nothing here is connected yet.** Every figure is fictional sample data and the export and
 send buttons are inactive. Wiring to the backend API is the next step.
 
+Design carries forward the earlier SIGNAL build (git `55cca27`): navy hero with the explainer
+video, alternating bands, the numbered flow that marks **human-decision steps** in `--human`, the
+two-column comparison, the navy pull quote, and the Explorer's search-filter-chip interaction, now
+on Results. Palette stays the PRD brand; contrast on the navy ground was measured, not assumed
+(coral 6.01:1, body text 12.85:1, muted 8.82:1 — all pass AA; coral is 2.68:1 on white, so on light
+grounds it is only ever coral-ink).
+
 Accessibility is a build constraint, not a later pass: semantic landmarks, skip link, visible
-focus, keyboard-operable disclosures, and status never signalled by colour alone (every badge
-carries words). Verified at 360px with no horizontal scrolling.
+focus, keyboard-operable disclosures and filter chips, a video control that respects
+`prefers-reduced-motion`, and status never signalled by colour alone (every badge carries words).
+Verified at 1280, 768 and 360px: no console errors, no horizontal scrolling, one `h1` per page,
+every control labelled, no dead links.
 
 The earlier prototype (Workbench, Prompt Builder, Explorer) was removed per decision D2 in the PRD.

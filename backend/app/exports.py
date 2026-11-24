@@ -64,7 +64,14 @@ def to_xlsx(cal, profile=None) -> bytes:
             ("Internal deadline rule", f"sponsor deadline minus {cal.get('lead_days', 14)} days"),
             ("Researcher", (profile or {}).get("investigator") or (profile or {}).get("name") or NOT_SPECIFIED),
             ("", ""),
-            ("Needs action within 45 days", "")]
+            ("Decide now", "Inside the internal lead time and rated High or Medium.")]
+    for r in cal.get("decide_now") or []:
+        rows.append(("", f"{r['title']} — {r['days_to_deadline']} days to the sponsor deadline "
+                         f"({r.get('fit')}, {r.get('tier')} fit)"))
+    if not cal.get("decide_now"):
+        rows.append(("", "Nothing inside the lead time."))
+    rows += [("", ""),
+             ("Needs action within 45 days", "")]
     for r in cal["needs_action"]:
         rows.append(("", f"{r['title']} — {r['days_to_deadline']} days (internal deadline {_d(r['internal_deadline'])})"))
     if not cal["needs_action"]:

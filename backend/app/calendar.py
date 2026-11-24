@@ -45,7 +45,8 @@ def derive_flags(record, today=None, lead_days=None):
     out = []
     d = days_until(record.get("close_date"), today)
     if lead_days is not None and d is not None and 0 <= d < lead_days:
-        out.append("Internal lead time already passed")
+        out.append("Internal lead time already passed: %d day%s to the sponsor deadline"
+                   % (d, "" if d == 1 else "s"))
     if d is not None and 0 <= d <= 21:
         out.append("Closing soon")
     if record.get("cost_sharing"):
@@ -80,7 +81,12 @@ def amount_text(floor, ceiling):
     return None
 
 
-def next_action(row):
+def inside_lead_time(row, lead_days):
+    d = row.get("days_to_deadline")
+    return d is not None and 0 <= d < lead_days and row.get("status") not in ("Watch", "Closed")
+
+
+def next_action(row, lead_days=None):
     """A concrete next step (FR-30's 'Recommended next action'), chosen by rule, not by the model."""
     if row["status"] == "Watch":
         return "Do not act on this version. Check the sponsor page for the replacement or the next cycle."
@@ -92,6 +98,10 @@ def next_action(row):
         return "Verify eligibility on the sponsor page before any outreach."
     if row["status"] == "Rolling":
         return "Contact the program officer to confirm topic fit before preparing anything."
+    if lead_days is not None and inside_lead_time(row, lead_days):
+        d = row["days_to_deadline"]
+        return ("Decide now: %d day%s to the sponsor deadline, which is inside the usual %d-day lead time."
+                % (d, "" if d == 1 else "s", lead_days))
     return "Confirm the deadline on the sponsor page, then prepare outreach."
 
 
@@ -113,7 +123,7 @@ def build_calendar(results, lead_days=14, today=None, action_window=ACTION_WINDO
             "days_to_deadline": days_until(close, today),
             "amount": amount_text(r.get("award_floor"), r.get("award_ceiling")),
         })
-        row["next_action"] = next_action(row)
+        row["next_action"] = next_action(row, lead_days)
         rows.append(row)
 
     def key(x):
@@ -137,5 +147,10 @@ def build_calendar(results, lead_days=14, today=None, action_window=ACTION_WINDO
                            and 0 <= r["days_to_deadline"] <= action_window
                            and r["status"] not in ("Watch", "Closed")], key=key)
     top = sorted(rows, key=lambda r: (order.get(r["fit"], 3), key(r)))[:5]
-    return {"rows": rows, "groups": groups, "needs_action": needs_action, "top": top,
-            "watch": groups["Watch"] + groups["Rolling"], "lead_days": lead_days, "today": today}
+    # Worth a decision today: already inside the lead time AND worth the scramble. The customer asked to
+    # be told about these rather than have them filtered out, so this list is additive; nothing is hidden
+    # and every one of these also appears in needs_action and in its group.
+    decide_now = sorted([r for r in rows if inside_lead_time(r, lead_days) and r.get("fit") in ("High", "Medium")],
+                        key=key)
+    return {"rows": rows, "groups": groups, "needs_action": needs_action, "decide_now": decide_now,
+            "top": top, "watch": groups["Watch"] + groups["Rolling"], "lead_days": lead_days, "today": today}

@@ -34,6 +34,23 @@ window.MOCK = {
         { for: "eligibility", source_id: "https://example.org/opportunity/ss-26-101", quote: "Accredited U.S. institutions of higher education are eligible to apply." }],
       failed_citation_count: 0, prefilter_shared_terms: ["photochemistry", "mechanism", "chemistry"] },
 
+    { title: "Sample Rapid Response Award in Biological Sensing", sponsor: "Sample Federal Agency",
+      number: "SS-26-RR4", url: "https://example.org/opportunity/ss-26-rr4",
+      close_date: "2026-11-30", days_to_deadline: 6, internal_deadline: "2026-11-16",
+      award_floor: null, award_ceiling: 150000, status: "Open", flags: ["Closing soon"],
+      currency_flags: [], related_opportunity_ids: [],
+      tier: "Direct", fit: "High", eligibility: "Eligible",
+      rationale: "The call names biological sensing and signal transduction, which the profile lists as an established area. The window is short but the science is a direct match.",
+      how_calculated: { factors: { centrality: "central", repositioning: "none", pi_can_lead: "yes",
+                                   career_stage_excluded: "no", positioning_violation: "no" },
+        rules_fired: ["R5"],
+        reasons: ["Central science, no repositioning, investigator can lead: Direct."], adjustments: [] },
+      citations: [
+        { for: "centrality", source_id: "https://example.org/opportunity/ss-26-rr4", quote: "rapid-response support for biological sensing and signal transduction" },
+        { for: "centrality", source_id: "researcher-profile", quote: "Biological sensing and signal transduction" },
+        { for: "eligibility", source_id: "https://example.org/opportunity/ss-26-rr4", quote: "Open to accredited U.S. institutions of higher education." }],
+      failed_citation_count: 0, prefilter_shared_terms: ["sensing", "signal", "biological"] },
+
     { title: "Sample Instrumentation Program for Materials Research", sponsor: "Sample Federal Agency",
       number: "SS-26-118", url: "https://example.org/opportunity/ss-26-118",
       close_date: "2027-01-10", days_to_deadline: 47, internal_deadline: "2026-12-27",

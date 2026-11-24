@@ -16,70 +16,84 @@
  <a class="brand" href="index.html">FORGE<small>SIGNAL</small></a>
  <nav aria-label="Main"><ul><li><a href="index.html">Home</a></li><li><a href="match.html">Match</a></li><li><a href="results.html">Results</a></li><li><a href="calendar.html">Calendar</a></li><li><a href="review.html">Review</a></li><li><a href="about.html" aria-current="page">About</a></li><li><a href="settings.html">Settings<span class="admin-tag">admin</span></a></li></ul></nav>
 </div></header>
-<main id="main"><div class="wrap">
-
-<div class="page-head">
- <p class="eyebrow">About</p>
+<main id="main">
+<section class="hero"><div class="wrap">
+ <p class="eyebrow">About the project</p>
  <h1>What SIGNAL is, and what it is not</h1>
  <p class="lead">SIGNAL compresses the slowest part of finding funding: reading long announcements and judging whether they fit a particular researcher. It does the first pass. People make the decisions.</p>
+ <ul class="toc" aria-label="On this page">
+  <li><a href="#scope">Scope</a></li><li><a href="#collab">AI &amp; human collaboration</a></li>
+  <li><a href="#rating">How a rating is produced</a></li><li><a href="#data">Data &amp; privacy</a></li>
+ </ul>
+</div></section>
+
+<div class="wrap">
+<section id="scope">
+ <div class="sec-head"><p class="eyebrow">Scope</p><h2>Two ways in, one careful process</h2>
+ <p>Research development staff usually start in one of two places. Both end the same way: a person reviews the evidence and decides what goes out.</p></div>
+ <div class="collab">
+  <article class="col ai"><h3>Path A &middot; Researcher first</h3>
+   <p class="sub">A researcher asks what is coming up for them.</p>
+   <p style="font-size:14px;color:var(--muted)">SIGNAL starts from confirmed research areas and screens open and forecasted opportunities in the chosen deadline window.</p></article>
+  <article class="col ai"><h3>Path B &middot; Opportunity first</h3>
+   <p class="sub">A new announcement appears.</p>
+   <p style="font-size:14px;color:var(--muted)">SIGNAL reads the announcement and screens a department&rsquo;s public faculty listing for people who may fit.</p></article>
+ </div>
+ <div class="grid g2" style="margin-top:22px">
+  <div class="card"><h3>What it does</h3>
+   <ul class="rule-list" style="margin-top:10px">
+    <li>Reads current funding announcements at the moment you run it</li>
+    <li>Screens them against research areas a person has confirmed</li>
+    <li>Quotes the sentence behind every judgment, with a link and a retrieval date</li>
+    <li>Flags eligibility problems, and archived or replaced postings</li>
+    <li>Builds a deadline calendar with internal deadlines, and exports it</li>
+    <li>Drafts an alert for a person to edit and send</li>
+   </ul></div>
+  <div class="card"><h3>What it does not do</h3>
+   <ul class="rule-list" style="margin-top:10px">
+    <li>Decide eligibility. If the sources are silent it says &ldquo;Needs verification&rdquo;</li>
+    <li>Send anything. Every message is sent by a person, under their name</li>
+    <li>Predict whether an award is likely, or score anyone as a percentage</li>
+    <li>Keep a standing index of faculty. Researcher evidence is used for one run only</li>
+    <li>Replace the sponsor announcement, which is always the authority</li>
+    <li>Cover every funder. It reads selected official sources and says so</li>
+   </ul></div>
+ </div>
+</section>
 </div>
 
-<div class="grid g2">
- <div class="card">
-  <h2>What it does</h2>
-  <ul class="rule-list" style="margin-top:10px">
-   <li>Reads current funding announcements at the moment you run it</li>
-   <li>Screens them against research areas a person has confirmed</li>
-   <li>Quotes the sentence behind every judgment, with a link and a retrieval date</li>
-   <li>Flags eligibility problems, and archived or replaced postings</li>
-   <li>Builds a deadline calendar with internal deadlines, and exports it</li>
-   <li>Drafts an alert for a person to edit and send</li>
-  </ul>
+<section class="band" id="collab"><div class="wrap">
+ <div class="sec-head"><p class="eyebrow">AI &amp; human collaboration</p><h2>Each does what it does best</h2>
+ <p>These boundaries come from the 2026 SMU Technology Showcase session on AI and human collaboration, and they govern every SIGNAL workflow.</p></div>
+ <div class="collab">
+  <article class="col ai"><h3>Where AI helps most</h3>
+   <p class="sub">Speed, volume and first-pass analysis, where speed is of the essence.</p>
+   <ul>
+    <li><strong>Rapid synthesis:</strong> summarizing announcements, policies and reports</li>
+    <li><strong>Drafting and structuring:</strong> first drafts of emails, summaries and tables</li>
+    <li><strong>Pattern identification:</strong> themes across many documents</li>
+    <li><strong>Consistency:</strong> shared language across communications</li>
+    <li><strong>Targeted analysis:</strong> opportunity and researcher matching</li>
+    <li><strong>Early sensemaking:</strong> framing questions and surfacing options quickly</li>
+   </ul></article>
+  <article class="col hu"><h3>Where human judgment is required</h3>
+   <p class="sub">To provide trust, context and accountability.</p>
+   <ul>
+    <li><strong>Final interpretation:</strong> strategic choices, priorities and trade-offs</li>
+    <li><strong>Policy and compliance:</strong> grant rules, legal and financial risk</li>
+    <li><strong>Equity and ethics:</strong> who is surfaced, and who is missed</li>
+    <li><strong>Institutional knowledge:</strong> culture, history and informal constraints</li>
+    <li><strong>Relationships:</strong> faculty engagement and leadership communication</li>
+    <li><strong>Accountability:</strong> owning outcomes in audits and reviews</li>
+   </ul></article>
  </div>
- <div class="card">
-  <h2>What it does not do</h2>
-  <ul class="rule-list" style="margin-top:10px">
-   <li>Decide eligibility. If the sources are silent it says &ldquo;Needs verification&rdquo;</li>
-   <li>Send anything. Every message is sent by a person, under their name</li>
-   <li>Predict whether an award is likely, or score anyone as a percentage</li>
-   <li>Keep a standing index of faculty. Researcher evidence is used for one run and then kept only in that run&rsquo;s log</li>
-   <li>Replace the sponsor announcement, which is always the authority</li>
-   <li>Cover every funder. It reads selected official sources and says so</li>
-  </ul>
- </div>
-</div>
+ <p class="pull">Humans are essential for setting the oversight, validation of information and direction, and the ethical guardrails.</p>
+</div></section>
 
-<div class="card" style="margin-top:18px">
- <h2>Where AI helps, and where judgment is required</h2>
- <p class="hint" style="margin-top:6px">From the 2026 SMU Technology Showcase session on AI and human collaboration. These boundaries govern every SIGNAL workflow.</p>
- <div class="grid g2" style="margin-top:14px">
-  <div>
-   <h4>AI does the fast first pass</h4>
-   <ul class="rule-list" style="margin-top:8px">
-    <li>Summarizing long announcements and policies</li>
-    <li>First drafts of emails, tables and summaries</li>
-    <li>Spotting themes across many documents</li>
-    <li>Consistent language across communications</li>
-    <li>Matching opportunities to expertise</li>
-   </ul>
-  </div>
-  <div>
-   <h4>People hold the decisions</h4>
-   <ul class="rule-list" style="margin-top:8px">
-    <li>Final interpretation, priorities and trade-offs</li>
-    <li>Eligibility, compliance and institutional policy</li>
-    <li>Who is surfaced, and who is missed</li>
-    <li>Institutional context, history and politics</li>
-    <li>Relationships with faculty and leadership</li>
-    <li>Accountability in audits and reviews</li>
-   </ul>
-  </div>
- </div>
-</div>
-
-<div class="card" style="margin-top:18px">
- <h2>How a rating is produced</h2>
- <p class="hint" style="margin:6px 0 12px">The model never picks the rating. It reports observations, each with an exact quote. A published rubric turns those observations into a rating, and every result shows which rule fired.</p>
+<div class="wrap">
+<section id="rating">
+ <div class="sec-head"><p class="eyebrow">How a rating is produced</p><h2>The model reports. The rubric decides.</h2>
+ <p>The model never picks the rating. It reports observations, each with an exact quote. A published rubric turns those observations into a rating, and every result shows which rule fired.</p></div>
  <div class="table-scroll"><table>
   <caption class="sr">Rating rules</caption>
   <thead><tr><th scope="col">What the sources show</th><th scope="col">Rating</th></tr></thead>
@@ -91,26 +105,22 @@
    <tr><td data-label="What the sources show">No real overlap, a stretch, or a stated restriction rules it out</td><td data-label="Rating"><span class="badge b-excluded">Excluded</span></td></tr>
   </tbody>
  </table></div>
- <p class="hint" style="margin-top:12px">If a supporting quote cannot be found in its source, it is discarded and the
- observation falls back to its cautious value, so an unsupported claim can never raise a rating. Research Development
- can review and change these rules; every version is kept and each run records which one it used.</p>
-</div>
+ <p class="hint" style="margin-top:12px">If a supporting quote cannot be found in its source, it is discarded and the observation falls back to its cautious value, so an unsupported claim can never raise a rating. Research Development can review and change these rules; every version is kept and each run records which one it used.</p>
+</section>
 
-<div class="card" style="margin-top:18px">
- <h2>Data and privacy</h2>
- <ul class="rule-list" style="margin-top:10px">
-  <li>No account is needed, and no personal data is collected from visitors.</li>
-  <li>Runs, inputs and calendars are logged for the pilot report, kept for 90 days, then archived. Only the administrator can see them.</li>
-  <li>Public and private data only. Do not enter student records, health information or financial account details.</li>
-  <li>Announcements are read live from official sources and are not kept in a standing database.</li>
+<section id="data">
+ <div class="sec-head"><p class="eyebrow">Data &amp; privacy</p><h2>What is kept, and for how long</h2></div>
+ <ul class="rules">
+  <li><strong>No account needed</strong>No personal data is collected from visitors.</li>
+  <li><strong>Runs are logged</strong>Runs, inputs and calendars are kept for 90 days, then archived. Only the administrator can see them.</li>
+  <li><strong>Public and private data only</strong>No student records, health information or financial account details.</li>
+  <li><strong>No standing index</strong>Announcements are read live from official sources and are not kept in a database.</li>
  </ul>
- <p class="hint" style="margin-top:12px">Questions about research data handling go to SMU Research Integrity &amp; Compliance.</p>
+ <p class="hint" style="margin-top:14px">Questions about research data handling go to SMU Research Integrity &amp; Compliance.</p>
+ <div class="notice warn" style="margin-top:18px"><strong>Pilot status.</strong> SIGNAL is a capstone project under test, not an approved university service. It does not replace Cayuse, my.SMU or any official system, and it is not a system of record.</div>
+</section>
 </div>
-
-<div class="notice" style="margin-top:18px"><strong>Pilot status.</strong> SIGNAL is a capstone project under test, not an
-approved university service. It does not replace Cayuse, my.SMU or any official system, and it is not a system of record.</div>
-
-</div></main>
+</main>
 <footer><div class="wrap"><p>FORGE SIGNAL &middot; pilot for Research Development, Dedman College &middot; ITOM 6216 capstone. Sample data only; not a live service. <a href="about.html">What this is and is not</a></p></div></footer>
 <script src="mock-data.js"></script>
 <script src="app.js"></script>

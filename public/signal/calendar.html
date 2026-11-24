@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Calendar | FORGE SIGNAL</title>
+<meta name="description" content="Deadline calendar with internal deadlines, grouped by fixed, rolling and watch, with spreadsheet and calendar export.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body data-page="calendar">
+<a class="skip" href="#main">Skip to main content</a>
+<p class="mock-banner">Interface preview &middot; every figure below is fictional sample data</p>
+<header class="nav"><div class="wrap">
+ <a class="brand" href="index.html">FORGE<small>SIGNAL</small></a>
+ <nav aria-label="Main"><ul><li><a href="index.html">Home</a></li><li><a href="match.html">Match</a></li><li><a href="results.html">Results</a></li><li><a href="calendar.html" aria-current="page">Calendar</a></li><li><a href="review.html">Review</a></li><li><a href="about.html">About</a></li><li><a href="settings.html">Settings<span class="admin-tag">admin</span></a></li></ul></nav>
+</div></header>
+<main id="main"><div class="wrap">
+
+<div class="page-head">
+ <p class="eyebrow">Step 3 of 3</p>
+ <h1>Deadline calendar</h1>
+ <p class="lead">Internal deadlines are the sponsor deadline minus the lead time set for this run (14 days). Dates are computed in code, never written by a model. A sponsor date that does not exist stays blank rather than being invented.</p>
+ <div class="btn-row">
+  <button class="btn" type="button">Download spreadsheet (.xlsx)</button>
+  <button class="btn ghost" type="button">Download calendar (.ics)</button>
+  <a class="btn ghost" href="review.html">Draft an alert</a>
+ </div>
+ <p class="hint" style="margin-top:9px">Export buttons are inactive in this preview.</p>
+</div>
+
+<div class="grid g3" style="margin-bottom:20px">
+ <div class="card"><h3>Needs action within 45 days</h3><ul class="rule-list" id="soon" style="margin-top:9px"></ul></div>
+ <div class="card"><h3>Top 5 for this window</h3><ul class="rule-list" id="top5" style="margin-top:9px"></ul></div>
+ <div class="card"><h3>Watch list</h3><p class="hint">No announced date yet. Never shown as a deadline.</p><ul class="rule-list" id="watchlist" style="margin-top:9px"></ul></div>
+</div>
+
+<div id="tables"></div>
+
+<div class="notice"><strong>Verify before you diary anything.</strong> Sponsors change dates. Internal deadlines here are a
+planning aid and do not replace your office's own submission policy.</div>
+
+</div></main>
+<footer><div class="wrap"><p>FORGE SIGNAL &middot; pilot for Research Development, Dedman College &middot; ITOM 6216 capstone. Sample data only; not a live service. <a href="about.html">What this is and is not</a></p></div></footer>
+<script src="mock-data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

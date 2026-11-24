@@ -81,7 +81,7 @@ Defense only where sensing or biophysics is central</textarea>
    <div class="field"><label for="minfit">Show ratings down to</label>
     <select id="minfit"><option>High only</option><option>Medium and above</option><option selected>Low and above</option></select></div>
    <button class="btn" type="submit" style="width:100%;justify-content:center">Screen opportunities</button>
-   <p class="hint" style="margin-top:10px">A typical run reads several hundred announcements and takes under 30 seconds.</p>
+   <p class="hint" id="runhint" style="margin-top:10px">A typical run reads several hundred announcements and takes under 30 seconds.</p>
   </div>
   <div style="margin-top:14px"><div class="notice"><strong>Runs are logged.</strong> Runs, inputs and calendars are logged for the preview report, kept for 90 days, then archived. Only the administrator can see them.</div><div class="notice warn" style="margin-top:10px"><strong>Public and private data only.</strong> Do not enter student records, health information, financial account details or anything else your institution classifies as restricted.</div></div>
  </aside>
@@ -90,6 +90,8 @@ Defense only where sensing or biophysics is central</textarea>
 
 <div class="card" id="progress" hidden style="margin-top:18px">
  <h3>Running</h3>
+ <div class="notice warn" id="runerror" role="alert" hidden style="margin-bottom:12px"></div>
+ <p class="hint" id="runtimer" hidden style="margin-bottom:8px"></p>
  <ul class="steps">
   <li class="todo"><span class="mark" aria-hidden="true">1</span><span>Reading current announcements from the sponsor API</span></li>
   <li class="todo"><span class="mark" aria-hidden="true">2</span><span>Filtering to the deadline window</span></li>
@@ -99,7 +101,7 @@ Defense only where sensing or biophysics is central</textarea>
   <li class="todo"><span class="mark" aria-hidden="true">6</span><span>Calculating ratings from the published rubric</span></li>
  </ul>
  <div id="done" hidden tabindex="-1" style="margin-top:14px">
-  <div class="notice"><strong>Screening finished.</strong> 7 opportunities to review.</div>
+  <div class="notice"><strong>Screening finished.</strong> <span id="donecount">7</span> opportunities to review.<span id="donenote"></span></div>
   <div class="btn-row"><a class="btn" href="results.html">See the results</a></div>
  </div>
 </div>
@@ -107,6 +109,7 @@ Defense only where sensing or biophysics is central</textarea>
 </div>
 </main>
 <footer><div class="wrap"><p>FORGE SIGNAL &middot; capstone project, SMU Cox MS in AI in Business. Preview with sample data only; not an approved or endorsed university service. <a href="about.html">What this is and is not</a></p></div></footer>
+<script src="config.js"></script>
 <script src="mock-data.js"></script>
 <script src="app.js"></script>
 </body>

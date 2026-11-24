@@ -1,11 +1,13 @@
 """FORGE SIGNAL API skeleton: public run endpoint, dummy email, admin dashboard API, run log.
 Hard rules enforced here: keys only from the server environment and never returned; human confirmation
 before any email; per-visitor rate limit and daily cap; no raw source text returned to the public."""
-import csv, hashlib, hmac, io, os, re, tempfile, time
+import csv, hashlib, hmac, io, os, pathlib, re, tempfile, time
 from datetime import date, datetime, timedelta, timezone
 
 from fastapi import Depends, FastAPI, File, Header, HTTPException, Request, UploadFile
-from fastapi.responses import Response
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse, Response
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from . import rubric as R
@@ -37,6 +39,7 @@ class RunIn(BaseModel):
     question: str = "Does this researcher fit this opportunity, and is the researcher's institution eligible?"
     profile: Profile = Field(default_factory=Profile)
     sources: dict[str, str] = {}      # pasted evidence; omit it to pull live from Grants.gov (FR-5)
+    options: dict = Field(default_factory=dict)   # per-run overrides: horizon_months, lead_time_days (never saved as settings)
 
 
 class EmailIn(BaseModel):
@@ -58,6 +61,10 @@ def _csv_safe(v):
 def create_app(db_path: str = None, lister=None, detailer=None) -> FastAPI:
     """lister/detailer override the live source functions; tests inject fakes so no test hits the network."""
     app = FastAPI(title="FORGE SIGNAL API", version="0.2-skeleton", docs_url=None, redoc_url=None)
+    origins = [o.strip() for o in os.environ.get("FORGE_CORS_ORIGINS", "").split(",") if o.strip()]
+    if origins:                                   # only when the pages are hosted on a different address than the API
+        app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["GET", "POST", "PUT"],
+                           allow_headers=["Content-Type", "X-Admin-Token"])
     db = Database(db_path or os.environ.get("FORGE_DB", "forge.db"))
     app.state.db = db
     if lister is None and detailer is None:                    # not under test: use the stored copy once it exists
@@ -96,6 +103,11 @@ def create_app(db_path: str = None, lister=None, detailer=None) -> FastAPI:
         day_start = datetime.now(timezone.utc).strftime("%Y-%m-%dT00:00:00")
         if db.count_runs_since(vh, hour_ago) >= s["rate_limit_per_hour"]: raise HTTPException(429, "Too many runs from this visitor. Try again later.")
         if db.count_runs_since(None, day_start) >= s["daily_cap"]: raise HTTPException(503, "The daily run limit has been reached. Please try again tomorrow.")
+        for k, v in body.options.items():            # per-run only; rate limits and caps can never be overridden here
+            num = isinstance(v, (int, float)) and not isinstance(v, bool)
+            if k == "horizon_months" and num and 0 < v <= 36: s[k] = v
+            elif k == "lead_time_days" and isinstance(v, int) and not isinstance(v, bool) and 0 <= v <= 365: s[k] = v
+            else: raise HTTPException(400, f"option '{k}' is not allowed or is out of range")
         try:
             adapter = get_adapter(s)
         except (ValueError, RuntimeError) as e:
@@ -117,7 +129,7 @@ def create_app(db_path: str = None, lister=None, detailer=None) -> FastAPI:
                           c["opportunities_listed"], c["details_fetched"])
             return {"run_id": rid, "results": out["results"], "counters": c,
                     "retrieved_at": store.as_of(db) if store.status(db)["with_full_text"] else datetime.now(timezone.utc).isoformat(timespec="seconds"),
-                    "notice": NOTICE}
+                    "source": store.provenance(db), "notice": NOTICE}
 
         for sid, text in body.sources.items():
             db.add_source(rid, sid, sid if sid.startswith("http") else "", hashlib.sha256(text.encode()).hexdigest()[:16])
@@ -293,4 +305,14 @@ def create_app(db_path: str = None, lister=None, detailer=None) -> FastAPI:
         db.audit(actor, "rubric_published", {"from": old, "to": new, "diff": R.diff(current_rubric() if False else DEFAULT_RUBRIC, rub), "note": note})
         return {"version": new}
 
+    # ---------------------------------------------------------------- the pages (one address for pages and API)
+    @app.get("/config.js", include_in_schema=False)
+    def config_js():
+        """Tells the pages they are talking to a live API at this same address."""
+        return PlainTextResponse('window.SIGNAL = {live: true, api: ""};\n', media_type="application/javascript",
+                                 headers={"Cache-Control": "no-store"})
+
+    static = pathlib.Path(os.environ.get("FORGE_STATIC") or pathlib.Path(__file__).resolve().parents[2] / "public" / "signal")
+    if static.is_dir():                           # mounted last, so every /api route above wins
+        app.mount("/", StaticFiles(directory=str(static), html=True), name="pages")
     return app

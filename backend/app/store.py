@@ -95,6 +95,16 @@ def status(db) -> dict:
             "api_calls": [dict(c) for c in calls]}
 
 
+def provenance(db) -> dict:
+    """Where the opportunity data in a run came from. Shown on the pages and kept with the run."""
+    st = status(db)
+    stored = st["with_full_text"] > 0
+    return {"system": "Grants.gov", "api": "https://api.grants.gov/v1/api (public)",
+            "mode": "stored copy" if stored else "live pull",
+            "retrieved_at": st["listed_at"] if stored else None,
+            "records": st["opportunities"] if stored else None}
+
+
 def as_of(db):
     r = db.q("SELECT MAX(listed_at) m FROM opportunities", one=True)
     return r["m"] if r else None

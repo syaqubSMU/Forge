@@ -69,8 +69,12 @@ def run_match(db, run_id, adapter, settings, profile, question, lister=None, det
     details, failures = detailer([r["source_record_id"] for r in short],
                                  timeout=settings["source_timeout_s"], concurrency=settings["source_concurrency"])
     source_status = {r["source_record_id"]: r.get("status") for r in short}
+    list_sponsor = {r["source_record_id"]: (r.get("sponsor") or "").strip() for r in short}
     for d in details:
         d.setdefault("source_status", source_status.get(d.get("source_record_id")))
+        # The search list names the agency. The detail record's agency field is sometimes a contact person's
+        # name or empty, so the list's name wins and the detail's is only the fallback.
+        d["sponsor"] = list_sponsor.get(d.get("source_record_id")) or d.get("sponsor", "")
     for f in failures:
         db.add_source_failure(run_id, f.get("source_record_id", ""), f.get("error", ""))
 

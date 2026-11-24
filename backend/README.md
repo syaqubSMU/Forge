@@ -18,7 +18,9 @@ The engine behind the SIGNAL pages: it reads Grants.gov, asks a model whether ea
     export FORGE_DB=forge.db                           # SQLite file, :memory:, or a postgresql:// URL
     uvicorn --factory app.main:create_app --port 8000
 
-The server does not serve the web pages yet; they are static files in `public/signal/` and still show sample data.
+The same server also serves the web pages from `public/signal/` (override the folder with `FORGE_STATIC`), so open `http://localhost:8000/`. It answers `/config.js` with `live: true`, which switches the pages from the fictional sample run to this API. The pages published on GitHub Pages ship their own `config.js` with `live: false`, so they keep showing sample data.
+
+If the pages are ever hosted on a different address than the API, set `api` in the pages' `config.js` to the API's address and list the pages' address in `FORGE_CORS_ORIGINS` (comma-separated).
 
 To use the real model, set a key (below), then switch the active model: `PUT /api/admin/settings` with `{"active_model": "claude"}`. The default is `mock`, which returns fixed answers and costs nothing.
 
@@ -42,10 +44,12 @@ To use the real model, set a key (below), then switch the active model: `PUT /ap
 | `FORGE_MODEL_KEY`, `FORGE_API_KEY`, `SIGNAL_MODEL_KEY`, `ANTHROPIC_API_KEY` | Model key. Any one works; the first set wins in that order. Never returned by the API or logged. |
 | `FORGE_MODEL` | Model id for the Claude adapter (default `claude-opus-5-5`). |
 | `FORGE_EFFORT` | Optional model effort level, to cut cost and time on bulk screening. |
+| `FORGE_STATIC` | Folder of web pages to serve (default: `public/signal` in this repository). |
+| `FORGE_CORS_ORIGINS` | Comma-separated page addresses allowed to call the API from another host. Empty by default (same-address only). |
 | `FORGE_API_BASE` | Optional override of the model API address (default `https://api.anthropic.com`). |
 
 ## Endpoints
-Public: `GET /api/health`, `GET /api/notice`, `POST /api/runs`, `POST /api/runs/{id}/email` (needs a ticked confirmation; dummy mode logs only), `GET /api/runs/{id}/calendar`, `.ics` and `.xlsx`.
+Public: `GET /api/health`, `GET /api/notice`, `GET /config.js`, `POST /api/runs` (optional per-run `options`: `horizon_months` 1 to 36 and `lead_time_days` 0 to 365; they apply to that run only, and every response carries a `source` block naming Grants.gov's public API and when the stored copy was retrieved), `POST /api/runs/{id}/email` (needs a ticked confirmation; dummy mode logs only), `GET /api/runs/{id}/calendar`, `.ics` and `.xlsx`.
 Admin (header `X-Admin-Token`): settings (including the model switch) and audit trail; run log, run detail, CSV and annotations; retention; rubric view, preview and publish; `POST /api/admin/ingest`, `GET /api/admin/ingest/status`, `GET /api/admin/api-calls`.
 Safeguards: per-visitor hourly rate limit, a daily run cap, no raw source text returned to the public, spreadsheet-formula protection in exports.
 
@@ -56,7 +60,8 @@ Safeguards: per-visitor hourly rate limit, a daily run cap, no raw source text r
 - **Speed:** judgments run one after another. 5 judgments took 81 s; the default of 25 would take minutes. Needs parallel judging and a lower-effort setting.
 - **Retrieval:** ranking is word overlap only. Its quality has not been measured against labelled answers.
 - **PI lookup:** no OpenAlex code yet, so a researcher cannot be searched by name.
-- **Front end:** the pages are not connected to this API.
+- **Front end:** Match, Results, Calendar and Review are connected (checked end to end with a real run). The Settings (admin) page is still sample data, and the opportunity-and-department path is disabled in live mode.
+- **Repeatability:** the same inputs gave 2 results on one run and 1 on the next, so ratings can vary between runs. Not yet measured.
 - **Accuracy:** the gold-set expected labels are blank, so agreement with a human cannot be scored.
 - **Email:** dummy mode only; nothing is sent.
 - **Cost:** model prices are not entered in settings, so cost per run is not reported.

@@ -277,3 +277,8 @@ footer .xdesc strong{color:var(--coral-lt)}
 main .wrap > section{padding:40px 0}
 main .wrap > section:first-child{padding-top:4px}
 main .wrap > section + section{border-top:1px solid var(--border)}
+
+/* readable text on light panels, whatever section they sit in */
+.card,.decide,.notice,fieldset .choice{color:var(--slate)}
+
+.choice strong{margin-right:.4em}

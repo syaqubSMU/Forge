@@ -282,3 +282,17 @@ main .wrap > section + section{border-top:1px solid var(--border)}
 .card,.decide,.notice,fieldset .choice{color:var(--slate)}
 
 .choice strong{margin-right:.4em}
+
+/* alignment fixes ---------------------------------------------------- */
+/* the stacking gap is for vertical lists only; side-by-side cards share one top edge */
+.grid>.card+.card,.cards>.card+.card,.cols>.card+.card{margin-top:0}
+/* hero: text and video share a top edge */
+.hero-grid{align-items:start}
+/* radios and checkboxes line up with the first line of their label */
+.choice input{margin:6px 0 0}
+/* a fieldset's title sits inside its box, so the box top lines up with neighbouring cards */
+fieldset{padding-top:14px}
+legend{float:left;width:100%;padding:0 0 10px}
+legend+*{clear:both}
+/* the page container's top padding must not show as a pale strip above a hero */
+main>.hero:first-child{margin-top:-28px}

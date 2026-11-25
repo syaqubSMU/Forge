@@ -164,6 +164,8 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
         day_start = datetime.now(timezone.utc).strftime("%Y-%m-%dT00:00:00")
         if db.count_runs_since(vh, hour_ago) >= s["rate_limit_per_hour"]: raise HTTPException(429, "Too many runs from this visitor. Try again later.")
         if db.count_runs_since(None, day_start) >= s["daily_cap"]: raise HTTPException(503, "The daily run limit has been reached. Please try again tomorrow.")
+        if budget_state(s)["state"] == "reached":
+            raise HTTPException(503, {"code": "budget_reached", "message": "The pilot's AI budget has been used up, so live runs are paused. You can look at the recorded example run instead."})
         for k, v in body.options.items():            # per-run only; rate limits and caps can never be overridden here
             num = isinstance(v, (int, float)) and not isinstance(v, bool)
             if k == "horizon_months" and num and 0 < v <= 36: s[k] = v
@@ -191,8 +193,9 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                 unreachable = c["model_call_failures"] > 0
                 reason = (f"model unavailable: all {c['model_failures']} calls failed" if unreachable
                           else f"model answers unreadable: all {c['model_failures']} answers were invalid")
+                # a failed run still spent tokens (unreadable answers cost output): keep its cost so the budget sum is not understated
                 db.finish_run(rid, "failed", c["latency_ms"], reason, c["input_tokens"], c["output_tokens"],
-                              c["opportunities_listed"], c["details_fetched"])
+                              c["opportunities_listed"], c["details_fetched"], run_cost(s, c["input_tokens"], c["output_tokens"]))
                 raise HTTPException(502, "The model could not be reached, so nothing was rated. The attempt was logged; please try again later."
                                     if unreachable else
                                     "The model's answers could not be read, so nothing was rated. The attempt was logged; please try again later.")
@@ -324,6 +327,21 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                         headers={"Content-Disposition": f'attachment; filename="{_slug(run)}.xlsx"'})
 
     # ---------------------------------------------------------------- admin
+    def budget_state(st) -> dict:
+        """The application-level budget stop: refuses new live runs once the recorded estimate reaches pilot_budget_usd.
+        Inactive when no prices are set (cost is then unknown) or the limit is 0. It undercounts (failed or abandoned
+        calls, and spend made outside this database), so it must be set below the provider limit, which stays the real guard."""
+        limit = st.get("pilot_budget_usd") or 0
+        if not st.get("price_per_mtok_input") or not st.get("price_per_mtok_output"):
+            return {"state": "inactive: prices not set", "pilot_budget_usd": limit, "recorded_spend_estimate_usd": None, "prices_in_use": None}
+        if not limit:
+            return {"state": "inactive: pilot_budget_usd is 0", "pilot_budget_usd": 0, "recorded_spend_estimate_usd": round(db.spent_usd(), 4), "prices_in_use": None}
+        spent = round(db.spent_usd(), 4)
+        return {"state": "reached" if spent >= limit else "active", "pilot_budget_usd": limit, "recorded_spend_estimate_usd": spent,
+                "prices_in_use": {"input_usd_per_million": st["price_per_mtok_input"], "output_usd_per_million": st["price_per_mtok_output"],
+                                  "basis": "estimate: list prices for claude-opus-5-5 (cached 2026-11-03); the owner confirms them in the provider console"},
+                "counts": "only runs in this database; not the roughly $7 of earlier engineering spend"}
+
     @app.get("/api/admin/environment")
     def environment(_=Depends(admin)):
         """Which settings are in effect, WITHOUT any secret value: yes/no for secrets, the kind of database (never its
@@ -340,7 +358,10 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                 "trusted_proxy_hops": os.environ.get("FORGE_TRUSTED_PROXY_HOPS", "0"),
                 "cors_origins": origins, "model_max_concurrent": MODEL_MAX_CONCURRENT,
                 "judge_concurrency": db.settings()["judge_concurrency"],
-                "static_dir_found": static_dir.is_dir(), "max_body_bytes": MAX_BODY_BYTES}
+                "static_dir_found": static_dir.is_dir(), "max_body_bytes": MAX_BODY_BYTES,
+                "budget_stop": budget_state(db.settings()),
+                "daily_cap": db.settings()["daily_cap"], "rate_limit_per_hour": db.settings()["rate_limit_per_hour"],
+                "max_judgments": db.settings()["max_judgments"]}
 
     @app.get("/api/admin/whoami")
     def whoami(request: Request, _=Depends(admin)):

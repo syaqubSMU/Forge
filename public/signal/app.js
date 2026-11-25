@@ -27,7 +27,7 @@
       });
     }, function (e) {
       if (e && e.name === "AbortError") throw e;
-      throw new Error("We could not reach the server. Your entries are still here. Check your connection and select Screen opportunities again.");
+      throw new Error("We could not reach the server. Your entries are still here. Check your connection and select Find opportunities again.");
     });
   }
   function readRun() { try { return JSON.parse(sessionStorage.getItem(RUN_KEY) || "null"); } catch (e) { return null; } }
@@ -95,7 +95,7 @@
     }
     if ((r.prefilter_shared_terms || []).length) {
       body.appendChild(el("p", { class: "hint", style: "margin-top:9px" },
-        ["Chosen for screening because these terms appear in both the profile and the announcement: " +
+        ["Chosen to be checked because these terms appear in both the research areas and the announcement: " +
          r.prefilter_shared_terms.join(", ") + ". That ranking only controls cost; it is not the fit judgment."]));
     }
     d.appendChild(body);
@@ -151,13 +151,10 @@
   }
 
   function counters(c) {
-    var wrap = el("div", { class: "counters" });
-    [["Listed", c.opportunities_listed], ["In deadline window", c.in_horizon], ["Full text read", c.details_fetched],
-     ["Screened", c.judged], ["Not screened (cap)", c.not_judged_due_to_cap], ["Source failures", c.source_failures]
-    ].forEach(function (p) {
-      wrap.appendChild(el("div", {}, [el("span", { class: "n" }, [String(p[1])]), el("span", { class: "l" }, [p[0]])]));
-    });
-    return wrap;
+    var t = "Read " + c.opportunities_listed + " announcements. " + c.in_horizon + " fit your deadline window. " +
+      c.judged + " checked" + (c.not_judged_due_to_cap ? ", " + c.not_judged_due_to_cap + " not checked because of the limit" : "") + "." +
+      (c.source_failures ? " " + c.source_failures + " source" + (c.source_failures === 1 ? "" : "s") + " could not be read." : "");
+    return el("p", { class: "countline" }, [t]);
   }
 
   /* ---------------------------------------------------------------- live mode */
@@ -209,7 +206,7 @@
         el("div", { class: "btn-row" }, [el("a", { class: "btn", href: "match.html" }, ["Find funding for a researcher"])])])]));
   }
 
-  var RANKS = { "High only": ["High"], "Medium and above": ["High", "Medium"], "Low and above": ["High", "Medium", "Low"] };
+  var RANKS = { "High only": ["High"], "Medium and above": ["High", "Medium"], "All": ["High", "Medium", "Low"], "Low and above": ["High", "Medium", "Low"] };
 
   /* the saved run plus the engine's calendar for it, shaped like the sample run the pages were built on */
   function loadLive() {
@@ -219,7 +216,7 @@
     return api("/api/runs/" + encodeURIComponent(resp.run_id) + "/calendar").then(function (cal) {
       var byUrl = {};
       Object.keys(cal.groups).forEach(function (g) { cal.groups[g].forEach(function (r) { byUrl[r.url] = r; }); });
-      var keep = RANKS[inp.minfit] || RANKS["Low and above"];
+      var keep = RANKS[inp.minfit] || RANKS["All"];
       var results = resp.results.filter(function (r) { return keep.indexOf(r.fit) >= 0; }).map(function (r) {
         var c = byUrl[r.url] || {};
         ["status", "flags", "internal_deadline", "amount", "next_action"].forEach(function (k) { if (c[k] != null) r[k] = c[k]; });
@@ -270,14 +267,14 @@
     $("donecount").textContent = String(count);
     $("donenote").textContent = note || "";
     done.hidden = false; reveal(done); done.focus();
-    say("Screening finished. " + count + " opportunities rated.");
+    say("Search finished. " + count + " opportunities rated.");
   }
 
   function sampleRun() {
     clearInvalid(); $("runerror").hidden = true; $("done").hidden = true;
     var prog = $("progress"), btn = $("runbtn");
     prog.hidden = false; btn.disabled = true; $("stopwait").hidden = true;
-    $("runtimer").textContent = "Sample run: nothing is really being screened.";
+    $("runtimer").textContent = "Sample search: nothing is really being checked.";
     say("Sample run started."); reveal(prog);
     setTimeout(function () { btn.disabled = false; showDone(7); }, 1400);
   }
@@ -314,24 +311,24 @@
     bad = bad.filter(Boolean);
     if (bad.length) {
       showError(bad.length === 1 ? "One thing needs fixing" : bad.length + " things need fixing",
-                "Fix the highlighted field" + (bad.length === 1 ? "" : "s") + " and select Screen opportunities again.");
+                "Fix the highlighted field" + (bad.length === 1 ? "" : "s") + " and select Find opportunities again.");
       bad[0].focus(); return;
     }
 
     var t0 = Date.now(), ac = window.AbortController ? new AbortController() : null, over = false;
     prog.hidden = false; btn.disabled = true; stop.hidden = !ac; reveal(prog);
-    say("Screening started. This can take from under a minute to several minutes.");
+    say("Search started. This can take a few minutes, and longer when several people search at once.");
     function tick() {
       var sec = Math.round((Date.now() - t0) / 1000);
-      $("runtimer").textContent = "Screening in progress · " + fmtTime(sec);
-      if (sec > 0 && sec % 30 === 0) say("Still screening. " + fmtTime(sec) + " so far.");
+      $("runtimer").textContent = "Search in progress · " + fmtTime(sec);
+      if (sec > 0 && sec % 30 === 0) say("Still searching. " + fmtTime(sec) + " so far.");
     }
     tick(); var iv = setInterval(tick, 1000);
     stop.onclick = function () { over = true; if (ac) ac.abort(); };
 
     api("/api/runs", { method: "POST", body: body, signal: ac ? ac.signal : undefined }).then(function (resp) {
       saveRun({ input: input, response: resp, savedAt: new Date().toISOString() });
-      var keep = RANKS[input.minfit] || RANKS["Low and above"];
+      var keep = RANKS[input.minfit] || RANKS["All"];
       var n = resp.results.filter(function (r) { return keep.indexOf(r.fit) >= 0; }).length;
       var note = n === 0 ? " Nothing was rated at or above your setting; the results page explains why." : "";
       if (input.funders !== "Federal only") note += " State, foundation and other sources are not read in this version; this run used federal opportunities from Grants.gov only.";
@@ -344,7 +341,7 @@
       } else if (e.status === 503) {
         showError("Preview limit reached", "Today’s preview limit has been reached. Try again tomorrow.");
       } else {
-        showError("Screening did not finish", e.message);
+        showError("Search did not finish", e.message);
       }
     }).then(function () { clearInterval(iv); btn.disabled = false; });
   }
@@ -364,12 +361,12 @@
       fill(controls.sponsor, [...new Set(all.map(function (r) { return r.sponsor; }).filter(Boolean))].sort());
 
       $("count").textContent = all.length
-        ? all.length + " of " + M.counters.judged + " screened opportunities are shown. Ruled-out items are kept in the run log, not here."
+        ? "Showing " + all.length + " of " + M.counters.judged + " opportunities checked. The rest were ruled out and are saved in the run log."
         : "Nothing was rated at or above your setting in this run.";
       if (all.length && M.hidden_by_filter) $("count").textContent += " " + M.hidden_by_filter + " more rated below your setting are hidden.";
       if (M.run_id && $("runid")) { $("runid").appendChild(document.createTextNode("Run ID: ")); $("runid").appendChild(el("span", { class: "mono" }, [M.run_id])); }
       var when = M.screened_at || M.retrieved_at;
-      if ($("screened") && when) $("screened").textContent = (LIVE ? "Screened " : "Sample run, screened ") + new Date(when).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
+      if ($("screened") && when) $("screened").textContent = (LIVE ? "Checked " : "Sample search, checked ") + new Date(when).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
       provenance();
       $("counters").appendChild(counters(M.counters));
       var f = $("failures");
@@ -413,10 +410,10 @@
         }
         if (!all.length) {
           $("shown").textContent = "No results to show.";
-          var more = M.hidden_by_filter ? [el("p", {}, [M.hidden_by_filter + " more were rated below your \u201cShow ratings down to\u201d setting and are hidden. Choose \u201cLow and above\u201d on the Find funding page to see them."])] : [];
+          var more = M.hidden_by_filter ? [el("p", {}, [M.hidden_by_filter + " more were rated below your \u201cShow results rated\u201d setting and are hidden. Choose \u201cAll\u201d on the Find funding page to see them."])] : [];
           list.appendChild(el("div", { class: "status none" }, [
             el("h2", {}, ["Nothing rated at or above your setting"]),
-            el("p", {}, ["SIGNAL screened " + M.counters.judged + " opportunities. Each was ruled out (for example by a stated restriction), had no supported connection to the research areas, or was rated below your minimum. Ruled-out items are kept in the run log."])
+            el("p", {}, ["SIGNAL checked " + M.counters.judged + " opportunities. Each was ruled out (for example by a stated restriction), had no supported connection to the research areas, or was rated below your minimum. Ruled-out items are kept in the run log."])
           ].concat(more).concat([
             el("p", {}, [el("strong", {}, ["You could try:"])]),
             el("ul", {}, [el("li", {}, ["A longer deadline window."]), el("li", {}, ["Research areas written in more detail, in the researcher\u2019s own words."]),
@@ -431,7 +428,7 @@
         if (!shown.length) {
           list.appendChild(el("div", { class: "empty" }, [
             el("strong", {}, ["No results match these filters"]),
-            el("span", {}, ["Every screened opportunity is still in the run. Remove a filter above to see it."])]));
+            el("span", {}, ["Every checked opportunity is still in this search. Remove a filter above to see it."])]));
           return;
         }
         shown.forEach(function (r) { list.appendChild(resultCard(r)); });
@@ -507,8 +504,8 @@
         decide.forEach(function (r) {
           dl.appendChild(el("li", {}, [
             el("strong", {}, [r.title]), document.createTextNode(" \u2014 " + r.days_to_deadline +
-              " day" + (r.days_to_deadline === 1 ? "" : "s") + " to the sponsor deadline, inside the " +
-              lead + "-day lead time. "), fitBadge(r)]));
+              " day" + (r.days_to_deadline === 1 ? "" : "s") + " to the sponsor deadline, closer than your " +
+              lead + "-day internal deadline. "), fitBadge(r)]));
         });
       }
       var soon = M.results.filter(function (r) { return r.fit && r.days_to_deadline != null && r.days_to_deadline <= 45; });
@@ -546,7 +543,7 @@
         "DRAFT. Review and edit before sending.\n\n" +
         "Subject: [DRAFT] Funding opportunities for your consideration (" + surfaced.length + " to review)\n\n" +
         greeting() + "\n\n" +
-        "Research Development screened current federal opportunities against your public profile. " +
+        "I checked current federal funding opportunities against your research areas. " +
         surfaced.length + " may be worth a look:\n\n" +
         surfaced.map(function (r) {
           return "• " + r.title + " (" + r.sponsor + ", " + r.number + ")\n" +
@@ -556,7 +553,7 @@
                  "  Eligibility: " + r.eligibility + "\n  " + r.url;
         }).join("\n\n") +
         "\n\nThis is an informational alert, not a recommendation to apply. Please verify every deadline and " +
-        "eligibility requirement on the sponsor page before committing time.\n\n[Your name]\nResearch Development";
+        "eligibility requirement on the sponsor page before committing time.\n\n[Your name]";
 
       var tick = $("confirm"), to = $("to"), send = $("send");
       if (!surfaced.length) {
@@ -576,7 +573,7 @@
             .then(function () { $("sent").hidden = false; sync(); });
           return;
         }
-        $("sent").textContent = "Logged in dummy mode at " + new Date().toLocaleTimeString() +
+        $("sent").textContent = "Logged in test mode at " + new Date().toLocaleTimeString() +
           ". Recipient " + to.value + " recorded in the run log. No email was sent.";
         $("sent").hidden = false;
       });

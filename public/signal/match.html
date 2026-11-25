@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Find funding | FORGE SIGNAL</title>
-<meta name="description" content="Start a SIGNAL run: describe the researcher, confirm their research areas, and screen current funding announcements.">
+<meta name="description" content="Start a SIGNAL search: describe the researcher, confirm their research areas, and check current funding opportunities.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="icon" href="assets/forge-signal-icon.svg" type="image/svg+xml">
@@ -21,7 +21,7 @@
 <div class="subbar"><div class="wrap"><nav aria-label="Find funding steps"><ol class="steps4" aria-label="Steps in a run"><li class=""><a href="match.html" aria-current="step"><span class="num" aria-hidden="true">1</span>Find funding</a></li><li class=""><a href="results.html"><span class="num" aria-hidden="true">2</span>Results</a></li><li class=""><a href="calendar.html"><span class="num" aria-hidden="true">3</span>Calendar</a></li><li class="you"><a href="review.html"><span class="num" aria-hidden="true">4</span>Review: you decide</a></li></ol></nav></div></div>
 <section class="pagehead"><div class="wrap">
 <h1>Find funding for a researcher</h1>
- <p class="lead">SIGNAL screens only against the research areas you confirm below. It will not infer a new research identity from an announcement's keywords.</p>
+ <p class="lead">SIGNAL checks only against the research areas you confirm below. It will not infer a new research identity from an announcement's keywords.</p>
 </div></section>
 <div class="wrap pt-main">
 <form id="runform">
@@ -35,8 +35,6 @@
     <span><strong>A project description</strong><span class="hint">Paste an abstract or summary; SIGNAL pulls the key terms.</span></span></label>
    <label class="choice"><input type="radio" name="mode" value="keywords" data-panel="p-keywords">
     <span><strong>Keywords</strong><span class="hint">A straightforward topic search.</span></span></label>
-   <label class="choice"><input type="radio" name="mode" value="unit" data-panel="p-unit">
-    <span><strong>An opportunity and a department</strong><span class="hint">Work the other way: rank who in a unit might fit a specific announcement.</span></span></label>
   </fieldset>
 
   <div class="card input-panel" id="p-pi">
@@ -52,11 +50,11 @@
 Structural biology and protein dynamics
 Biological sensing and signal transduction
 Protein engineering and molecular tools</textarea>
-    <p class="hint" id="lanes-hint">SIGNAL screens only against these areas. Use the words the researcher uses for their own work.</p></div>
-   <div class="field"><label for="rules">Positioning rules <span class="hint inl">(optional, one per line)</span></label>
+    <p class="hint" id="lanes-hint">SIGNAL checks only against these areas. Use the words the researcher uses for their own work.</p></div>
+   <div class="field"><label for="rules">Extra rules <span class="hint inl">(optional, one per line)</span></label>
     <textarea id="rules" rows="3">Cancer only where a real mechanism or collaborator bridge exists
 Defense only where sensing or biophysics is central</textarea>
-    <p class="hint">A rule that is not met caps the rating, and the cap is shown in the result.</p></div>
+    <p class="hint">For example: cancer only where a real mechanism or collaborator bridge exists. A rule that is not met caps the rating, and the cap is shown in the result.</p></div>
 </div>
 
 
@@ -64,44 +62,42 @@ Defense only where sensing or biophysics is central</textarea>
    <div class="field mt1"><label for="abstract">Abstract or summary</label><textarea id="abstract" placeholder="Paste the project description."></textarea></div></div>
   <div class="card input-panel" id="p-keywords" hidden><h2>Keywords</h2>
    <div class="field mt1"><label for="kw">Topics</label><input type="text" id="kw" placeholder="e.g. protein dynamics, biological sensing"></div></div>
-  <div class="card input-panel" id="p-unit" hidden><h2>Opportunity and department</h2>
-   <div class="field mt1"><label for="opp">Announcement link</label><input type="text" id="opp" placeholder="https://"></div>
-   <div class="field"><label for="unit">Department</label><input type="text" id="unit" placeholder="e.g. Biological Sciences"></div>
-   <p class="hint">SIGNAL reads that department's public faculty listing at run time, up to the per-run limit set in Settings.</p></div>
  </div>
 
  <aside>
   <div class="card">
-   <h2>This run</h2>
+   <h2>Search</h2>
+   <details class="evidence opts"><summary>Options (the defaults suit most searches)</summary><div class="body">
    <div class="field mt1"><label for="horizon">Deadline window</label>
     <select id="horizon"><option selected>Next 3 months</option><option>Next 6 months</option><option>Next 12 months</option></select></div>
-   <div class="field"><label for="lead">Internal lead time</label>
+   <div class="field"><label for="lead">Internal deadline</label>
     <select id="lead"><option selected>14 days before deadline</option><option>30 days</option><option>45 days</option></select></div>
    <div class="field"><label for="funders">Funder types</label>
     <select id="funders"><option selected>Federal only</option><option>Federal and state</option><option>All available sources</option></select>
     <p class="hint">The pilot reads federal announcements live. Other sources appear as links to check by hand.</p></div>
-   <div class="field"><label for="minfit">Show ratings down to</label>
-    <select id="minfit"><option>High only</option><option>Medium and above</option><option selected>Low and above</option></select></div>
-   <button class="btn full" type="submit" id="runbtn">Screen opportunities</button>
-   <p class="hint mt1" id="runhint">A run reads current announcements and screens the best candidates one at a time. It can take from under a minute to several minutes. Nothing is sent or submitted.</p>
+   <div class="field"><label for="minfit">Show results rated</label>
+    <select id="minfit"><option>High only</option><option>Medium and above</option><option selected>All</option></select></div>
+   </div></details>
+   <button class="btn full" type="submit" id="runbtn">Find opportunities</button>
+   <p class="hint mt1" id="runhint">A search reads current announcements and checks the best candidates. It can take a few minutes, and longer when several people search at once. Nothing is sent or submitted.</p>
    <div id="runstatus" class="mt2">
     <div class="status err" id="runerror" role="alert" tabindex="-1" hidden></div>
     <div class="status wait" id="progress" hidden>
-     <h3>Screening in progress</h3>
+     <h3>Search in progress</h3>
      <p id="runtimer" aria-hidden="true"></p>
-     <p>This can take from under a minute to several minutes. Keep this tab open. SIGNAL cannot show step-by-step progress yet.</p>
+     <p>This can take a few minutes, and longer when several people search at once. Keep this tab open. SIGNAL cannot show step-by-step progress yet.</p>
      <div class="btn-row"><button class="btn ghost s" type="button" id="stopwait">Stop waiting</button></div>
     </div>
     <p class="sr" id="runsay" role="status"></p>
     <div class="status" id="done" tabindex="-1" hidden>
-     <h3 id="donehead">Screening finished</h3>
+     <h3 id="donehead">Search finished</h3>
      <p><span id="donecount">7</span> opportunities rated.<span id="donenote"></span></p>
      <div class="btn-row"><a class="btn" href="results.html">See the results</a></div>
     </div>
    </div>
-   <details class="evidence mt2"><summary>What happens during a run</summary><div class="body"><ol class="rule-list">
+   <details class="evidence mt2"><summary>What happens during a search</summary><div class="body"><ol class="rule-list">
     <li>Current announcements are read from the sponsor API.</li><li>They are filtered to your deadline window, in code.</li>
-    <li>The full text of each candidate is read.</li><li>Each is screened against the research areas you entered.</li>
+    <li>The full text of each candidate is read.</li><li>Each is checked against the research areas you entered.</li>
     <li>Every quote is checked against its source; unsupported quotes are discarded.</li><li>Ratings are calculated from the published rubric.</li></ol></div></details>
   </div>
   <div class="mt2"><div class="notice"><strong>Runs are logged.</strong> Runs, inputs and calendars are logged for the preview report, kept for 90 days, then archived. Only the administrator can see them.</div><div class="notice warn mt1"><strong>Public and private data only.</strong> Do not enter student records, health information, financial account details or anything else your institution classifies as restricted.</div></div>
@@ -111,7 +107,7 @@ Defense only where sensing or biophysics is central</textarea>
 
 </div>
 </main>
-<footer><div class="wrap"><p>FORGE SIGNAL &middot; capstone project, SMU Cox MS in AI in Business. Preview with sample data only; not an approved or endorsed university service. <a href="about.html">What this is and is not</a></p></div></footer>
+<footer><div class="wrap"><p>FORGE SIGNAL &middot; capstone project, SMU Cox MS in AI in Business. Not an approved or endorsed university service, and not a replacement for university systems. <a href="about.html">About</a></p></div></footer>
 <script src="config.js"></script>
 <script src="mock-data.js"></script>
 <script src="app.js"></script>

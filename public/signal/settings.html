@@ -42,7 +42,7 @@
    <select id="model"><option selected>Claude (pilot key)</option><option>Institution-approved platform</option><option>Mock (no model calls)</option></select>
    <p class="hint">Switching here takes effect on the next run, with no redeploy. The change is written to the audit trail.</p></div>
   <div class="notice mb2"><strong>Moving to an approved platform.</strong> When OIT names a platform,
-  select it here. Screening, quote checking and the calendar are unchanged by the switch.</div>
+  select it here. Checking, quote checking and the calendar are unchanged by the switch.</div>
   <div class="field"><label for="key">API key</label>
    <input type="text" id="key" value="•••••••• stored on the server" readonly>
    <p class="hint">Keys are stored on the server only. They are never shown on this page, returned by the API, or written to the log.</p></div>
@@ -55,16 +55,16 @@
   <div class="field"><label for="l1">Runs per visitor, per hour</label><input type="number" id="l1" value="20"></div>
   <div class="field"><label for="l2">Runs per day, all visitors</label><input type="number" id="l2" value="200"></div>
   <div class="field"><label for="l3">Announcements read per run</label><input type="number" id="l3" value="250"></div>
-  <div class="field"><label for="l4">Screened per run</label><input type="number" id="l4" value="25"></div>
+  <div class="field"><label for="l4">Checked per run</label><input type="number" id="l4" value="25"></div>
  </div>
- <p class="hint">The last two bound what a run costs. Anything beyond the screening limit is reported as &ldquo;not screened&rdquo; rather than quietly dropped.</p>
+ <p class="hint">The last two bound what a run costs. Anything beyond the limit is reported as &ldquo;not checked&rdquo; rather than quietly dropped.</p>
 </div>
 
 <div class="card mt2">
  <h2>Email</h2>
  <div class="inline mt2">
   <div class="field"><label for="emode">Mode</label>
-   <select id="emode"><option selected>Dummy &mdash; log only, nothing sent</option><option>Test mailbox</option></select></div>
+   <select id="emode"><option selected>Test mode: log only, nothing sent</option><option>Test mailbox</option></select></div>
   <div class="field"><label for="tbox">Test mailbox</label><input type="text" id="tbox" placeholder="name@example.edu"></div>
   <div class="field"><label for="sender">Sender label</label><input type="text" id="sender" value="Forge Signal (pilot)"></div>
  </div>
@@ -91,7 +91,7 @@
  <p class="hint mt1 mb2">Every run, its inputs, sources, quotes, calendar and any alert sent. Kept 90 days, then archived.</p>
  <div class="table-scroll" tabindex="0" role="region" aria-label="Table, scrolls sideways on small screens"><table>
   <caption class="sr">Recent runs</caption>
-  <thead><tr><th scope="col">Run</th><th scope="col">When</th><th scope="col">Input</th><th scope="col">Screened</th><th scope="col">Outcome</th><th scope="col"><span class="sr">Actions</span></th></tr></thead>
+  <thead><tr><th scope="col">Run</th><th scope="col">When</th><th scope="col">Input</th><th scope="col">Checked</th><th scope="col">Outcome</th><th scope="col"><span class="sr">Actions</span></th></tr></thead>
   <tbody>
    <tr><td data-label="Run" class="mono">a41d0c7b</td><td data-label="When">24 Nov, 2:05 pm</td><td data-label="Input">Researcher &middot; Dr. R. Alvarez (fictional)</td><td data-label="Screened">25 of 251</td><td data-label="Outcome">7 results, 2 sources failed</td><td data-label=""><a href="#">Open</a></td></tr>
    <tr><td data-label="Run" class="mono">90f2e118</td><td data-label="When">24 Nov, 11:40 am</td><td data-label="Input">Keywords &middot; protein dynamics</td><td data-label="Screened">25 of 198</td><td data-label="Outcome">4 results</td><td data-label=""><a href="#">Open</a></td></tr>
@@ -107,7 +107,7 @@ sign-in is not built. The pilot uses a single administrator password; SSO would 
 </section>
 </div>
 </main>
-<footer><div class="wrap"><p>FORGE SIGNAL &middot; capstone project, SMU Cox MS in AI in Business. Preview with sample data only; not an approved or endorsed university service. <a href="about.html">What this is and is not</a></p></div></footer>
+<footer><div class="wrap"><p>FORGE SIGNAL &middot; capstone project, SMU Cox MS in AI in Business. Not an approved or endorsed university service, and not a replacement for university systems. <a href="about.html">About</a></p></div></footer>
 <script src="config.js"></script>
 <script src="mock-data.js"></script>
 <script src="app.js"></script>

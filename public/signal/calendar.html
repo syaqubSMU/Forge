@@ -21,7 +21,7 @@
 <div class="subbar"><div class="wrap"><nav aria-label="Find funding steps"><ol class="steps4" aria-label="Steps in a run"><li class=""><a href="match.html"><span class="num" aria-hidden="true">1</span>Find funding</a></li><li class=""><a href="results.html"><span class="num" aria-hidden="true">2</span>Results</a></li><li class=""><a href="calendar.html" aria-current="step"><span class="num" aria-hidden="true">3</span>Calendar</a></li><li class="you"><a href="review.html"><span class="num" aria-hidden="true">4</span>Review: you decide</a></li></ol></nav></div></div>
 <section class="pagehead"><div class="wrap">
 <h1>Deadline calendar</h1>
- <p class="lead">Internal deadlines are the sponsor deadline minus the lead time set for this run (14 days). Dates are computed in code, never written by a model. A sponsor date that does not exist stays blank rather than being invented.</p>
+ <p class="lead">Internal deadlines fall a set number of days before each sponsor deadline (14 days for this search). Deadlines are calculated, not guessed. If a sponsor gives no date, it stays blank.</p>
  <div class="btn-row">
   <button class="btn accent" type="button" id="dl-xlsx" disabled>Download spreadsheet (.xlsx)</button>
   <button class="btn ghost" type="button" id="dl-ics" disabled>Download calendar (.ics)</button>
@@ -32,7 +32,7 @@
 <div class="wrap pt-main">
 <div class="decide" id="decide" hidden>
  <h2>Needs a decision now</h2>
- <p class="hint mt1">Rated High or Medium, and already inside the internal lead time. Nothing has been filtered out because of this; these also appear in the lists and tables below.</p>
+ <p class="hint mt1">Rated High or Medium, and already closer than your internal deadline. Nothing has been filtered out because of this; these also appear in the lists and tables below.</p>
  <ul id="decidelist"></ul>
 </div>
 
@@ -52,7 +52,7 @@ planning aid and do not replace your office's own submission policy.</div>
 
 </div>
 </main>
-<footer><div class="wrap"><p>FORGE SIGNAL &middot; capstone project, SMU Cox MS in AI in Business. Preview with sample data only; not an approved or endorsed university service. <a href="about.html">What this is and is not</a></p></div></footer>
+<footer><div class="wrap"><p>FORGE SIGNAL &middot; capstone project, SMU Cox MS in AI in Business. Not an approved or endorsed university service, and not a replacement for university systems. <a href="about.html">About</a></p></div></footer>
 <script src="config.js"></script>
 <script src="mock-data.js"></script>
 <script src="app.js"></script>

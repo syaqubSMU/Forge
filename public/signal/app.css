@@ -794,3 +794,23 @@ main .wrap>section.plain:last-child{padding-bottom:var(--s7)}
 body[data-page=about] .hero{padding:56px 0 40px}
 body[data-page=about] .hero h1{font-size:clamp(32px,4vw,46px);max-width:24ch}
 body[data-page=about] .hero .lead{max-width:60ch}
+
+/* two levels of navigation: Home, Find funding, About, Settings on top;
+   the four steps of a run sit in a second bar inside Find funding */
+:root{--hdr:66px}
+header.nav nav a[aria-current]{color:var(--blue)}
+header.nav nav a[aria-current]::after{content:"";position:absolute;left:12px;right:12px;bottom:2px;height:3px;background:var(--accent);border-radius:2px}
+header.nav nav a.iconlink[aria-current]::after{display:none}
+.subbar{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:var(--hdr);z-index:40;padding:12px 0}
+main>.subbar:first-child{margin-top:-28px}
+.subbar .steps4{margin:0}
+.subbar nav{display:block}
+.pagehead{padding-top:28px}
+.filters{top:calc(var(--hdr) + 54px)}
+
+/* exact sticky offsets; on narrow screens the bars scroll away so content keeps the room */
+:root{--hdr:63px}
+.filters{top:calc(var(--hdr) + 52px)}
+@media(max-width:900px){
+  header.nav,.subbar,.filters{position:static}
+}

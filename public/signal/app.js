@@ -369,7 +369,7 @@
       fill(controls.sponsor, [...new Set(all.map(function (r) { return r.sponsor; }).filter(Boolean))].sort());
 
       $("count").textContent = all.length
-        ? "Showing " + all.length + " of " + M.counters.judged + " opportunities checked. The rest were ruled out and are saved in the run log."
+        ? "Showing " + all.length + " of " + M.counters.judged + " opportunities checked. Others were not checked or were rated Excluded; see the counts below."
         : (M.counters.judged === 0 ? "Nothing was checked in this run." : "Nothing was rated at or above your setting in this run.");
       if (all.length && M.hidden_by_filter) $("count").textContent += " " + M.hidden_by_filter + " more rated below your setting are hidden.";
       if (M.run_id && $("runid")) { $("runid").appendChild(document.createTextNode("Run ID: ")); $("runid").appendChild(el("span", { class: "mono" }, [M.run_id])); }

@@ -209,10 +209,10 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
     def access_check(request: Request, x_access_code: str = Header(default="")):
         """Validate a code without spending anything, so the page can accept or refuse it before a search is filled in."""
         st = db.settings()
-        if not st["require_access_code"]:
+        if not st["require_access_code"] and not x_access_code:
             return {"required": False, "valid": True}
         row = access_gate(st, visitor(request), x_access_code)
-        return {"required": True, "valid": True, "remaining": access.remaining(db, row["id"]), "expires_at": row["expires_at"]}
+        return {"required": bool(st["require_access_code"]), "valid": True, "remaining": access.remaining(db, row["id"]), "expires_at": row["expires_at"]}
 
     class AccessCodeIn(BaseModel):
         label: str = Field(max_length=100)
@@ -262,13 +262,23 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
         if live and not (body.profile.lanes or body.input_text.strip()):
             raise HTTPException(422, "Describe the researcher's established research areas before running a live match.")
         s, vh = db.settings(), visitor(request)
-        code_row = access_gate(s, vh, x_access_code) if s["require_access_code"] else None      # tester code, before any other gate
+        # A code that is sent is always honoured (valid: used; invalid: 403), even when codes are not required (the open demo window);
+        # no code is a public run, refused outright when codes are required.
+        code_row = access_gate(s, vh, x_access_code) if (s["require_access_code"] or x_access_code) else None
         hour_ago = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat(timespec="seconds")
         day_start = datetime.now(timezone.utc).strftime("%Y-%m-%dT00:00:00")
         if db.count_runs_since(vh, hour_ago) >= s["rate_limit_per_hour"]: raise HTTPException(429, "Too many runs from this visitor. Try again later.")
         if db.count_runs_since(None, day_start) >= s["daily_cap"]: raise HTTPException(503, "The daily run limit has been reached. Please try again tomorrow.")
-        if budget_state(s)["state"] == "reached":
+        if code_row is None and db.count_runs_since(None, day_start, public_only=True) >= s["public_daily_cap"]:
+            # searches without a code have their own, smaller daily cap, so a public rush can never block code holders
+            raise HTTPException(503, {"code": "public_cap_reached", "recorded_example": True, "message": "Today's live searches without an access code have all been used. You can look at the recorded example run instead, or use an access code if you have one: codes still work. The count restarts at 18:00 Central."})
+        bs = budget_state(s)
+        if bs["state"] == "reached":
             raise HTTPException(503, {"code": "budget_reached", "message": "The pilot's AI budget has been used up, so live runs are paused. You can look at the recorded example run instead."})
+        if code_row is None and bs["state"] == "active":
+            # a public run must not eat the budget reserved to code holders: recorded spend + runs still reserved + this run must fit
+            if reservation(s)["total_usd"] + estimated_run_cost(s) > s["pilot_budget_usd"] + 1e-9:
+                raise HTTPException(503, {"code": "budget_reached", "recorded_example": True, "message": "The rest of the pilot's AI budget is reserved for approved testers, so live searches without an access code are paused. You can look at the recorded example run instead; access codes still work."})
         for k, v in body.options.items():            # per-run only; rate limits and caps can never be overridden here
             num = isinstance(v, (int, float)) and not isinstance(v, bool)
             if k == "horizon_months" and num and 0 < v <= 36: s[k] = v
@@ -394,7 +404,7 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
     def pi_access(request, code):
         """The researcher lookup calls a third party, so it needs a valid access code too (checked, never consuming an allowance)."""
         st = db.settings()
-        if st["require_access_code"]:
+        if st["require_access_code"] or code:
             access_gate(st, visitor(request), code)
 
     class PiSearchIn(BaseModel):
@@ -489,6 +499,15 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                                   "basis": "estimate: list prices for claude-opus-5-5 (cached 2026-11-03); the owner confirms them in the provider console"},
                 "counts": "only runs in this database; not the roughly $7 of earlier engineering spend"}
 
+    def today_report(st) -> dict:
+        """Runs counted since 00:00 UTC, which is 18:00 Central (CST, UTC-6) in December: the same count the caps use."""
+        d0 = datetime.now(timezone.utc).strftime("%Y-%m-%dT00:00:00")
+        total, public, coded = db.count_runs_since(None, d0), db.count_runs_since(None, d0, public_only=True), db.count_runs_since(None, d0, coded_only=True)
+        return {"day_resets_at": "00:00 UTC = 18:00 Central (CST, UTC-6) in December", "utc_date": d0[:10],
+                "runs_today": total, "runs_today_public": public, "runs_today_with_code": coded,
+                "public_daily_cap": st["public_daily_cap"], "public_capacity_remaining": max(0, st["public_daily_cap"] - public),
+                "daily_cap": st["daily_cap"], "daily_capacity_remaining": max(0, st["daily_cap"] - total)}
+
     def reservation(st) -> dict:
         """The money already spoken for: recorded spend plus every run still allowed to usable codes at the estimated run cost."""
         outstanding = sum(c["remaining"] for c in access.listing(db)
@@ -516,6 +535,7 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                 "judge_concurrency": db.settings()["judge_concurrency"],
                 "static_dir_found": static_dir.is_dir(), "max_body_bytes": MAX_BODY_BYTES,
                 "budget_stop": budget_state(db.settings()),
+                "today": today_report(db.settings()),
                 "access_codes": {"required": db.settings()["require_access_code"], "salt_set": bool(os.environ.get("FORGE_SALT")),
                                  "budget_reservation": reservation(db.settings()),
                                  "usable_codes": sum(1 for c in access.listing(db) if not c["revoked"] and c["remaining"] > 0

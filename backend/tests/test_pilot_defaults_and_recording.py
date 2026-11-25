@@ -13,9 +13,9 @@ from tests.test_pipeline import CORPUS, factors_json, PricedMock
 
 @pytest.mark.real_defaults
 def test_production_defaults_are_sized_to_the_budget():
-    assert PILOT_DEFAULTS == {"daily_cap": 3, "rate_limit_per_hour": 3, "max_judgments": 15}
+    assert PILOT_DEFAULTS == {"daily_cap": 12, "public_daily_cap": 4, "rate_limit_per_hour": 3, "max_judgments": 15}
     s = Database(":memory:").settings()
-    assert (s["daily_cap"], s["rate_limit_per_hour"], s["max_judgments"]) == (3, 3, 15)
+    assert (s["daily_cap"], s["public_daily_cap"], s["rate_limit_per_hour"], s["max_judgments"]) == (12, 4, 3, 15)
 
 
 @pytest.mark.real_defaults
@@ -124,7 +124,7 @@ def test_budget_stop_is_inactive_without_prices_and_says_so(monkeypatch):
 
 def test_budget_stop_refuses_live_runs_once_the_recorded_estimate_reaches_the_limit(monkeypatch):
     app = _app(monkeypatch); c = TestClient(app); db = app.state.db
-    for k, v in {"price_per_mtok_input": 1000.0, "price_per_mtok_output": 1000.0, "pilot_budget_usd": 0.0001}.items():
+    for k, v in {"price_per_mtok_input": 1000.0, "price_per_mtok_output": 1000.0, "pilot_budget_usd": 1.0}.items():
         db.set_setting(k, v)
     assert c.post("/api/runs", json=BODY).status_code == 200           # first run records a cost above the tiny limit
     r = c.post("/api/runs", json=BODY)
@@ -139,7 +139,7 @@ def test_budget_stop_reads_the_database_so_it_survives_a_restart(tmp_path, monke
     monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: PricedMock([factors_json()]))
     a1 = create_app(path, lister=lambda *a, **k: [dict(o) for o in CORPUS],
                     detailer=lambda ids, **k: ([dict(o) for o in CORPUS if o["source_record_id"] in [str(i) for i in ids]], []))
-    for k, v in {"price_per_mtok_input": 1000.0, "price_per_mtok_output": 1000.0, "pilot_budget_usd": 0.0001}.items():
+    for k, v in {"price_per_mtok_input": 1000.0, "price_per_mtok_output": 1000.0, "pilot_budget_usd": 1.0}.items():
         a1.state.db.set_setting(k, v)
     TestClient(a1).post("/api/runs", json=BODY)
     a2 = create_app(path, lister=lambda *a, **k: [], detailer=lambda *a, **k: ([], []))          # "restart"

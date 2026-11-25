@@ -28,18 +28,21 @@ Start each topic branch from the current `integration`. One topic per branch, sm
 - Do not push build artefacts or large images; screenshots belong in one folder with a size budget (docs/ux is already 19 MB of the 21 MB repository).
 - Commit messages carry the approval ids.
 
-## Triaging the current shared branch
-Treat `claude/practical-franklin-ze9hk2` as submitted work, not as approved. The project manager creates `integration` only after the owner agrees, and does not delete or rewrite the shared branch. Cherry-pick order and status (as of 25 Nov, 14:46 UTC; PM = project manager):
+## Current state (25 Nov 2026)
+`integration` exists at 2684f33: baseline ca51468 plus `docs/ARCHITECTURE.md` and `docs/BRANCH_FLOW.md` (documents only). The project owner agreed to this flow. Base every new branch, documents included, on `integration`, never on the shared branch (a branch based on the shared tip carries its unapproved commits into any merge). The project manager does not delete or rewrite the shared branch.
+
+## Triage of the shared branch `claude/practical-franklin-ze9hk2`
+Treat it as submitted work, not as approved. Status as of 25 Nov (PM = project manager):
 
 | Commit | What | Architect | PM | Move to `integration` |
 |---|---|---|---|---|
-| ca51468 and earlier | Work before the approval process | not reviewed individually | n/a | Baseline: `integration` starts from this point |
-| ae247ff | UX plan, screenshots, wireframes | changes requested (wording "one at a time", docs/ux size) | accepted | after fixes and re-review |
-| e5447f0 | Brand and UX diagnosis | changes requested (same) | accepted | after re-review |
-| bf68bba | V1 design system implementation | changes requested (503 message, "one at a time"; browser test of live mode) | accepted out-of-scope work | after fixes, browser test and re-review |
-| e5887fc | Logo assets | as bf68bba | accepted | with bf68bba |
-| db17872 | Parallel judging (P1) | APPROVED WITH CONDITIONS (total-failure run status, Postgres coverage of tests; follow-ups) | approved subject to architect conditions | after conditions met and both re-check |
-| 6c5cff9 | BM25 retrieval (P2) | APPROVED WITH CONDITIONS (two-letter terms, batched reads, label wording, no-overlap display) | approved subject to architect conditions | after conditions met and both re-check |
-| 815328f | OpenAlex lookup (P3, on `claude/forge-backend-work`) | not yet reviewed (branch not on the remote) | changes requested | not before both approve |
+| ca51468 and earlier | Work before the approval process | not reviewed individually | n/a | Done: it is the baseline of `integration` |
+| ae247ff | UX plan, screenshots, wireframes | changes requested (wording "one at a time", docs/ux size) | accepted | Not yet: after fixes, compression of docs/ux and re-review |
+| e5447f0 | Brand and UX diagnosis | changes requested (same) | accepted | Not yet: after re-review |
+| bf68bba | V1 design system implementation | changes requested (503 message, "one at a time", message when all model calls fail; browser test of live mode) | accepted out-of-scope work | Not yet: after fixes, browser test and re-review. My scan of the pages found 0 axe violations |
+| e5887fc | Logo assets | as bf68bba | accepted | Not yet: with bf68bba |
+| db17872 | Parallel judging (P1) | APPROVED WITH CONDITIONS (total-failure run status, Postgres coverage of tests; follow-ups) | approved subject to architect conditions | Not yet: conditions open, both re-check |
+| 6c5cff9 | BM25 retrieval (P2) | APPROVED WITH CONDITIONS (two-letter terms, batched reads, label wording, no-overlap display) | approved subject to architect conditions | Not yet: conditions open, both re-check |
+| 815328f | OpenAlex lookup (P3, on `claude/forge-backend-work`) | not reviewed (branch not on the remote) | changes requested | Not yet |
 
 Unapproved commits stay behind with the requested changes. Update this table in each proposal message.

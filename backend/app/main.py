@@ -1,42 +1,65 @@
 """FORGE SIGNAL API skeleton: public run endpoint, dummy email, admin dashboard API, run log.
 Hard rules enforced here: keys only from the server environment and never returned; human confirmation
 before any email; per-visitor rate limit and daily cap; no raw source text returned to the public."""
-import csv, hashlib, hmac, io, os, re, tempfile, time
+import csv, hashlib, json, hmac, io, os, pathlib, re, tempfile, time
 from datetime import date, datetime, timedelta, timezone
 
 from fastapi import Depends, FastAPI, File, Header, HTTPException, Request, UploadFile
-from fastapi.responses import Response
-from pydantic import BaseModel, Field
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse, Response
+from fastapi.staticfiles import StaticFiles
+from typing import Annotated
+
+from pydantic import BaseModel, Field, StringConstraints, field_validator
 
 from . import rubric as R
 from . import store
 from .adapters.registry import available, get_adapter
-from .db import DEFAULT_SETTINGS, NOTICE, Database
+from .db import DEFAULT_SETTINGS, NOTICE, Database, now, run_cost
 from .fit import DEFAULT_RUBRIC
 from .calendar import build_calendar
 from .exports import to_ics, to_xlsx
-from .pipeline import run_match
+from .adapters.claude import KEY_VARS
+from .pipeline import run_match, MODEL_MAX_CONCURRENT
 from .schemas import FIT, SchemaError
 from .sources.grants_gov import SourceError
+from .sources import openalex
 from .template_xlsx import preview
 from .validator import validate
 
+MAX_SOURCES, MAX_SOURCE_CHARS = 3, 20000        # pasted evidence goes straight to the model: bound the cost of one request
+MAX_BODY_BYTES = int(os.environ.get("FORGE_MAX_BODY_BYTES", "400000"))   # public POST bodies; admin uploads are exempt
 INPUT_TYPES = ("pi_name", "project", "keywords", "opportunity_unit")
 
 
 class Profile(BaseModel):
     """Researcher evidence for ONE run. Never stored outside that run's log (hard rule 1)."""
     career_stage: str = Field(default="", max_length=200)
-    lanes: list[str] = Field(default_factory=list, max_length=40)
-    positioning_rules: list[str] = Field(default_factory=list, max_length=20)
+    lanes: list[Annotated[str, StringConstraints(max_length=300)]] = Field(default_factory=list, max_length=40)
+    positioning_rules: list[Annotated[str, StringConstraints(max_length=600)]] = Field(default_factory=list, max_length=20)
 
 
 class RunIn(BaseModel):
     input_type: str
     input_text: str = Field(min_length=1, max_length=4000)
-    question: str = "Does this researcher fit this opportunity, and is the researcher's institution eligible?"
+    question: str = Field(default="Does this researcher fit this opportunity, and is the researcher's institution eligible?", max_length=1000)
     profile: Profile = Field(default_factory=Profile)
     sources: dict[str, str] = {}      # pasted evidence; omit it to pull live from Grants.gov (FR-5)
+    options: dict = Field(default_factory=dict)   # per-run overrides: horizon_months, lead_time_days (never saved as settings)
+
+    @field_validator("sources")
+    @classmethod
+    def _sources_bounded(cls, v):
+        if len(v) > MAX_SOURCES: raise ValueError(f"at most {MAX_SOURCES} pasted sources")
+        for k, t in v.items():
+            if len(k) > 500 or len(t) > MAX_SOURCE_CHARS: raise ValueError(f"each pasted source must be at most {MAX_SOURCE_CHARS} characters")
+        return v
+
+    @field_validator("options")
+    @classmethod
+    def _options_bounded(cls, v):
+        if len(v) > 10: raise ValueError("too many options")
+        return v
 
 
 class EmailIn(BaseModel):
@@ -55,16 +78,67 @@ def _csv_safe(v):
     return "'" + s if s[:1] in ("=", "+", "-", "@") else s    # block spreadsheet formula injection
 
 
-def create_app(db_path: str = None, lister=None, detailer=None) -> FastAPI:
+PLAIN_SETTING = re.compile(r"[A-Za-z0-9._:-]{1,80}")
+
+
+def cost_of(adapter, settings, input_tokens, output_tokens):
+    """Cost estimate for a run. The mock model makes no paid call, so its runs cost nothing and never count toward the
+    budget (its token figures are only character counts, used by tests)."""
+    return None if getattr(adapter, "name", "") == "mock" else run_cost(settings, input_tokens, output_tokens)
+
+
+def plain_setting(v):
+    """Echo a setting only if it looks like an ordinary identifier; anything else (a pasted key, a URL, a sentence)
+    is reported as set but never shown."""
+    if v is None:
+        return None
+    return v if PLAIN_SETTING.fullmatch(v) else "(set, unusual value)"
+
+
+def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=None) -> FastAPI:
     """lister/detailer override the live source functions; tests inject fakes so no test hits the network."""
     app = FastAPI(title="FORGE SIGNAL API", version="0.2-skeleton", docs_url=None, redoc_url=None)
+    origins = [o.strip() for o in os.environ.get("FORGE_CORS_ORIGINS", "").split(",") if o.strip()]
+    if origins:                                   # only when the pages are hosted on a different address than the API
+        app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["GET", "POST", "PUT"],
+                           allow_headers=["Content-Type", "X-Admin-Token"])
     db = Database(db_path or os.environ.get("FORGE_DB", "forge.db"))
     app.state.db = db
+    admin_token = os.environ.get("ADMIN_TOKEN", "")
+    if admin_token and len(admin_token) < 32:
+        import logging
+        logging.getLogger("uvicorn.error").warning("ADMIN_TOKEN is shorter than 32 characters. Use a long random string.")
+    if db.pg and not os.environ.get("FORGE_SALT"):
+        import logging
+        logging.getLogger("uvicorn.error").warning("FORGE_SALT is not set: visitor hashes use a public default salt. Set it in every hosted environment.")
     if lister is None and detailer is None:                    # not under test: use the stored copy once it exists
         lister, detailer = store.sources(db)
 
+    @app.middleware("http")
+    async def cap_body(request: Request, call_next):
+        if request.method in ("POST", "PUT") and not request.url.path.startswith("/api/admin"):
+            n = request.headers.get("content-length")
+            if n is None or not n.isdigit() or int(n) > MAX_BODY_BYTES:
+                return Response("request too large or missing its length", status_code=413 if n else 411)
+        return await call_next(request)
+
+    def client_ip(request: Request) -> str:
+        """The socket peer, unless the server sits behind N trusted proxies (FORGE_TRUSTED_PROXY_HOPS=N). Then the
+        address the outermost trusted proxy saw is the Nth entry from the RIGHT of X-Forwarded-For: entries further
+        left were supplied by the client and can be forged. Unset or 0 ignores the header entirely (safe default)."""
+        peer = request.client.host if request.client else "unknown"
+        try:
+            hops = int(os.environ.get("FORGE_TRUSTED_PROXY_HOPS", "0"))
+        except ValueError:
+            hops = 0
+        if hops > 0:
+            parts = [x.strip() for x in request.headers.get("x-forwarded-for", "").split(",") if x.strip()]
+            if len(parts) >= hops:
+                return parts[-hops]
+        return peer
+
     def visitor(request: Request) -> str:
-        ip = request.client.host if request.client else "unknown"
+        ip = client_ip(request)
         return hashlib.sha256((ip + os.environ.get("FORGE_SALT", "dev-salt")).encode()).hexdigest()[:16]
 
     def admin(x_admin_token: str = Header(default="")):
@@ -96,6 +170,13 @@ def create_app(db_path: str = None, lister=None, detailer=None) -> FastAPI:
         day_start = datetime.now(timezone.utc).strftime("%Y-%m-%dT00:00:00")
         if db.count_runs_since(vh, hour_ago) >= s["rate_limit_per_hour"]: raise HTTPException(429, "Too many runs from this visitor. Try again later.")
         if db.count_runs_since(None, day_start) >= s["daily_cap"]: raise HTTPException(503, "The daily run limit has been reached. Please try again tomorrow.")
+        if budget_state(s)["state"] == "reached":
+            raise HTTPException(503, {"code": "budget_reached", "message": "The pilot's AI budget has been used up, so live runs are paused. You can look at the recorded example run instead."})
+        for k, v in body.options.items():            # per-run only; rate limits and caps can never be overridden here
+            num = isinstance(v, (int, float)) and not isinstance(v, bool)
+            if k == "horizon_months" and num and 0 < v <= 36: s[k] = v
+            elif k == "lead_time_days" and isinstance(v, int) and not isinstance(v, bool) and 0 <= v <= 365: s[k] = v
+            else: raise HTTPException(400, f"option '{k}' is not allowed or is out of range")
         try:
             adapter = get_adapter(s)
         except (ValueError, RuntimeError) as e:
@@ -113,11 +194,24 @@ def create_app(db_path: str = None, lister=None, detailer=None) -> FastAPI:
                 db.finish_run(rid, "failed", int((time.time() - t0) * 1000), f"source unavailable: {e}")
                 raise HTTPException(503, "The funding source could not be read right now. The attempt was logged.")
             c = out["counters"]
+            if c["judged"] == 0 and c["model_failures"] > 0:
+                # nothing could be rated because of the model side, whatever the cause: a failed run, not an empty result list
+                unreachable = c["model_call_failures"] > 0
+                reason = (f"model unavailable: all {c['model_failures']} calls failed" if unreachable
+                          else f"model answers unreadable: all {c['model_failures']} answers were invalid")
+                # a failed run still spent tokens (unreadable answers cost output): keep its cost so the budget sum is not understated
+                db.finish_run(rid, "failed", c["latency_ms"], reason, c["input_tokens"], c["output_tokens"],
+                              c["opportunities_listed"], c["details_fetched"], cost_of(adapter, s, c["input_tokens"], c["output_tokens"]))
+                raise HTTPException(502, "The model could not be reached, so nothing was rated. The attempt was logged; please try again later."
+                                    if unreachable else
+                                    "The model's answers could not be read, so nothing was rated. The attempt was logged; please try again later.")
+            c["cost_usd"] = cost_of(adapter, s, c["input_tokens"], c["output_tokens"])
+            c["cost_basis"] = "estimate from reported token usage; needs both prices set; excludes calls abandoned or failed"
             db.finish_run(rid, "ok", c["latency_ms"], None, c["input_tokens"], c["output_tokens"],
-                          c["opportunities_listed"], c["details_fetched"])
+                          c["opportunities_listed"], c["details_fetched"], c["cost_usd"])
             return {"run_id": rid, "results": out["results"], "counters": c,
                     "retrieved_at": store.as_of(db) if store.status(db)["with_full_text"] else datetime.now(timezone.utc).isoformat(timespec="seconds"),
-                    "notice": NOTICE}
+                    "source": store.provenance(db), "notice": NOTICE}
 
         for sid, text in body.sources.items():
             db.add_source(rid, sid, sid if sid.startswith("http") else "", hashlib.sha256(text.encode()).hexdigest()[:16])
@@ -137,8 +231,53 @@ def create_app(db_path: str = None, lister=None, detailer=None) -> FastAPI:
                   "failed_citation_count": len(r["failed_citations"])}
         db.add_match(rid, result)
         u = adapter.total_usage
-        db.finish_run(rid, "ok", int((time.time() - t0) * 1000), None, u.get("input_tokens", 0), u.get("output_tokens", 0))
+        db.finish_run(rid, "ok", int((time.time() - t0) * 1000), None, u.get("input_tokens", 0), u.get("output_tokens", 0),
+                      cost_usd=cost_of(adapter, s, u.get("input_tokens", 0), u.get("output_tokens", 0)))
         return {"run_id": rid, "result": result, "notice": NOTICE}
+
+    # ---------------------------------------------------------------- researcher lookup (OpenAlex)
+    pi_hits = {}                                   # visitor hash -> request times in the last hour; per process, resets on restart
+    pi_day = {"date": None, "n": 0}                # global daily count; per process
+
+    def pi_log(endpoint, params, ok, status, ms, error):
+        db.q("INSERT INTO api_calls(at,source,endpoint,params,ok,http_status,latency_ms,error,ingest_id) VALUES(?,?,?,?,?,?,?,?,?)",
+             (now(), "OpenAlex", endpoint, json.dumps(params), int(ok), status, ms, error, None), write=True)
+
+    lookup = openalex.Lookup(client=openalex_client, log=pi_log)
+
+    def pi_limit(request: Request):
+        st = db.settings(); vh, t = visitor(request), time.time()
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        if pi_day["date"] != today: pi_day.update(date=today, n=0)
+        for k in [k for k, v in pi_hits.items() if not v or t - v[-1] >= 3600]: del pi_hits[k]      # prune idle visitors
+        if pi_day["n"] >= st["pi_lookups_per_day"]: raise openalex.OpenAlexError("daily_limit")
+        recent = [x for x in pi_hits.get(vh, []) if t - x < 3600]
+        if len(recent) >= st["pi_lookups_per_hour"]: raise openalex.OpenAlexError("hourly_limit")
+        pi_hits[vh] = recent + [t]; pi_day["n"] += 1
+
+    def pi_error(e: "openalex.OpenAlexError"):
+        return HTTPException(e.status, {"code": e.code, "message": e.message})
+
+    class PiSearchIn(BaseModel):
+        name: str = Field(max_length=500)           # real limits (3 to 120 characters, after cleaning) are checked with clear messages
+
+    @app.post("/api/pi/search")                       # POST so the name never appears in a URL or access log
+    def pi_search(body: PiSearchIn, request: Request):
+        try:
+            openalex.clean_name(body.name)            # refuse before spending a lookup
+            pi_limit(request)
+            return lookup.search(body.name)
+        except openalex.OpenAlexError as e:
+            raise pi_error(e)
+
+    @app.get("/api/pi/{author_id}/expertise")
+    def pi_expertise(author_id: str, request: Request):
+        try:
+            if not openalex.ID_RE.fullmatch(author_id): raise openalex.OpenAlexError("bad_author_id")
+            pi_limit(request)
+            return lookup.expertise(author_id)
+        except openalex.OpenAlexError as e:
+            raise pi_error(e)
 
     @app.post("/api/runs/{rid}/email")
     def send_email(rid: str, body: EmailIn, request: Request):
@@ -194,6 +333,50 @@ def create_app(db_path: str = None, lister=None, detailer=None) -> FastAPI:
                         headers={"Content-Disposition": f'attachment; filename="{_slug(run)}.xlsx"'})
 
     # ---------------------------------------------------------------- admin
+    def budget_state(st) -> dict:
+        """The application-level budget stop: refuses new live runs once the recorded estimate reaches pilot_budget_usd.
+        Inactive when no prices are set (cost is then unknown) or the limit is 0. It undercounts (failed or abandoned
+        calls, and spend made outside this database), so it must be set below the provider limit, which stays the real guard."""
+        limit = st.get("pilot_budget_usd") or 0
+        if not st.get("price_per_mtok_input") or not st.get("price_per_mtok_output"):
+            return {"state": "inactive: prices not set", "pilot_budget_usd": limit, "recorded_spend_estimate_usd": None, "prices_in_use": None}
+        if not limit:
+            return {"state": "inactive: pilot_budget_usd is 0", "pilot_budget_usd": 0, "recorded_spend_estimate_usd": round(db.spent_usd(), 4), "prices_in_use": None}
+        spent = round(db.spent_usd(), 4)
+        return {"state": "reached" if spent >= limit else "active", "pilot_budget_usd": limit, "recorded_spend_estimate_usd": spent,
+                "prices_in_use": {"input_usd_per_million": st["price_per_mtok_input"], "output_usd_per_million": st["price_per_mtok_output"],
+                                  "basis": "estimate: list prices for claude-opus-5-5 (cached 2026-11-03); the owner confirms them in the provider console"},
+                "counts": "only runs in this database; not the roughly $7 of earlier engineering spend"}
+
+    @app.get("/api/admin/environment")
+    def environment(_=Depends(admin)):
+        """Which settings are in effect, WITHOUT any secret value: yes/no for secrets, the kind of database (never its
+        address), and plain values only for non-secret settings."""
+        key_var = next((n for n in KEY_VARS if (os.environ.get(n) or "").strip()), None)
+        static_dir = pathlib.Path(os.environ.get("FORGE_STATIC") or pathlib.Path(__file__).resolve().parents[2] / "public" / "signal")
+        return {"database": "postgres" if db.pg else ("memory" if db.target == ":memory:" else "sqlite file"),
+                "schema_version": db.schema_version(),
+                "admin_token_set": bool(os.environ.get("ADMIN_TOKEN")), "salt_set": bool(os.environ.get("FORGE_SALT")),
+                "model_key_variable": key_var,                      # the variable's NAME, never its value
+                "active_model": db.settings()["active_model"],
+                "model": plain_setting(os.environ.get("FORGE_MODEL", "claude-opus-5-5")),
+                "effort": plain_setting(os.environ.get("FORGE_EFFORT") or None),
+                "trusted_proxy_hops": os.environ.get("FORGE_TRUSTED_PROXY_HOPS", "0"),
+                "cors_origins": origins, "model_max_concurrent": MODEL_MAX_CONCURRENT,
+                "judge_concurrency": db.settings()["judge_concurrency"],
+                "static_dir_found": static_dir.is_dir(), "max_body_bytes": MAX_BODY_BYTES,
+                "budget_stop": budget_state(db.settings()),
+                "daily_cap": db.settings()["daily_cap"], "rate_limit_per_hour": db.settings()["rate_limit_per_hour"],
+                "max_judgments": db.settings()["max_judgments"]}
+
+    @app.get("/api/admin/whoami")
+    def whoami(request: Request, _=Depends(admin)):
+        """What address the server believes this request came from, for setting FORGE_TRUSTED_PROXY_HOPS. Admin only;
+        the address is never shown to the public and the visitor hash is the only form that is stored."""
+        return {"believed_client_ip": client_ip(request), "socket_peer": request.client.host if request.client else None,
+                "x_forwarded_for": request.headers.get("x-forwarded-for"),
+                "trusted_proxy_hops": os.environ.get("FORGE_TRUSTED_PROXY_HOPS", "0")}
+
     @app.get("/api/admin/settings")
     def get_settings(_=Depends(admin)):
         return {"settings": db.settings(), "available_models": available()}
@@ -226,8 +409,8 @@ def create_app(db_path: str = None, lister=None, detailer=None) -> FastAPI:
     @app.get("/api/admin/runs.csv")
     def runs_csv(_=Depends(admin)):
         out = io.StringIO(); w = csv.writer(out)
-        cols = ["id", "created_at", "input_type", "input_text", "model", "status", "latency_ms", "rubric_version", "archived"]
-        w.writerow(cols)
+        cols = ["id", "created_at", "input_type", "input_text", "model", "status", "latency_ms", "rubric_version", "archived", "cost_usd"]
+        w.writerow([c + "_estimate" if c == "cost_usd" else c for c in cols])      # runs.cost_usd is an estimate from reported usage
         for r in db.list_runs(10000, 0, None, True): w.writerow([_csv_safe(r[c]) for c in cols])
         return Response(out.getvalue(), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=forge-signal-runs.csv"})
 
@@ -293,4 +476,14 @@ def create_app(db_path: str = None, lister=None, detailer=None) -> FastAPI:
         db.audit(actor, "rubric_published", {"from": old, "to": new, "diff": R.diff(current_rubric() if False else DEFAULT_RUBRIC, rub), "note": note})
         return {"version": new}
 
+    # ---------------------------------------------------------------- the pages (one address for pages and API)
+    @app.get("/config.js", include_in_schema=False)
+    def config_js():
+        """Tells the pages they are talking to a live API at this same address."""
+        return PlainTextResponse('window.SIGNAL = {live: true, api: ""};\n', media_type="application/javascript",
+                                 headers={"Cache-Control": "no-store"})
+
+    static = pathlib.Path(os.environ.get("FORGE_STATIC") or pathlib.Path(__file__).resolve().parents[2] / "public" / "signal")
+    if static.is_dir():                           # mounted last, so every /api route above wins
+        app.mount("/", StaticFiles(directory=str(static), html=True), name="pages")
     return app

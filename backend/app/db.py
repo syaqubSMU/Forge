@@ -1,43 +1,37 @@
-"""Run log (the only database, PRD section 6) plus admin settings, audit trail and rubric versions.
-SQLite by default (a file path or :memory:); Postgres when FORGE_DB is a postgres:// or postgresql:// URL.
-No opportunity, faculty or profile tables (hard rule 1)."""
+"""Run log plus admin settings, audit trail, rubric versions and the stored public Grants.gov copy (`opportunities`, `api_calls`; customer-approved for the demo, see docs/ARCHITECTURE.md DR-1). No faculty or researcher-profile tables (hard rule 1)."""
 import json, sqlite3, threading, uuid
+from .migrations import MIGRATIONS
 from datetime import datetime, timedelta, timezone
 
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS runs(id TEXT PRIMARY KEY, created_at TEXT, visitor_hash TEXT, input_type TEXT, input_text TEXT,
-  scope_snapshot TEXT, settings_snapshot TEXT, rubric_version TEXT, model TEXT, latency_ms INTEGER, status TEXT, error TEXT, archived INTEGER DEFAULT 0,
-  input_tokens INTEGER DEFAULT 0, output_tokens INTEGER DEFAULT 0, opportunities_listed INTEGER DEFAULT 0, details_fetched INTEGER DEFAULT 0);
-CREATE TABLE IF NOT EXISTS run_source_failures(id INTEGER PRIMARY KEY, run_id TEXT, source_id TEXT, error TEXT);
-CREATE TABLE IF NOT EXISTS run_sources(id INTEGER PRIMARY KEY, run_id TEXT, source_id TEXT, url TEXT, retrieved_at TEXT, text_hash TEXT);
-CREATE TABLE IF NOT EXISTS run_matches(id INTEGER PRIMARY KEY, run_id TEXT, data TEXT);
-CREATE TABLE IF NOT EXISTS run_citations(id INTEGER PRIMARY KEY, run_id TEXT, source_id TEXT, quote TEXT, validated INTEGER, reason TEXT);
-CREATE TABLE IF NOT EXISTS email_events(id INTEGER PRIMARY KEY, run_id TEXT, draft TEXT, recipient TEXT, confirmed INTEGER, mode TEXT, created_at TEXT);
-CREATE TABLE IF NOT EXISTS chat_entries(id INTEGER PRIMARY KEY, run_id TEXT, role TEXT, text TEXT, created_at TEXT);
-CREATE TABLE IF NOT EXISTS annotations(id INTEGER PRIMARY KEY, run_id TEXT, label TEXT, note TEXT, created_at TEXT);
-CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT);
-CREATE TABLE IF NOT EXISTS admin_audit(id INTEGER PRIMARY KEY, at TEXT, actor TEXT, action TEXT, detail TEXT);
-CREATE TABLE IF NOT EXISTS rubric_versions(version TEXT PRIMARY KEY, body TEXT, status TEXT, created_at TEXT, published_at TEXT, note TEXT);
-CREATE TABLE IF NOT EXISTS opportunities(source_record_id TEXT PRIMARY KEY, source_system TEXT, number TEXT, title TEXT, sponsor TEXT,
-  agency_code TEXT, status TEXT, open_date TEXT, close_date TEXT, url TEXT, detail TEXT, text_hash TEXT, listed_at TEXT, detail_at TEXT);
-CREATE TABLE IF NOT EXISTS api_calls(id INTEGER PRIMARY KEY, at TEXT, source TEXT, endpoint TEXT, params TEXT, ok INTEGER,
-  http_status INTEGER, latency_ms INTEGER, error TEXT, ingest_id TEXT);
-CREATE INDEX IF NOT EXISTS ix_opps_close ON opportunities(close_date);
-CREATE INDEX IF NOT EXISTS ix_calls_at ON api_calls(at);
-CREATE INDEX IF NOT EXISTS ix_runs_visitor ON runs(visitor_hash, created_at);
-"""
 
+# Pilot-safe defaults for a hosted service (budget: $20 for the whole pilot; a 15-judgment run costs about $0.44).
+# The earlier defaults (200 runs a day, 20 an hour per visitor, 25 judgments) could spend about $88 in a day if a
+# public link were shared. The provider's spending limit remains the real guard; these only lower the risk.
+PILOT_DEFAULTS = {"daily_cap": 3, "rate_limit_per_hour": 3, "max_judgments": 15}
+
+# Prices are ESTIMATES: list prices for claude-opus-5-5 in USD per million tokens (cached 2026-11-03). The owner confirms them
+# in the provider console and can change them. They are non-zero by default so the application budget stop is active out of
+# the box. pilot_budget_usd counts only the runs in this database, not spend made elsewhere (about $7 of engineering tests).
 DEFAULT_SETTINGS = {
     "scope_level": "A named organization", "units": [], "funder_types": ["federal"],
     "horizon_months": 3, "lead_time_days": 14, "min_fit": "Low", "faculty_per_run": 25,
-    "max_detail_fetches": 250, "max_judgments": 25, "source_timeout_s": 30, "source_concurrency": 8,
+    "max_detail_fetches": 250, "max_judgments": PILOT_DEFAULTS["max_judgments"], "judge_concurrency": 8, "judge_deadline_s": 90, "source_timeout_s": 30, "source_concurrency": 8,
     "cache_ttl_minutes": 15, "include_undated_deadlines": False,
-    "price_per_mtok_input": 0.0, "price_per_mtok_output": 0.0,
-    "rate_limit_per_hour": 20, "daily_cap": 200, "retention_days": 90,
+    "price_per_mtok_input": 4.0, "price_per_mtok_output": 20.0, "pilot_budget_usd": 9.0,
+    "rate_limit_per_hour": PILOT_DEFAULTS["rate_limit_per_hour"], "pi_lookups_per_hour": 60, "pi_lookups_per_day": 1000, "daily_cap": PILOT_DEFAULTS["daily_cap"], "retention_days": 90,
     "email_mode": "dummy", "test_mailbox": "", "sender_label": "Forge Signal (pilot)", "active_model": "mock",
 }
 NOTICE = ("Runs, inputs and calendars are logged for the pilot report, kept for 90 days, then archived. "
           "Only the administrator can see them. Do not enter restricted data.")
+
+
+def run_cost(settings, input_tokens, output_tokens):
+    """Tokens times the prices set in settings (USD per million tokens). None unless BOTH prices are set, so a
+    missing price is never shown as a cost of zero."""
+    pi, po = settings.get("price_per_mtok_input") or 0, settings.get("price_per_mtok_output") or 0
+    if not pi or not po:                  # one price alone would silently understate the cost
+        return None
+    return round((input_tokens or 0) / 1e6 * pi + (output_tokens or 0) / 1e6 * po, 6)
 
 
 def now():
@@ -60,12 +54,50 @@ class Database:
         self.lock = threading.Lock()
         self._connect()
         with self.lock:
+            self.migrate()
+
+    # schema versions ------------------------------------------------------
+    def schema_version(self) -> int:
+        with self.lock:
+            try:
+                rows = self.conn.execute("SELECT MAX(version) v FROM schema_migrations").fetchall()
+            except Exception:
+                if self.pg: self.conn.rollback()
+                return 0
+            if self.pg: self.conn.commit()
+            return int((rows[0]["v"] if rows else 0) or 0)
+
+    def migrate(self, target=None) -> list:
+        """Apply pending migrations in order, each in its own transaction. Returns the versions applied.
+        Caller holds self.lock. On Postgres an advisory lock keeps two starting servers from racing."""
+        pk = "BIGSERIAL PRIMARY KEY" if self.pg else "INTEGER PRIMARY KEY"
+        applied = []
+        if self.pg:
+            self.conn.execute("SELECT pg_advisory_lock(727274)")
+        try:
+            self.conn.execute("CREATE TABLE IF NOT EXISTS schema_migrations(version INTEGER PRIMARY KEY, name TEXT, applied_at TEXT)")
+            self.conn.commit()
+            done = {r["version"] for r in self.conn.execute("SELECT version FROM schema_migrations").fetchall()}
+            for version, name, stmts in MIGRATIONS:
+                if version in done or (target is not None and version > target):
+                    continue
+                try:
+                    if not self.pg: self.conn.execute("BEGIN")
+                    for st in stmts:
+                        self.conn.execute(st.replace("{PK}", pk))
+                    self.conn.execute(self._ins(), (version, name, now()))
+                    self.conn.commit()
+                except Exception:
+                    self.conn.rollback()
+                    raise
+                applied.append(version)
+        finally:
             if self.pg:
-                for stmt in filter(None, (x.strip() for x in SCHEMA.replace("id INTEGER PRIMARY KEY", "id BIGSERIAL PRIMARY KEY").split(";"))):
-                    self.conn.execute(stmt)
-                self.conn.commit()
-            else:
-                self.conn.executescript(SCHEMA); self.conn.commit()
+                self.conn.execute("SELECT pg_advisory_unlock(727274)"); self.conn.commit()
+        return applied
+
+    def _ins(self):
+        return "INSERT INTO schema_migrations(version,name,applied_at) VALUES(" + ("%s,%s,%s" if self.pg else "?,?,?") + ")"
 
     def _connect(self):
         if self.pg:
@@ -118,17 +150,17 @@ class Database:
 
     # runs -----------------------------------------------------------------
     def create_run(self, visitor_hash, input_type, input_text, settings, rubric_version, model) -> str:
-        rid = uuid.uuid4().hex[:12]
+        rid = uuid.uuid4().hex                      # 32 hex characters; runs created before this change keep their 12-character ids
         scope = {k: settings[k] for k in ("scope_level", "units", "funder_types")}
         self.q("INSERT INTO runs(id,created_at,visitor_hash,input_type,input_text,scope_snapshot,settings_snapshot,rubric_version,model,status) VALUES(?,?,?,?,?,?,?,?,?,?)",
                (rid, now(), visitor_hash, input_type, input_text, json.dumps(scope), json.dumps(settings), rubric_version, model, "running"), write=True)
         return rid
 
     def finish_run(self, rid, status, latency_ms, error=None, input_tokens=0, output_tokens=0,
-                   opportunities_listed=0, details_fetched=0):
+                   opportunities_listed=0, details_fetched=0, cost_usd=None):
         self.q("UPDATE runs SET status=?, latency_ms=?, error=?, input_tokens=?, output_tokens=?,"
-               " opportunities_listed=?, details_fetched=? WHERE id=?",
-               (status, latency_ms, error, input_tokens, output_tokens, opportunities_listed, details_fetched, rid), write=True)
+               " opportunities_listed=?, details_fetched=?, cost_usd=? WHERE id=?",
+               (status, latency_ms, error, input_tokens, output_tokens, opportunities_listed, details_fetched, cost_usd, rid), write=True)
 
     def add_source_failure(self, rid, source_id, error):
         self.q("INSERT INTO run_source_failures(run_id,source_id,error) VALUES(?,?,?)", (rid, source_id, str(error)[:300]), write=True)
@@ -163,7 +195,7 @@ class Database:
 
     def list_runs(self, limit=50, offset=0, q=None, include_archived=False):
         sql, args = ("SELECT id,created_at,input_type,input_text,model,status,latency_ms,rubric_version,archived,"
-                     "input_tokens,output_tokens,opportunities_listed,details_fetched FROM runs WHERE 1=1"), []
+                     "input_tokens,output_tokens,opportunities_listed,details_fetched,cost_usd FROM runs WHERE 1=1"), []
         if not include_archived: sql += " AND archived=0"
         if q: sql += " AND LOWER(input_text) LIKE LOWER(?)"; args.append(f"%{q}%")
         sql += " ORDER BY created_at DESC, id LIMIT ? OFFSET ?"; args += [limit, offset]
@@ -173,6 +205,11 @@ class Database:
         sql, args = "SELECT COUNT(*) c FROM runs WHERE created_at>=?", [since_iso]
         if visitor_hash: sql += " AND visitor_hash=?"; args.append(visitor_hash)
         return self.q(sql, args, one=True)["c"]
+
+    def spent_usd(self) -> float:
+        """Sum of the recorded cost estimates of all runs. Read from the database, so it survives restarts. Spend made
+        outside this database (engineering tests, other databases) and failed or abandoned calls are not in it."""
+        return float(self.q("SELECT COALESCE(SUM(cost_usd), 0) t FROM runs", one=True)["t"] or 0)
 
     def archive_older_than(self, days) -> int:
         cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat(timespec="seconds")

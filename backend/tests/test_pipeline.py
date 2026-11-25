@@ -9,6 +9,11 @@ from app.adapters import registry
 from app.adapters.mock import MockAdapter
 from app.main import create_app
 
+class PricedMock(MockAdapter):
+    """A fake model that, unlike the mock, counts as a paid model for cost tests (the mock never costs anything)."""
+    name = "mock-priced"
+
+
 H = {"X-Admin-Token": "secret-token"}
 TODAY = date.today()
 
@@ -118,16 +123,24 @@ def test_eligibility_without_a_supported_quote_stays_needs_verification(client, 
 
 def test_invalid_model_output_skips_that_opportunity_and_is_logged(client, monkeypatch):
     monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: MockAdapter(["not json"]))
-    j = live(client).json()
-    assert j["results"] == []
-    failures = client.get(f"/api/admin/runs/{j['run_id']}", headers=H).json()["source_failures"]
+    r = live(client)
+    assert r.status_code == 502 and "answers could not be read" in r.json()["detail"]    # nothing rated: a failed run, not an empty list
+    run = client.get("/api/admin/runs", headers=H).json()[0]
+    assert run["status"] == "failed"
+    failures = client.get(f"/api/admin/runs/{run['id']}", headers=H).json()["source_failures"]
     assert any("model output invalid" in f["error"] for f in failures)
 
 
 def test_judgment_cap_is_respected_and_reported(client):
     client.put("/api/admin/settings", json={"max_judgments": 1}, headers=H)
-    c = live(client).json()["counters"]
+    both = {"career_stage": "established", "lanes": ["photochemistry and flavin biology", "battery energy storage"]}
+    c = live(client, profile=both).json()["counters"]
     assert c["judged"] == 1 and c["not_judged_due_to_cap"] == 1
+
+
+def test_records_sharing_no_term_with_the_research_areas_are_not_sent_to_the_model(client):
+    c = live(client).json()["counters"]                 # the battery record shares nothing with this profile
+    assert c["judged"] == 1 and c["no_term_overlap"] == 1 and c["not_judged_due_to_cap"] == 0
 
 
 def test_run_log_records_sources_tokens_and_counters(client):
@@ -194,3 +207,52 @@ def test_lead_time_setting_changes_the_internal_deadline(client):
     from datetime import date as _d, timedelta as _t
     r = cal["groups"]["Fixed"][0]
     assert _d.fromisoformat(r["internal_deadline"]) == _d.fromisoformat(r["close_date"]) - _t(days=30)
+
+
+# ---------------------------------------------------------------- pages wired to the API
+def test_per_run_options_change_this_run_only(client):
+    a = live(client, options={"horizon_months": 14, "lead_time_days": 30}).json()
+    assert a["counters"]["in_horizon"] == 3            # the 400-day opportunity is inside 14 months
+    cal = client.get(f"/api/runs/{a['run_id']}/calendar").json()
+    assert cal["lead_days"] == 30                      # lead time travels with the run
+    b = live(client).json()                            # the next run is back to the saved settings
+    assert b["counters"]["in_horizon"] == 2
+    assert client.get(f"/api/runs/{b['run_id']}/calendar").json()["lead_days"] == 14
+
+
+@pytest.mark.parametrize("bad", [{"daily_cap": 9999}, {"rate_limit_per_hour": 9999}, {"horizon_months": 0},
+                                 {"horizon_months": 99}, {"horizon_months": True}, {"lead_time_days": -1},
+                                 {"lead_time_days": 2.5}])
+def test_options_cannot_override_limits_or_go_out_of_range(client, bad):
+    assert live(client, options=bad).status_code == 400
+
+
+def test_every_run_says_where_its_data_came_from(client):
+    src = live(client).json()["source"]
+    assert src["system"] == "Grants.gov" and "public" in src["api"] and src["mode"] == "live pull"
+
+
+def test_config_js_tells_the_pages_the_api_is_live(client):
+    r = client.get("/config.js")
+    assert r.status_code == 200 and "live: true" in r.text and r.headers["cache-control"] == "no-store"
+
+
+def test_pages_are_served_and_the_api_still_wins(client):
+    assert client.get("/api/health").json()["status"] == "ok"
+    home = client.get("/")
+    assert home.status_code == 200 and "FORGE" in home.text
+    assert client.get("/results.html").status_code == 200
+
+
+def test_sponsor_comes_from_the_search_list_not_a_contact_name_in_the_detail(monkeypatch):
+    """Grants.gov detail records sometimes carry a contact person (or nothing) in the agency field."""
+    monkeypatch.setenv("ADMIN_TOKEN", "secret-token")
+    monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: MockAdapter([factors_json()]))
+    lister = lambda statuses, timeout=30.0, cache_ttl_minutes=15: [dict(CORPUS[0])]
+    detailer = lambda ids, timeout=30.0, concurrency=8: ([{**CORPUS[0], "sponsor": "Mary A Johnson\nContract Specialist"}], [])
+    c = TestClient(create_app(":memory:", lister=lister, detailer=detailer))
+    assert live(c).json()["results"][0]["sponsor"] == "National Science Foundation"
+    detailer2 = lambda ids, timeout=30.0, concurrency=8: ([{**CORPUS[0], "sponsor": "From The Detail"}], [])
+    lister2 = lambda statuses, timeout=30.0, cache_ttl_minutes=15: [{**CORPUS[0], "sponsor": ""}]
+    c2 = TestClient(create_app(":memory:", lister=lister2, detailer=detailer2))
+    assert live(c2).json()["results"][0]["sponsor"] == "From The Detail"       # fallback when the list has none

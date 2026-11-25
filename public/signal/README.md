@@ -32,3 +32,18 @@ Verified at 1280, 768 and 360px: no console errors, no horizontal scrolling, one
 every control labelled, no dead links.
 
 The earlier prototype (Workbench, Prompt Builder, Explorer) was removed per decision D2 in the PRD.
+
+## V1 design system (25 Nov 2026)
+Direction and rationale: `docs/BRAND_UX_DIAGNOSIS_AND_DIRECTION.md`; page-by-page findings and test script: `docs/UX_IMPROVEMENT_PLAN.md`.
+- The supplied FORGE SIGNAL logo (orange signal arcs) is used as supplied: `assets/forge-signal-logo-white.svg` in the header and `-navy.svg` for light grounds; `-dark-bg` and `-light-bg` are the original files with backgrounds; `forge-signal-icon.svg` is the arcs only, used as the favicon. Transparent versions only have their empty margin cropped.
+- Colour roles: Trust Blue for action and focus; coral for one accent button (the logo keeps its own orange, #F28C28; the two oranges should be unified later); plum (`--human`) only where a person decides; brown (`--stop`) for errors. No red.
+- Task pages use `.pagehead` and a four-step indicator; only Home and About use `.hero`.
+- Shared components: `.status` (wait, error, none), `details.evidence`, `.yourcheck`, `.steps4`, spacing scale `--s1`..`--s8` and `.mt1`..`.mb3` utilities instead of inline styles.
+- Settings is a small gear icon in the header (admin preview).
+- The Home explainer video is a placeholder; a new one will replace it.
+
+
+## Recorded example
+
+`recorded-run.js` is one real run (fictional researcher, stored public Grants.gov copy) and must stay byte-identical to the reviewed file (sha256 `0b8cac43862eb95409b9ef5b836c9e0c06c68747c6a740c84392b84c05ddceea`).
+It is the data for every page when `config.js` has `live:false` (no backend), and an opt-in on a live deploy ("See the recorded example", or after a 503 with code `budget_reached`). While it is shown, a label bar (model, rubric, retrieval date, run id, "Not live. Not your input.") is at the top of every page, deadlines are recomputed from today, and no `/api/` request is made. `mock-data.js` is no longer loaded by the pages.

@@ -2,7 +2,7 @@
 
 Status: DRAFT for customer review (Shazia Yaqub). Date: 23 Nov 2026.
 Governing scope: **Forge Signal – Business Case (Nov 23, 2026)**. This PRD **supersedes PRD v0.1** (Nov 21, discovery-only). Anything not in the Business Case is in section 11 (Future builds).
-Context: ITOM 6216 capstone. Nothing is built yet; `public/signal/` is a static mock only.
+Context: ITOM 6216 capstone. Status as of 25 Nov 2026 (source: `backend/README.md` and `docs/ARCHITECTURE.md`). **Built:** the FastAPI engine (live Grants.gov pull and stored copy, model adapter with a mock default, quote validator, rubric-calculated fit tiers, calendar and `.ics`/`.xlsx` exports, dummy email, admin API, run log on SQLite or Postgres) and the SIGNAL pages, connected to the engine in live mode (Match, Results, Calendar, Review). **Not built or not finished:** PI lookup by name (OpenAlex), unit/faculty matching (FR-4), real email, the Settings page in live mode (still sample data), cost per run, and any measured accuracy (the gold-set labels are blank). Speed and retrieval improvements are under architect review and are not yet in the integrated code. The public GitHub Pages copy of `public/signal/` shows fictional sample data only.
 
 ---
 
@@ -14,7 +14,7 @@ A public, no-login web app that acts as a working agent for SMU research develop
 3. Builds a **calendar** (sponsor deadline plus computed internal deadline) with `.xlsx` and `.ics` export.
 4. Drafts an **alert email** that a person must review and confirm before it can be "sent".
 
-An **admin dashboard** (back end) sets defaults and shows the run log. A **run log** is the only database.
+An **admin dashboard** (back end) sets defaults and shows the run log. The run log holds everything about runs and researchers; the only other stored data are admin settings, rubric versions and the public Grants.gov copy (revised 25 Nov 2026, see D4).
 
 ## 2. Decisions that govern this PRD
 | # | Decision | Source |
@@ -22,7 +22,7 @@ An **admin dashboard** (back end) sets defaults and shows the run log. A **run l
 | D1 | The Business Case is the single source of truth; PRD v0.1 is superseded. | Customer, Nov 23 |
 | D2 | One UI only: the "Signal" page set from the final wireframe (Home, Match, Results, Calendar, Review, About, Visual language, Settings). The Workbench, Prompt Builder and old Explorer are removed from the product. | Customer |
 | D3 | The Explorer/Match page is a real working agent, not a preview. | Customer |
-| D4 | No Grants.gov sync. Opportunities and faculty evidence are **pulled live** at run time. No opportunity database, no faculty index. | Customer |
+| D4 | No Grants.gov sync in v0.2 as first written. **REVISED 25 Nov 2026 (customer-approved for the demo):** the engine keeps a stored copy of Grants.gov's public opportunity records and their text, refreshed by an admin ingest, and stamps every result with the retrieval time. Faculty evidence is still supplied per run or fetched live. No faculty index. | Customer |
 | D5 | **One database: the run log** (inputs, outputs, citation-check results, outcomes, chatbot entries). | Customer |
 | D6 | Citations are required now. Every claim carries a quote and source; a validator rejects unsupported quotes. | Customer |
 | D7 | Email is a **dummy** for now (log-only or a test mailbox). Real SMU sending is deferred. | Customer |
@@ -37,7 +37,7 @@ An **admin dashboard** (back end) sets defaults and shows the run log. A **run l
 No other roles in v0.2.
 
 ## 4. Hard rules (non-negotiable)
-1. **No stored faculty index and no stored opportunity index.** Evidence is supplied or fetched live and kept only inside that run's log record.
+1. **No stored faculty index and no stored researcher profile.** Researcher evidence is supplied or fetched live and kept only inside that run's log record. **REVISED 25 Nov 2026:** public opportunity records from Grants.gov may be stored (customer-approved for the demo); they contain no researcher information and no judgments.
 2. **Every claim has a citation** (source URL, exact quote, retrieval date). The validator rejects any quote not found in its source text. Missing evidence displays exactly: "No explicit support found in the provided sources."
 3. **Eligibility is never guessed.** If sources are silent it is "Needs verification".
 4. **A person reviews before any email.** No automatic sending. The reviewer ticks a confirmation; the recipient is entered per send and logged.
@@ -56,7 +56,7 @@ No other roles in v0.2.
 | FR-2 | **PI name:** fetch public publication records live (OpenAlex first; ORCID/Crossref later) and extract expertise terms. Show the sources used. |
 | FR-3 | **Project description / keywords:** extract key terms, then search live for opportunities. |
 | FR-4 | **Opportunity + unit (e.g., Biology):** read the unit's public faculty listing live (cap: 25 faculty per run, admin-editable) and rank who fits. |
-| FR-5 | **Live opportunity pull:** read the Grants.gov public API at run time (not a sync). **Measured 2026-11-23:** `search2` keyword matching is unusable for narrow research terms ("photoreceptor" returns 0 hits, "chemistry" returns 47) and its hits carry no synopsis text, so SIGNAL does **not** search by keyword. It pages the whole corpus (790 posted + 588 forecasted in ~1.4 s, `rows=500`), filters by the deadline window in plain code, then calls `fetchOpportunity` (~0.2-0.4 s each, run concurrently) for a bounded shortlist to get the real text. A curated list of state and foundation pages may be read live (see O3). The opportunity list is held in process memory for `cache_ttl_minutes` (default 15) and is **never written to the database**, so the no-stored-index rule holds; each run logs its own retrieval time. |
+| FR-5 | **Live opportunity pull:** read the Grants.gov public API at run time (not a sync). **Measured 2026-11-23:** `search2` keyword matching is unusable for narrow research terms ("photoreceptor" returns 0 hits, "chemistry" returns 47) and its hits carry no synopsis text, so SIGNAL does **not** search by keyword. It pages the whole corpus (790 posted + 588 forecasted in ~1.4 s, `rows=500`), filters by the deadline window in plain code, then calls `fetchOpportunity` (~0.2-0.4 s each, run concurrently) for a bounded shortlist to get the real text. A curated list of state and foundation pages may be read live (see O3). The opportunity list is held in process memory for `cache_ttl_minutes` (default 15) and is **never written to the database**, so the no-stored-index rule holds; each run logs its own retrieval time. **REVISED 25 Nov 2026:** when the stored copy exists, runs read it and report when it was retrieved; until the first ingest they pull live as described. |
 | FR-6 | Honor the active **scope** and **settings**: unit/institution, funder types (federal / state / foundation / any), deadline window, internal lead time, and minimum fit. Defaults come from the admin dashboard; the visitor may change them for the run. |
 | FR-7 | If no researcher profile is available, matched opportunities still go onto the calendar with Fit shown as "Not assessed". |
 
@@ -167,7 +167,7 @@ Two kinds of input are kept apart. **Criteria** (the rubric, source hierarchy, s
 | none, or any with "stretch", or career-stage excluded | | | Excluded | hidden |
 | any above, with a positioning violation | | | at most Conditional | Low |
 
-## 6. Data: the run log (the only database)
+## 6. Data: the run log and the stored public opportunity copy
 One record per run (plus child rows):
 
 | Field | Notes |
@@ -184,12 +184,12 @@ One record per run (plus child rows):
 | `model`, `latency_ms`, `tokens`, `errors` | For cost and speed measures. |
 | `annotations[]` | Admin review notes for the gold set. |
 
-Admin settings (scope, adapter, limits, email mode) are held in a small settings table in the same database. **No opportunity, faculty or profile tables.**
+Admin settings (scope, adapter, limits, email mode) are held in a small settings table in the same database, together with rubric versions, the stored public Grants.gov opportunity copy (`opportunities`) and a log of every Grants.gov request (`api_calls`). **No faculty or researcher-profile tables.**
 
 ## 7. Architecture (recommendation, not mandate)
 - **Front end:** static pages built from the final wireframe, wired to the API. Existing brand tokens (Trust Blue #244B70, Forge Coral #E98262, Sora/Inter).
 - **Back end:** Python FastAPI. Modules: `adapters/model` (chatbot/LLM behind one interface), `sources` (Grants.gov, OpenAlex, faculty-page reader, curated state/foundation), `validator` (quote-in-source), `calendar` (plain code), `exports` (.xlsx/.ics), `mailer` (dummy now), `admin`, `limits`.
-- **Database:** a managed Postgres (or SQLite for local), holding only the run log and settings.
+- **Database:** a managed Postgres (or SQLite for local), holding the run log, settings, rubric versions and the public Grants.gov copy (no faculty or researcher-profile tables).
 - **Secrets:** environment variables; never committed.
 - **Pipeline per run:** parse input → live fetch → retrieve relevant passages → model returns schema-valid JSON with quotes → validator checks quotes → plain-code dates/status/calendar → persist run → render.
 
@@ -226,7 +226,7 @@ Test plan: unit tests (dates, calendar, validator, schema, status mapping); inte
 | **Dec 6** | **Demo and final submission.** |
 
 ## 11. Future builds (not in v0.2)
-Master opportunity database; per-researcher grant funnel (identified, alerted, interested, LOI, submitted); weekly digest; broader state/foundation coverage and other colleges' directories; optional stored faculty index; real SMU email sending; cross-college collaborator-pair team view (customer to confirm, O6); NSF coverage validation as a recurring check; SSO for admins; move to the next approved AI platform.
+Multi-source opportunity database (state, foundation, other sponsors); per-researcher grant funnel (identified, alerted, interested, LOI, submitted); weekly digest; broader state/foundation coverage and other colleges' directories; optional stored faculty index; real SMU email sending; cross-college collaborator-pair team view (customer to confirm, O6); NSF coverage validation as a recurring check; SSO for admins; move to the next approved AI platform.
 
 Removed from the product: the Workbench, Prompt Builder, browser-only profile registry, localStorage shortlist, and the Explorer's fictional records.
 

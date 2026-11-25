@@ -26,7 +26,7 @@ from .sources import openalex
 from .template_xlsx import preview
 from .validator import validate
 
-MAX_SOURCES, MAX_SOURCE_CHARS = 5, 60000        # pasted evidence goes straight to the model: bound the cost of one request
+MAX_SOURCES, MAX_SOURCE_CHARS = 3, 20000        # pasted evidence goes straight to the model: bound the cost of one request
 MAX_BODY_BYTES = int(os.environ.get("FORGE_MAX_BODY_BYTES", "400000"))   # public POST bodies; admin uploads are exempt
 INPUT_TYPES = ("pi_name", "project", "keywords", "opportunity_unit")
 
@@ -167,11 +167,16 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                 db.finish_run(rid, "failed", int((time.time() - t0) * 1000), f"source unavailable: {e}")
                 raise HTTPException(503, "The funding source could not be read right now. The attempt was logged.")
             c = out["counters"]
-            if c["model_call_failures"] and c["judged"] == 0 and c["model_call_failures"] == c["model_failures"]:
-                # every model call failed (bad key, outage, rate limit): a failed run, not an empty result list
-                db.finish_run(rid, "failed", c["latency_ms"], f"model unavailable: all {c['model_call_failures']} calls failed",
-                              c["input_tokens"], c["output_tokens"], c["opportunities_listed"], c["details_fetched"])
-                raise HTTPException(502, "The model could not be reached, so nothing was rated. The attempt was logged; please try again later.")
+            if c["judged"] == 0 and c["model_failures"] > 0:
+                # nothing could be rated because of the model side, whatever the cause: a failed run, not an empty result list
+                unreachable = c["model_call_failures"] > 0
+                reason = (f"model unavailable: all {c['model_failures']} calls failed" if unreachable
+                          else f"model answers unreadable: all {c['model_failures']} answers were invalid")
+                db.finish_run(rid, "failed", c["latency_ms"], reason, c["input_tokens"], c["output_tokens"],
+                              c["opportunities_listed"], c["details_fetched"])
+                raise HTTPException(502, "The model could not be reached, so nothing was rated. The attempt was logged; please try again later."
+                                    if unreachable else
+                                    "The model's answers could not be read, so nothing was rated. The attempt was logged; please try again later.")
             c["cost_usd"] = run_cost(s, c["input_tokens"], c["output_tokens"])
             db.finish_run(rid, "ok", c["latency_ms"], None, c["input_tokens"], c["output_tokens"],
                           c["opportunities_listed"], c["details_fetched"], c["cost_usd"])
@@ -215,6 +220,7 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
         st = db.settings(); vh, t = visitor(request), time.time()
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         if pi_day["date"] != today: pi_day.update(date=today, n=0)
+        for k in [k for k, v in pi_hits.items() if not v or t - v[-1] >= 3600]: del pi_hits[k]      # prune idle visitors
         if pi_day["n"] >= st["pi_lookups_per_day"]: raise openalex.OpenAlexError("daily_limit")
         recent = [x for x in pi_hits.get(vh, []) if t - x < 3600]
         if len(recent) >= st["pi_lookups_per_hour"]: raise openalex.OpenAlexError("hourly_limit")
@@ -238,7 +244,7 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
     @app.get("/api/pi/{author_id}/expertise")
     def pi_expertise(author_id: str, request: Request):
         try:
-            if not openalex.ID_RE.match(author_id): raise openalex.OpenAlexError("bad_author_id")
+            if not openalex.ID_RE.fullmatch(author_id): raise openalex.OpenAlexError("bad_author_id")
             pi_limit(request)
             return lookup.expertise(author_id)
         except openalex.OpenAlexError as e:

@@ -118,9 +118,11 @@ def test_eligibility_without_a_supported_quote_stays_needs_verification(client, 
 
 def test_invalid_model_output_skips_that_opportunity_and_is_logged(client, monkeypatch):
     monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: MockAdapter(["not json"]))
-    j = live(client).json()
-    assert j["results"] == []
-    failures = client.get(f"/api/admin/runs/{j['run_id']}", headers=H).json()["source_failures"]
+    r = live(client)
+    assert r.status_code == 502 and "answers could not be read" in r.json()["detail"]    # nothing rated: a failed run, not an empty list
+    run = client.get("/api/admin/runs", headers=H).json()[0]
+    assert run["status"] == "failed"
+    failures = client.get(f"/api/admin/runs/{run['id']}", headers=H).json()["source_failures"]
     assert any("model output invalid" in f["error"] for f in failures)
 
 

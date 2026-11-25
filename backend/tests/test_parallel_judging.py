@@ -115,3 +115,34 @@ def test_global_cap_limits_simultaneous_calls_across_runs(monkeypatch):
     ts = [threading.Thread(target=go, args=(a, 8, 6)) for _ in range(3)]
     [t.start() for t in ts]; [t.join() for t in ts]
     assert a.peak <= 3
+
+
+def test_unreadable_answers_everywhere_also_fail_the_run(monkeypatch):
+    from fastapi.testclient import TestClient
+    from app.adapters import registry
+    from app.adapters.mock import MockAdapter
+    from app.main import create_app
+    from tests.test_pipeline import CORPUS
+    monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: MockAdapter(["{not json"]))
+    app = create_app(":memory:", lister=lambda *a, **k: [dict(o) for o in CORPUS],
+                     detailer=lambda ids, **k: ([dict(o) for o in CORPUS if o["source_record_id"] in [str(i) for i in ids]], []))
+    r = TestClient(app).post("/api/runs", json={"input_type": "pi_name", "input_text": "x",
+                             "profile": {"career_stage": "e", "lanes": ["photochemistry and flavin biology"]}})
+    assert r.status_code == 502 and "could not be read" in r.json()["detail"]
+    assert "unreadable" in app.state.db.q("SELECT error FROM runs", one=True)["error"]
+
+
+def test_calls_queued_behind_the_cap_do_not_start_after_the_deadline(monkeypatch):
+    import threading, app.pipeline as pl
+    monkeypatch.setattr(pl, "_model_slots", threading.BoundedSemaphore(2))
+    a = SlowAdapter(delay=1.0)
+    db = Database(":memory:")
+    corpus = [opp(i, days=10 + i) for i in range(1, 9)]
+    s = dict(DEFAULT_SETTINGS, judge_concurrency=8, max_judgments=8, judge_deadline_s=0.3)
+    rid = db.create_run("v", "pi_name", "x", s, "r", "slow")
+    run_match(db, rid, a, s, {"career_stage": "e", "lanes": ["photochemistry and flavin biology"]}, "q",
+              lister=lambda *x, **k: [dict(o) for o in corpus],
+              detailer=lambda ids, **k: ([dict(o) for o in corpus if o["source_record_id"] in ids], []))
+    started = len(a.call_log)
+    time.sleep(2.5)                                  # slots free up; queued calls must not start a paid call
+    assert a.peak <= 2 and len(a.call_log) <= 2 and started <= 2

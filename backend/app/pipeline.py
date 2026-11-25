@@ -119,9 +119,13 @@ def run_match(db, run_id, adapter, settings, profile, question, lister=None, det
 
     # Model calls run in a bounded thread pool; the database is only touched from this thread, in ranked order,
     # so the log and the result order do not depend on which call finishes first.
+    cancelled = threading.Event()                    # set at the judging deadline: queued calls must not start a paid call
+
     def call(item):
         try:
             with _model_slots:
+                if cancelled.is_set():
+                    return None, "model call timed out (judging budget)", True
                 return judge_fit(adapter, item[3], question, rubric), None, False
         except SchemaError as e:
             return None, f"model output invalid: {e}", False
@@ -133,6 +137,7 @@ def run_match(db, run_id, adapter, settings, profile, question, lister=None, det
     pool = ThreadPoolExecutor(max_workers=workers)
     futures = [pool.submit(call, p) for p in prepared]
     wait(futures, timeout=deadline or None)
+    cancelled.set()
     outcomes = []
     for f in futures:
         if f.done():

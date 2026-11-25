@@ -40,11 +40,16 @@ def test_a_failing_migration_rolls_back_and_is_not_recorded(monkeypatch):
 
 def test_run_cost_needs_prices_and_never_shows_zero_for_unknown():
     assert run_cost({"price_per_mtok_input": 0, "price_per_mtok_output": 0}, 1000, 1000) is None
+    assert run_cost({"price_per_mtok_input": 5.0, "price_per_mtok_output": 0}, 1000, 1000) is None   # one price alone would understate
     assert run_cost({"price_per_mtok_input": 5.0, "price_per_mtok_output": 25.0}, 2_000_000, 400_000) == 20.0
 
 
-def test_cost_is_logged_with_the_run():
+def test_cost_is_logged_with_the_run(monkeypatch):
     from fastapi.testclient import TestClient
+    from app.adapters import registry
+    from app.adapters.mock import MockAdapter
+    from tests.test_pipeline import factors_json
+    monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: MockAdapter([factors_json()]))
     from app.main import create_app
     from tests.test_pipeline import CORPUS
     app = create_app(":memory:", lister=lambda *a, **k: [dict(o) for o in CORPUS],

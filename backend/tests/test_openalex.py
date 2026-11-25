@@ -98,7 +98,7 @@ def test_requests_send_no_personal_details_and_a_generic_agent():
     assert "mailto" not in blob and "@" not in blob and oa.USER_AGENT == "forge-signal"
 
 
-@pytest.mark.parametrize("bad", ["", "A1", "A111111; DROP", "../x", "W123456"])
+@pytest.mark.parametrize("bad", ["", "A1", "A123456\n", "A111111; DROP", "../x", "W123456"])
 def test_bad_author_ids_are_refused_before_any_request(bad):
     fc = FakeClient()
     with pytest.raises(oa.OpenAlexError) as e: oa.Lookup(client=fc).expertise(bad)
@@ -141,7 +141,8 @@ def test_endpoints_and_call_log_keep_the_name_out(api):
     rows = api.app.state.db.q("SELECT source, endpoint, params, ok, http_status, latency_ms FROM api_calls WHERE source='OpenAlex'")
     assert len(rows) == 2 and all(r["ok"] == 1 and r["http_status"] == 200 for r in rows)
     logged = " ".join(str(dict(r)) for r in rows).lower()
-    assert "pat" not in logged and "example" not in logged and "name_length" in logged and "name_sha256_16" in logged
+    assert "pat" not in logged and "example" not in logged and "name_length" in logged and "sha256" not in logged
+    assert "a111111" not in logged                         # the author id is logged only as a keyed hash
 
 
 def test_error_bodies_carry_code_and_message(api):
@@ -163,4 +164,19 @@ def test_hourly_and_daily_limits(api):
 def test_invalid_names_do_not_use_up_the_limit(api):
     api.app.state.db.set_setting("pi_lookups_per_hour", 1)
     for _ in range(3): assert api.post("/api/pi/search", json={"name": "a"}).status_code == 400
+    assert api.post("/api/pi/search", json={"name": "Pat Example"}).status_code == 200
+
+
+def test_non_latin_names_are_not_all_reported_as_ambiguous():
+    a = {"results": [author(1, name="李明"), author(2, name="王芳"), author(3, name="Ольга Иванова")]}
+    assert lookup(authors=a).search("李明")["status"] == "multiple"
+    a = {"results": [author(1, name="李明"), author(2, name="李明")]}
+    assert lookup(authors=a).search("李明")["status"] == "ambiguous"
+    a = {"results": [author(1, name="José Núñez"), author(2, name="JOSE NUNEZ")]}
+    assert lookup(authors=a).search("jose")["status"] in ("multiple", "ambiguous")
+
+
+def test_idle_visitors_are_pruned_from_the_limiter(api):
+    api.post("/api/pi/search", json={"name": "Pat Example"})
+    api.app.state.db.set_setting("pi_lookups_per_hour", 60)
     assert api.post("/api/pi/search", json={"name": "Pat Example"}).status_code == 200

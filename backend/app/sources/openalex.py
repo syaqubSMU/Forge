@@ -7,10 +7,12 @@ Flow the page follows (nothing is screened until the person confirms):
   3. the person confirms; only then does POST /api/runs use the terms as `profile.lanes`
 
 Privacy: requests carry a generic client name and only the typed name or the chosen OpenAlex id. No email, no contact
-details, no key. The typed name is never logged or stored: the call log keeps its length and a hash. Answers are kept
+details, no key. The typed name is never logged or stored: the call log keeps only its length (and a keyed HMAC of an author id). Answers are kept
 in memory for a few minutes (so repeat lookups do not hit OpenAlex again) and are never written to the database.
 """
 import hashlib
+import hmac
+import os
 import re
 import threading
 import time
@@ -108,7 +110,7 @@ class Lookup:
         name = clean_name(name)
         j, cached = self._get("/authors", {"search": name, "per-page": max(1, min(limit, 10)),
                               "select": "id,display_name,works_count,cited_by_count,last_known_institutions,affiliations,topics,counts_by_year"},
-                              {"name_sha256_16": hashlib.sha256(name.lower().encode()).hexdigest()[:16], "name_length": len(name)})
+                              {"name_length": len(name)})      # length only: a bare hash of a name can be checked by anyone with a guess
         out = []
         for a in j.get("results", [])[:10]:
             insts = []
@@ -124,7 +126,7 @@ class Lookup:
                         "top_topics": [t["display_name"] for t in (a.get("topics") or [])[:3]]})
         norm = defaultdict(int)
         for c in out:
-            norm[re.sub(r"[^a-z]", "", c["name"].lower())] += 1
+            norm[re.sub(r"[\W_]+", "", c["name"].casefold())] += 1       # Unicode letters, so non-Latin names compare correctly
         if not out:
             status, note = "no_match", "OpenAlex has no researcher matching that name. Check the spelling, try fewer words, or type the research areas yourself."
         elif max(norm.values()) > 1:
@@ -139,13 +141,13 @@ class Lookup:
 
     def expertise(self, author_id: str, years: int = 6, max_works: int = 50, max_terms: int = 12, today=None) -> dict:
         """PROPOSED terms from the author's most recent works. A term's strength is how many of those works carry it."""
-        if not ID_RE.match(author_id or ""):
+        if not ID_RE.fullmatch(author_id or ""):
             raise OpenAlexError("bad_author_id")
         since = (today or date.today()).year - years
         j, _ = self._get("/works", {"filter": f"author.id:{author_id},from_publication_date:{since}-01-01",
                                     "sort": "publication_date:desc", "per-page": max(1, min(max_works, 100)),
                                     "select": "id,title,publication_year,doi,topics,keywords"},
-                         {"author_id": author_id})
+                         {"author_hmac_16": hmac.new(os.environ.get("FORGE_SALT", "dev-salt").encode(), author_id.encode(), hashlib.sha256).hexdigest()[:16]})
         works = j.get("results", [])
         support = defaultdict(list)
         for w in works:

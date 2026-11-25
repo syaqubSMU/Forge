@@ -18,10 +18,10 @@ NOTICE = ("Runs, inputs and calendars are logged for the pilot report, kept for 
 
 
 def run_cost(settings, input_tokens, output_tokens):
-    """Tokens times the prices set in settings (USD per million tokens). None while no price is set, so a
+    """Tokens times the prices set in settings (USD per million tokens). None unless BOTH prices are set, so a
     missing price is never shown as a cost of zero."""
     pi, po = settings.get("price_per_mtok_input") or 0, settings.get("price_per_mtok_output") or 0
-    if not pi and not po:
+    if not pi or not po:                  # one price alone would silently understate the cost
         return None
     return round((input_tokens or 0) / 1e6 * pi + (output_tokens or 0) / 1e6 * po, 6)
 

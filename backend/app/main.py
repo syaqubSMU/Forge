@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 from . import rubric as R
 from . import store
 from .adapters.registry import available, get_adapter
-from .db import DEFAULT_SETTINGS, NOTICE, Database
+from .db import DEFAULT_SETTINGS, NOTICE, Database, run_cost
 from .fit import DEFAULT_RUBRIC
 from .calendar import build_calendar
 from .exports import to_ics, to_xlsx
@@ -126,8 +126,9 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                 db.finish_run(rid, "failed", int((time.time() - t0) * 1000), f"source unavailable: {e}")
                 raise HTTPException(503, "The funding source could not be read right now. The attempt was logged.")
             c = out["counters"]
+            c["cost_usd"] = run_cost(s, c["input_tokens"], c["output_tokens"])
             db.finish_run(rid, "ok", c["latency_ms"], None, c["input_tokens"], c["output_tokens"],
-                          c["opportunities_listed"], c["details_fetched"])
+                          c["opportunities_listed"], c["details_fetched"], c["cost_usd"])
             return {"run_id": rid, "results": out["results"], "counters": c,
                     "retrieved_at": store.as_of(db) if store.status(db)["with_full_text"] else datetime.now(timezone.utc).isoformat(timespec="seconds"),
                     "source": store.provenance(db), "notice": NOTICE}
@@ -150,7 +151,8 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                   "failed_citation_count": len(r["failed_citations"])}
         db.add_match(rid, result)
         u = adapter.total_usage
-        db.finish_run(rid, "ok", int((time.time() - t0) * 1000), None, u.get("input_tokens", 0), u.get("output_tokens", 0))
+        db.finish_run(rid, "ok", int((time.time() - t0) * 1000), None, u.get("input_tokens", 0), u.get("output_tokens", 0),
+                      cost_usd=run_cost(s, u.get("input_tokens", 0), u.get("output_tokens", 0)))
         return {"run_id": rid, "result": result, "notice": NOTICE}
 
     # ---------------------------------------------------------------- researcher lookup (OpenAlex)

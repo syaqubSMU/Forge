@@ -33,6 +33,9 @@ To use the real model, set a key (below), then switch the active model: `PUT /ap
 |---|---|
 | `scripts/model_check.py` | Scores the model on `evals/gold_set.json`. `--mock` for a dry run. Uses the key and costs a few cents live. |
 | `scripts/bench_judging.py` | Times the judging step with the live model on the stored corpus (costs money; use `--n 3` to `5`). |
+| `scripts/ingest.py` | Fills or refreshes the stored Grants.gov copy from a command line or scheduled job (`--db`, defaults to `FORGE_DB`). One JSON line; exit 0 all stored, 1 some details failed, 2 could not run. Measured on a local Postgres 16: 1,376 records, 68 s, 0 failures. |
+| `scripts/migrate.py` | Shows or applies schema migrations (servers also apply them on start). |
+| `scripts/retrieval_check.py` | Ranking comparison on the frozen labelled snapshot (no model, no cost). |
 | `scripts/grants_check.py` | Live Grants.gov check (no model, no key, no cost). |
 | `scripts/calibrate.py`, `scripts/template_cli.py` | Rubric calibration and the Excel template for editing criteria. |
 
@@ -40,7 +43,7 @@ To use the real model, set a key (below), then switch the active model: `PUT /ap
 | Name | Purpose |
 |---|---|
 | `ADMIN_TOKEN` | Admin API sign-in. Required for every `/api/admin/*` call. |
-| `FORGE_DB` | Run log and stored opportunities: a SQLite file path (default `forge.db`, `:memory:` for a throwaway run) or a `postgresql://` URL (Neon, Render, Supabase or any Postgres 14+). Tables are created on first start. |
+| `FORGE_DB` | Run log and stored opportunities: a SQLite file path (default `forge.db`, `:memory:` for a throwaway run) or a `postgresql://` URL (Neon, Render, Supabase or any Postgres 14+). Schema migrations are applied on start. |
 | `FORGE_SALT` | Salt for the visitor hash used by rate limiting. |
 | `FORGE_MODEL_KEY`, `FORGE_API_KEY`, `SIGNAL_MODEL_KEY`, `ANTHROPIC_API_KEY` | Model key. Any one works; the first set wins in that order. Never returned by the API or logged. |
 | `FORGE_MODEL` | Model id for the Claude adapter (default `claude-opus-5-5`). |
@@ -65,4 +68,5 @@ Safeguards: per-visitor hourly rate limit, a daily run cap, no raw source text r
 - **Repeatability:** the same inputs gave 2 results on one run and 1 on the next, so ratings can vary between runs. Not yet measured.
 - **Accuracy:** the gold-set expected labels are blank, so agreement with a human cannot be scored.
 - **Email:** dummy mode only; nothing is sent.
-- **Cost:** model prices are not entered in settings, so cost per run is not reported.
+- **Cost (code done, prices still needed):** each run now stores `cost_usd` = tokens x `price_per_mtok_input` / `price_per_mtok_output` (settings, USD per million tokens) and returns it in `counters`. It is `null`, not zero, while no price is set. The owner must enter current prices for the active model; I did not guess them.
+- **Schema versioning:** numbered migrations in `app/migrations.py` (version 1 = the earlier schema, version 2 = `runs.cost_usd`), recorded in `schema_migrations`, tested on SQLite and Postgres including adoption of an unversioned database and rollback of a failing migration.

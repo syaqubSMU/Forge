@@ -45,7 +45,7 @@ To use the real model, set a key (below), then switch the active model: `PUT /ap
 |---|---|
 | `ADMIN_TOKEN` | Admin API sign-in. Required for every `/api/admin/*` call. |
 | `FORGE_DB` | Run log and stored opportunities: a SQLite file path (default `forge.db`, `:memory:` for a throwaway run) or a `postgresql://` URL (Neon, Render, Supabase or any Postgres 14+). Schema migrations are applied on start. |
-| `FORGE_SALT` | Salt for the visitor hash used by rate limiting. |
+| `FORGE_SALT` | Salt for the visitor hash used by rate limiting. **Set it in every hosted environment**; the server logs a warning at start if a hosted database is used without it. |
 | `FORGE_MODEL_KEY`, `FORGE_API_KEY`, `SIGNAL_MODEL_KEY`, `ANTHROPIC_API_KEY` | Model key. Any one works; the first set wins in that order. Never returned by the API or logged. |
 | `FORGE_MODEL` | Model id for the Claude adapter (default `claude-opus-5-5`). |
 | `FORGE_EFFORT` | Model effort level (unset = model default; production value not yet decided: low is fastest but was not more repeatable and its accuracy has not been measured against labelled answers, since the gold labels are blank) (`low`, `medium`, `high`). `low` is recommended for bulk screening: about 35% fewer output tokens and 25% less time in the measured sample. |
@@ -72,6 +72,7 @@ Safeguards: per-visitor hourly rate limit, a daily run cap, no raw source text r
 - **Repeatability (measured 2026-11-25, small):** `scripts/repeatability.py` runs the same input several times with a fixed candidate set. Cancer-detection profile, 4 runs x 8 items, 8 workers (64 live calls per effort setting). Default effort: 7 of 8 items got the same tier in every run, visible-list Jaccard 0.92, list sizes 6/5/6/6, mean 17.7 s per run, 43.8k output tokens in total. Effort low: 5 of 8 stable, Jaccard 0.89, list sizes 5/6/6/5, 9.8 s per run, 27.8k output tokens (37% fewer). Tiers that moved were adjacent (Direct/Very strong, Strong/Very strong) except one record that swung between Excluded, Conditional and Strong at low effort. One profile and 4 runs is too small to call the difference between efforts significant, but low was not more stable. The visible list does change between runs; nothing in the code smooths that. Low effort is therefore not the production default until a larger check says otherwise.
 - **Accuracy:** the gold-set expected labels are blank, so agreement with a human cannot be scored.
 - **Email:** dummy mode only; nothing is sent.
+- **Output cap and cost per run (measured from printed counters, one run each, 25 judgments):** with the old 1,500-token cap 26 calls used 33,661 input and 31,920 output tokens (8 workers) and 34,006 / 31,115 (16 workers); with the 3,000 cap 25 calls used 32,326 input and 30,350 output tokens. About 1,230 against 1,214 output tokens per call, so the larger cap adds no measurable cost; the old runs paid slightly more because the truncated answer was retried at the cap. Indicative only.
 - **Cost (code done, prices still needed):** each run now stores `cost_usd` = tokens x `price_per_mtok_input` / `price_per_mtok_output` (settings, USD per million tokens) and returns it in `counters`. It is `null`, not zero, while no price is set. The owner must enter current prices for the active model; I did not guess them.
 - **Schema versioning:** numbered migrations in `app/migrations.py` (version 1 = the earlier schema, version 2 = `runs.cost_usd`), recorded in `schema_migrations`, tested on SQLite and Postgres including adoption of an unversioned database and rollback of a failing migration.
 
@@ -111,3 +112,23 @@ Run ids are 32 hex characters for new runs; the 12-character ids of earlier runs
 - *Deploys and rollbacks:* migrations must be additive (new tables or nullable columns; never drop, rename or tighten) because an old and a new server can overlap during a deploy, and rolling code back is only safe when every migration since was additive.
 - *Proxy header rehearsal:* with `FORGE_TRUSTED_PROXY_HOPS` set, also send a request with a forged prefix, for example `X-Forwarded-For: 6.6.6.6` added by the client, and confirm `/api/admin/whoami` still reports your real address and not 6.6.6.6. If it reports the forged one the value is too large. Record the confirmed value for Render.
 - *Cost estimate:* `cost_usd` is an estimate from reported usage and needs both prices set; it excludes calls that were abandoned or failed.
+
+## Running the Neon smoke test (owner, on your own computer or the dev service)
+Use a **dev or scratch Neon branch with its own password, never production.** The sandbox the engineers work in cannot safely hold a database password and may not reach Postgres at all, so you run this yourself. The scripts never print the database address or password.
+1. In Neon, create a branch named `dev-smoke` from your project. Open its connection details and copy the **direct** connection string (host without `-pooler`), not the pooled one: the migration lock does not work through the pooler.
+2. On your computer, in a terminal, from the `backend/` folder: `pip install -r requirements.txt`.
+3. Put the string in an environment variable for this terminal only (do not put it on the command line): macOS or Linux `export FORGE_DB='postgresql://...'`; Windows PowerShell `$env:FORGE_DB='postgresql://...'`.
+4. Run `python scripts/db_smoke.py`. **Pass:** every line starts with `PASS` and the last line is `RESULT: all checks passed` (one `SKIP` about the batched read is normal before step 5). **Fail:** any `FAIL` line, or the exit code is not 0.
+5. Run `python scripts/ingest.py`. **Pass:** one JSON line with `"ok": true`, `details_failed` 0 and `schema_version` 2. It reads about 1,400 records from Grants.gov and writes them one by one, so expect a few minutes (local Postgres took 68 s; Neon will be slower, and that time is the number to report).
+6. Run `python scripts/db_smoke.py` again. It now also times the batched read of 250 stored records.
+7. Optional, on a **separate throwaway branch only** (the test suite drops everything in the database it is pointed at): `FORGE_TEST_PG_URL` set to that branch's direct string, then `python -m pytest -q`. Pass: all tests pass, 1 skipped.
+8. Send back the full text printed by steps 4 to 7. It contains timings and PASS/FAIL lines but never the address. Then delete the `dev-smoke` branch.
+
+## Rehearsal checklist (on the dev service, before the real deploy)
+Run these once on the dev environment; none has been verified yet. Record each result in the commit that closes it.
+1. **Hosted settings present:** `FORGE_SALT`, `ADMIN_TOKEN`, a model key and `FORGE_DB` (direct connection string) are set; the start-up log has no `FORGE_SALT is not set` warning; `active_model` is `claude`; one server worker.
+2. **Forged header ignored:** with `FORGE_TRUSTED_PROXY_HOPS` set to 1, call `GET /api/admin/whoami` with your admin token while adding your own header `X-Forwarded-For: 6.6.6.6`. `believed_client_ip` must still be your real public address, not 6.6.6.6. If it shows 6.6.6.6 the value is too large for this host.
+3. **Render hop value:** call `/api/admin/whoami` from two different networks (for example your phone off Wi-Fi). With the right value `believed_client_ip` is each network's own address and differs between the two; with the value unset it is the same proxy address for both. Write down the value that works.
+4. **Two simultaneous runs:** start two live runs at the same moment from two browsers or terminals. Both must finish without a 429 or a 502, and each must report `counters.judged` above 0. If either is refused or runs slowly, note the times before changing `FORGE_MODEL_MAX_CONCURRENT` (default 16; each run uses up to `judge_concurrency`, default 8).
+5. **Timing:** one live run with the default 25 judgments; note `counters.latency_ms` and `judging_ms`. The measured sandbox figure was about 22 to 24 s at 16 workers and about 44 s at 8.
+6. **Failure paths:** with the model key temporarily wrong on the dev service only, a live run must return 502 "The model could not be reached...", and the run must show as failed in the admin run list.

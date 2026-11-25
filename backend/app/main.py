@@ -86,6 +86,9 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                            allow_headers=["Content-Type", "X-Admin-Token"])
     db = Database(db_path or os.environ.get("FORGE_DB", "forge.db"))
     app.state.db = db
+    if db.pg and not os.environ.get("FORGE_SALT"):
+        import logging
+        logging.getLogger("uvicorn.error").warning("FORGE_SALT is not set: visitor hashes use a public default salt. Set it in every hosted environment.")
     if lister is None and detailer is None:                    # not under test: use the stored copy once it exists
         lister, detailer = store.sources(db)
 
@@ -178,6 +181,7 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                                     if unreachable else
                                     "The model's answers could not be read, so nothing was rated. The attempt was logged; please try again later.")
             c["cost_usd"] = run_cost(s, c["input_tokens"], c["output_tokens"])
+            c["cost_basis"] = "estimate from reported token usage; needs both prices set; excludes calls abandoned or failed"
             db.finish_run(rid, "ok", c["latency_ms"], None, c["input_tokens"], c["output_tokens"],
                           c["opportunities_listed"], c["details_fetched"], c["cost_usd"])
             return {"run_id": rid, "results": out["results"], "counters": c,

@@ -27,6 +27,8 @@ Also found, small but important: the focus ring (coral on white, 2.68:1) is belo
 ### Honest limits of this review
 One reviewer, one machine, Chromium only, no real screen reader, no real users. Fonts from Google Fonts were blocked in my sandbox, so type rendered in the fallback stack; contrast figures are computed from the CSS colours and are unaffected. Live mode used the mock model, so I did not see real model output, real quotes or real run times. The run took about 15 s with the mock (Grants.gov pull plus 25 mock judgments); that says nothing about real-model speed.
 
+**Not tested (keep this line):** a populated live run by a person, a screen reader (NVDA, JAWS, VoiceOver), and 200 to 400 percent zoom. Automated axe-core checks found no issues, but no conformance with WCAG is claimed.
+
 ---
 
 ## 1. Heuristic review by page
@@ -287,7 +289,7 @@ Rules: plain words; say what happened, why, and what to do next; no percentages;
 ### 5.2 Waiting
 | Current | Suggested |
 |---|---|
-| "A typical run reads several hundred announcements and takes under 30 seconds." (sample mode) | "A search reads current announcements and checks the best candidates. In tests, one search with nobody else using the service took about 22 to 44 seconds; it can take longer when several people search at once." Use only measured figures, state them as tests, and keep them out of headlines. |
+| "A typical run reads several hundred announcements and takes under 30 seconds." (sample mode) | "A search reads current announcements and checks the best candidates. In two tests with 25 candidates and nobody else using the service, a search took 22 and 44 seconds; times vary, and it can take longer when several people search at once." Use only measured figures, state them as tests, and keep them out of headlines. |
 | "Working for 27 s. The server does not report each step, so the list below is a guide. " | "Search in progress · 27 s. It can take longer when several people search at once. Keep this tab open. We cannot show step-by-step progress yet." |
 | Step list with ticks | Static "What a run does" list, without ticks, collapsed by default |
 | Finished: "Screening finished. 0 opportunities to review." | When 0: "Screening finished. Nothing was rated at or above your setting. See why on the next page." |

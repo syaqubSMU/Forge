@@ -29,7 +29,7 @@ Start each topic branch from the current `integration`. One topic per branch, sm
 - Commit messages carry the approval ids.
 
 ## Current state (25 Nov 2026)
-`integration` exists at 2684f33: baseline ca51468 plus `docs/ARCHITECTURE.md` and `docs/BRANCH_FLOW.md` (documents only). The project owner agreed to this flow. Base every new branch, documents included, on `integration`, never on the shared branch (a branch based on the shared tip carries its unapproved commits into any merge). The project manager does not delete or rewrite the shared branch.
+`integration` was created at 2684f33 (baseline ca51468 plus these two documents); it is now at da43450 after the PRD wording and the approved backend (P1 to P5) were merged. The project owner agreed to this flow. Base every new branch, documents included, on `integration`, never on the shared branch (a branch based on the shared tip carries its unapproved commits into any merge). The project manager does not delete or rewrite the shared branch.
 
 ## Triage of the shared branch `claude/practical-franklin-ze9hk2`
 Treat it as submitted work, not as approved. Status as of 25 Nov (PM = project manager):
@@ -37,12 +37,12 @@ Treat it as submitted work, not as approved. Status as of 25 Nov (PM = project m
 | Commit | What | Architect | PM | Move to `integration` |
 |---|---|---|---|---|
 | ca51468 and earlier | Work before the approval process | not reviewed individually | n/a | Done: it is the baseline of `integration` |
-| ae247ff | UX plan, screenshots, wireframes | changes requested (wording "one at a time", docs/ux size) | accepted | Not yet: after fixes, compression of docs/ux and re-review |
+| ae247ff | UX plan, screenshots, wireframes | changes requested (wording "one at a time", docs/ux size) | accepted | Not yet. Waiting for the resubmission: "one at a time" wording removed, docs/ux compressed, then re-review |
 | e5447f0 | Brand and UX diagnosis | changes requested (same) | accepted | Not yet: after re-review |
-| bf68bba | V1 design system implementation | changes requested (503 message, "one at a time", message when all model calls fail; browser test of live mode) | accepted out-of-scope work | Not yet: after fixes, browser test and re-review. My scan of the pages found 0 axe violations |
+| bf68bba | V1 design system implementation | changes requested (503 message, "one at a time", message when all model calls fail; browser test of live mode) | accepted out-of-scope work | Not yet. Waiting for the resubmission: 503 messages, the message when every model call fails (the API now returns 502 with two messages), the no-term-overlap count, the OpenAlex name disclosure and confirm step, no run-time promise in copy, a live-mode browser test, then re-review. My scan of the pages found 0 axe violations |
 | e5887fc | Logo assets | as bf68bba | accepted | Not yet: with bf68bba |
-| db17872 | Parallel judging (P1) | APPROVED WITH CONDITIONS (total-failure run status, Postgres coverage of tests; follow-ups) | approved subject to architect conditions | Not yet: conditions open, both re-check |
-| 6c5cff9 | BM25 retrieval (P2) | APPROVED WITH CONDITIONS (two-letter terms, batched reads, label wording, no-overlap display) | approved subject to architect conditions | Not yet: conditions open, both re-check |
-| 815328f | OpenAlex lookup (P3, on `claude/forge-backend-work`) | not reviewed (branch not on the remote) | changes requested | Not yet |
+| 46fc710 to 104a092 (clean branch `claude/forge-backend-review`) | Backend: parallel judging (P1), BM25 retrieval (P2), OpenAlex lookup (P3), migrations (P4), cost logging (P5), request limits, proxy setting, 32-hex run ids, README and db.py wording | APPROVED 104a092 after two review rounds | approved | Done: merged as da43450 (backend/ and docs/BACKEND_DECISIONS.md only) |
+| db17872, 6c5cff9 (old shared-branch copies) | The same P1 and P2 as first submitted | superseded by the clean branch | superseded | Not needed: stay behind on the shared branch |
+| 815328f (on `claude/forge-backend-work`) | First P3 | superseded by the clean branch | superseded | Not needed |
 
 Unapproved commits stay behind with the requested changes. Update this table in each proposal message.

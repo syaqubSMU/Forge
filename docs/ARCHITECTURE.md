@@ -11,8 +11,8 @@ Decision status words: **Decided** (made by the customer or already built and ac
  Browser (static pages)            FastAPI engine (backend/app)                 Outside services
  public/signal/*.html, app.js ---> /api/runs, /api/runs/{id}/calendar... ----> Grants.gov public API (list + detail)
    config.js: live true/false      /api/admin/*  (X-Admin-Token)               Claude API (model adapter)
-   sample mode = mock-data.js      pipeline.py  -> adapters/ -> validator.py   OpenAlex (PI lookup; not built,
-   run kept in sessionStorage      rubric.py, calendar.py, exports.py            host blocked in the build sandbox)
+   sample mode = mock-data.js      pipeline.py  -> adapters/ -> validator.py   OpenAlex (PI lookup; P3 in review,
+   run kept in sessionStorage      rubric.py, calendar.py, exports.py            host allowed by the owner 24 Nov)
                                    store.py (stored Grants.gov copy)
                                    db.py ------------------------------------> SQLite (local) or Postgres (Neon)
 ```
@@ -63,8 +63,8 @@ Open points: effort low versus default has no accuracy evidence (the gold set ha
 ### DR-3 Retrieval (word overlap **Decided** as the current stopgap; BM25 **Proposed**; embeddings **Open, deferred**)
 Before: word-overlap ranking chose which 25 of up to 250 detailed records are paid for; quality was unmeasured. Proposed by the backend engineer (commit 6c5cff9, architect APPROVED WITH CONDITIONS, project manager approved on scope; not yet integrated): BM25 over title and text against the research areas, records sharing no term are not sent to the model, the detail cap is lifted when reading the stored copy. A labelled check without the model (`scripts/retrieval_check.py`) reports mean recall@10 0.26 to 0.75 and MRR 0.51 to 1.00 on 6 queries labelled by one AI rater; this is weak evidence (few queries, unreviewed labels biased toward keywords) and is not an accuracy figure. Conditions: keep two-letter terms such as AI and ML, batch the stored-detail reads before lifting the cap, state whether parameters were tuned on the same labels, show the no-overlap count and reason on Results. Embeddings stay deferred: they add a provider, cost and a second index, and cannot be evaluated until reviewed labels exist. The engineer's own short records are in `docs/BACKEND_DECISIONS.md` (their D1 and D2); this file is the canonical structure.
 
-### DR-4 PI lookup (**Open**)
-PRD FR-2 and FR-41 want publication-based research areas from OpenAlex. Not built; `api.openalex.org` is blocked by the build sandbox network policy (PRD O20). Proposed design if approved: server-side fetch of works by name, shown to the person as proposed research areas with the titles as evidence, confirmed or edited by a person before any run, then used for that run only. Name-to-author disambiguation is an open problem; the person must choose among candidates. The manual research-areas box stays as the fallback and is what the demo can rely on.
+### DR-4 PI lookup (**Open** until P3 is approved)
+PRD FR-2 and FR-41 want publication-based research areas from OpenAlex. Status per the project manager: the project owner allowed `api.openalex.org` in the environment network settings on 24 Nov and the engineer ran one live search and one expertise call (HTTP 200); the code (P3, commit 815328f on `claude/forge-backend-work`) is under review and the architect has not yet seen it (the branch is not on the remote). Design position: server-side fetch of works by name, shown to a person as proposed research areas with titles as evidence, confirmed or edited by a person before any run, used for that run only and not stored. Name-to-author disambiguation is an open problem: the person must choose among candidates. The manual research-areas box stays as the fallback and is what the demo can rely on. Tests must use fakes only.
 
 ### DR-5 Schema versioning (**Proposed**, needed before production)
 Today `db.py` runs `CREATE TABLE IF NOT EXISTS` at start. That creates new tables but never alters existing ones, so any column added after the first production start will be missing in production while tests (fresh databases) pass. Proposal: a `schema_version` table and an ordered list of numbered migrations applied at start inside a transaction, tested on SQLite and Postgres from the previous version's schema. Rubric versions already exist (content hash) and are separate from this.
@@ -103,5 +103,13 @@ Target WCAG 2.1 AA (SMU) and 2.2 AA (PRD). The UX session's implementation adds 
 Tier, word, dates, days to deadline, internal deadline, groupings, the 45-day action list, status flags. The model proposes factor values and quotes; a person decides everything outward-facing.
 
 ## 9. What was and was not checked
-Checked: read `pipeline.py`, `adapters/`, `main.py`, `db.py`, `store.py`, `app.js` diff, `config.js`, both UX documents (skimmed for claims). Ran 133 tests on in-memory SQLite (pass). Ran the same command with `FORGE_TEST_PG_URL` against a throwaway Postgres 16 cluster (133 pass), then found the Postgres run does not cover `test_store.py` or `test_parallel_judging.py`, because `conftest.py` patches only `app.main.Database` while those files import `Database` directly. I ran the parallel-judging tests against Postgres by hand (the two order and failure tests pass; the timing and token tests were not re-run there).
+Checked: read `pipeline.py`, `adapters/`, `main.py`, `db.py`, `store.py`, `app.js` diff, `config.js`, both UX documents (skimmed for claims). Ran 133 tests on in-memory SQLite (pass). Ran the same command with `FORGE_TEST_PG_URL` against a throwaway Postgres 16 cluster (133 pass), then found the Postgres run does not cover `test_store.py` or `test_parallel_judging.py` (a **condition on P1**, db17872, still open), because `conftest.py` patches only `app.main.Database` while those files import `Database` directly. I ran the parallel-judging tests against Postgres by hand (the two order and failure tests pass; the timing and token tests were not re-run there).
 Not checked: any live model call, any real Grants.gov call, a deployed environment, screen readers, the Render and Neon behaviour, the behaviour of the Anthropic SDK retry settings under real rate limits beyond what the engineer reported.
+
+## 10. Owner decisions needed (through the project manager)
+1. Hosting accounts for Render and Neon, and the live address (PRD O2). Migrations (DR-5) gate any hosted database.
+2. The model key and its spending cap, separate for dev and production (PRD O10).
+3. A human review of the retrieval labels (currently one AI rater, 6 queries) before any retrieval figure is quoted outside the repository.
+4. The PRD wording change recording the customer-approved opportunity store (DR-1); the project manager approved the text and is asking the owner, nothing is applied until then.
+5. The OIT self-review (`app-hosting-self-review`) and the question whether SIGNAL duplicates an existing research-administration system.
+6. Agreement to the branch flow in `docs/BRANCH_FLOW.md`, before the project manager creates `integration`.

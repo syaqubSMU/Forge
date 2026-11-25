@@ -22,10 +22,24 @@ Start each topic branch from the current `integration`. One topic per branch, sm
 6. Proposers rebase their next branch on `integration`.
 
 ## Rules
+- A session whose environment assigns it a fixed branch must still not push to the shared branch; it tells the project manager instead and the project manager decides.
 - A change that touches two areas (for example an API field and the page that reads it) is two commits on two branches, merged in the order API first, and the contract (field names, example response) is written in the proposal.
 - Anything touching accounts, spending, secrets, environment settings or deleting data goes to the project owner through the project manager, before merge.
 - Do not push build artefacts or large images; screenshots belong in one folder with a size budget (docs/ux is already 19 MB of the 21 MB repository).
 - Commit messages carry the approval ids.
 
 ## Triaging the current shared branch
-Treat `claude/practical-franklin-ze9hk2` as submitted work, not as approved. After the reviews: cherry-pick each approved commit onto `integration` (db17872 for backend; the UX commits as one or two commits for the pages and the two documents), leave unapproved ones behind with the requested changes, and delete the shared branch once empty.
+Treat `claude/practical-franklin-ze9hk2` as submitted work, not as approved. The project manager creates `integration` only after the owner agrees, and does not delete or rewrite the shared branch. Cherry-pick order and status (as of 25 Nov, 14:46 UTC; PM = project manager):
+
+| Commit | What | Architect | PM | Move to `integration` |
+|---|---|---|---|---|
+| ca51468 and earlier | Work before the approval process | not reviewed individually | n/a | Baseline: `integration` starts from this point |
+| ae247ff | UX plan, screenshots, wireframes | changes requested (wording "one at a time", docs/ux size) | accepted | after fixes and re-review |
+| e5447f0 | Brand and UX diagnosis | changes requested (same) | accepted | after re-review |
+| bf68bba | V1 design system implementation | changes requested (503 message, "one at a time"; browser test of live mode) | accepted out-of-scope work | after fixes, browser test and re-review |
+| e5887fc | Logo assets | as bf68bba | accepted | with bf68bba |
+| db17872 | Parallel judging (P1) | APPROVED WITH CONDITIONS (total-failure run status, Postgres coverage of tests; follow-ups) | approved subject to architect conditions | after conditions met and both re-check |
+| 6c5cff9 | BM25 retrieval (P2) | APPROVED WITH CONDITIONS (two-letter terms, batched reads, label wording, no-overlap display) | approved subject to architect conditions | after conditions met and both re-check |
+| 815328f | OpenAlex lookup (P3, on `claude/forge-backend-work`) | not yet reviewed (branch not on the remote) | changes requested | not before both approve |
+
+Unapproved commits stay behind with the requested changes. Update this table in each proposal message.

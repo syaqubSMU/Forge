@@ -199,7 +199,7 @@
     var n = $("provenance"); if (!n) return;
     var s = M.source || (M.recorded_run && M.recorded_run.source);
     if ((!isLive() && !RMODE) || !s) { n.textContent = "Sample data only: no real source was read."; return; }
-    var when = s.retrieved_at ? new Date(s.retrieved_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : null;
+    var when = s.retrieved_at ? (RMODE ? recStamp(s.retrieved_at) : new Date(s.retrieved_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })) : null;
     n.textContent = "Source: " + s.system + " public API (" + String(s.api).replace(" (public)", "") + "). " +
       (s.mode === "stored copy"
         ? "Read from a stored copy retrieved " + when + (s.records ? " (" + s.records.toLocaleString("en-US") + " records)" : "") + ". Confirm every date on the sponsor page."
@@ -393,7 +393,7 @@
     });
   }
 
-  function asOfLine() { return "Days counted from " + dateLong(M.recorded_run.as_of_date) + ", the day this was recorded. A deadline earlier than today shows as passed"; }
+  function asOfLine() { return "Days counted from today, " + dateLong(isoDay(new Date())) + "; the recording was made as of " + dateLong(M.recorded_run.as_of_date) + ". A deadline earlier than today shows as passed"; }
   function recStamp(iso) { return iso ? new Date(iso).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }) + " UTC" : "unknown time"; }
 
   function prepRecorded() {
@@ -401,10 +401,9 @@
     M.screened_at = (M.recorded_run || {}).recorded_at;
     (M.results || []).forEach(function (r) {   // deadlines are counted from today, in code, never taken from the recording
       if (r.close_date) {
-        var asof = (M.recorded_run || {}).as_of_date;
-        r.days_to_deadline = Math.round((parseDay(r.close_date) - parseDay(asof)) / 864e5);   // counted from the recording date, one number per row
+        r.days_to_deadline = daysUntil(r.close_date);        // one number per row, counted from today; the page says so
         r.internal_deadline = addDays(r.close_date, -lead);
-        r.passed = daysUntil(r.close_date) < 0;                                              // passed only when the close date is before the viewer's today
+        r.passed = r.days_to_deadline < 0;
       } else { r.days_to_deadline = null; r.internal_deadline = null; r.passed = false; }
     });
   }
@@ -446,6 +445,24 @@
         el("p", {}, ["Administrator settings apply to a running service. This page shows a recorded example, so there is nothing here to change."]),
         el("div", { class: "btn-row" }, [el("a", { class: "btn", href: "results.html" }, ["See the recorded results"])])])]));
     }
+  }
+
+  function homeCard() {
+    var fig = $("homecard"); if (!fig) return;
+    var r = (M.results || []).filter(function (x) { return x.fit === "High"; })[0] || (M.results || [])[0];
+    var c = r && (r.citations || []).filter(function (x) { return x.source_id !== "researcher-profile"; })[0];
+    if (!r || !c) return;
+    clear(fig);
+    fig.appendChild(el("div", { class: "excerpt" }, [
+      el("p", { class: "src" }, ["From the announcement \u00b7 " + r.number + " \u00b7 recorded example"]),
+      el("p", {}, [el("mark", {}, [c.quote])])]));
+    fig.appendChild(el("p", { class: "because", "aria-hidden": "true" }, ["The highlighted sentence is what the rating rests on"]));
+    fig.appendChild(el("div", { class: "result r-" + r.fit }, [
+      el("p", { class: "h3like" }, [r.title]),
+      el("div", { class: "badges" }, [fitBadge(r), eligBadge(r.eligibility)]),
+      el("div", { class: "yourcheck" }, [el("strong", {}, ["Your check: "]), document.createTextNode(yourCheck(r))])]));
+    fig.appendChild(el("figcaption", {}, ["A real result from the recorded example (fictional researcher). Every result shows its rating, the sentence it rests on, and what a person checks next."]));
+    fig.hidden = false;
   }
 
   function recordedResultsExtras() {
@@ -542,7 +559,7 @@
       if (all.length && M.hidden_by_filter) $("count").textContent += " " + M.hidden_by_filter + " more rated below your setting are hidden.";
       if (M.run_id && $("runid")) { $("runid").appendChild(document.createTextNode("Run ID: ")); $("runid").appendChild(el("span", { class: "mono" }, [M.run_id])); }
       var when = M.screened_at || M.retrieved_at;
-      if ($("screened") && when) $("screened").textContent = (RMODE ? "Recorded " : isLive() ? "Checked " : "Sample search, checked ") + new Date(when).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
+      if ($("screened") && when) $("screened").textContent = (RMODE ? "Recorded " : isLive() ? "Checked " : "Sample search, checked ") + (RMODE ? recStamp(when) : new Date(when).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }));
       provenance();
       if (RMODE) recordedResultsExtras();
       $("counters").appendChild(counters(M.counters));
@@ -816,7 +833,7 @@
     heroVideo();
     var p = document.body.getAttribute("data-page");
     function runPage() {
-      if (RMODE) recordedChrome(p);
+      if (RMODE) { recordedChrome(p); if (p === "home") homeCard(); }
       if (RMODE && p === "settings") return;
       if (pages[p]) pages[p]();
     }

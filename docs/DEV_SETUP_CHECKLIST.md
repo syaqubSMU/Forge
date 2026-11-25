@@ -32,6 +32,18 @@ One page. Variable **names only**: never write a value or secret into this file,
 - [ ] Run `python scripts/ingest.py` once (from `backend/`, `FORGE_DB` set in your shell) so runs read the stored copy; check `GET /api/admin/ingest/status`.
 - [ ] Work through the rehearsal checklist in `backend/README.md`, then `FORGE_TRUSTED_PROXY_HOPS` can be set with confidence.
 
+## 3b. Pilot budget (the customer's ceiling is $20 for the whole pilot, spend already made included; if it is reached, ask the customer before spending more)
+Estimates use list prices for `claude-opus-5-5` of $4 per million input tokens and $20 per million output tokens (as of 2026-11-03; confirm in the provider console). A 25-judgment run used about 32,000 input and 30,000 output tokens, so about **$0.75 per run** and about 3 cents per judgment. About $7 is assumed already spent on engineering tests, leaving about **$13, roughly 17 full runs** at 25 judgments.
+- [ ] **Provider spending limit (owner, in the provider console):** set a monthly limit of $20 or lower. This is the only hard guarantee; everything below only lowers the risk. No value or key goes in this file.
+- [ ] **Prices in settings** (once the service is hosted and the owner confirms them): `PUT /api/admin/settings` with `{"price_per_mtok_input": 4.0, "price_per_mtok_output": 20.0}`. Without both, `cost_usd` stays empty.
+- [ ] **Runs per day:** set `daily_cap` to a small number sized to the pilot (for example 10; at about $0.75 a run that is up to about $7.50 a day, so choose it from the pilot length and the remaining budget, not from the default of 200).
+- [ ] **Runs per visitor per hour:** set `rate_limit_per_hour` to 3 (default 20).
+- [ ] **Judgments per run:** `max_judgments` 15 instead of 25 lowers a run to about $0.45, at the price of fewer opportunities checked. Change it only if the customer agrees.
+- [ ] **Reading the cost after each run:** the run response carries `counters.cost_usd` (an estimate from reported usage, with `cost_basis` saying so); the admin run list and `GET /api/admin/runs.csv` (column `cost_usd_estimate`) show it per run. Add up that column for the spend so far. It excludes calls that failed or were abandoned, so keep a margin: treat the real spend as a little above the sum, and compare with the provider console's usage page.
+- [ ] **Spend tally:** keep a running line (date, runs, sum of `cost_usd_estimate`, console figure) with the owner. Check it before each batch of test runs.
+- [ ] **When the budget is nearly spent (about $15 used by the estimate, or the console shows it):** stop live runs and ask the customer. To stop: `PUT /api/admin/settings` with `{"daily_cap": 0}` (the API then answers every live run with the daily-limit message and spends nothing) and send visitors to the published pages, which run in sample mode (their `config.js` has `live: false`). Re-open only after the customer agrees to more budget.
+- [ ] **Not allowed without the customer's approval:** model changes, the larger repeatability check (about 500 calls, roughly $15, declined), and any engineering test run against the live model.
+
 ## 4. Do not
 - Do not put values in this file, tickets or chat. Do not pass the database address with `--db` (it appears in process lists and shell history).
 - Do not point the Neon smoke test, the benchmark scripts or the test suite at a production database.

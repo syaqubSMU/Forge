@@ -231,4 +231,4 @@ def shortlist(records, horizon_months=3, include_undated=False, limit=250, today
         if 0 <= d <= horizon_days:
             keep.append((d, r))
     keep.sort(key=lambda x: (x[0], x[1].get("source_record_id", "")))
-    return [r for _, r in keep[:limit]]
+    return [r for _, r in (keep if limit is None else keep[:limit])]

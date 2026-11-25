@@ -153,4 +153,5 @@ def sources(db, live_lister=None, live_detailer=None):
 
     def detailer(*a, **k):
         return sd(*a, **k) if has_store() else live_detailer(*a, **k)
+    detailer.is_local = has_store            # the pipeline lifts the live-pull cap when records come from the store
     return lister, detailer

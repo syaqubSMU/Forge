@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FORGE SIGNAL wireframes (UX plan)</title>
+<style>
+ body{font:15px/1.5 system-ui,sans-serif;color:#344452;background:#F3F4F2;margin:0;padding:24px;max-width:1100px;margin-inline:auto}
+ h1{color:#244B70;font-size:24px} h2{color:#244B70;font-size:19px;margin-top:40px}
+ .note{color:#566878;font-size:14px;max-width:80ch}
+ .frame{background:#fff;border:2px dashed #9FB0C0;border-radius:10px;padding:16px;margin:14px 0}
+ .row{display:flex;gap:14px;flex-wrap:wrap} .row>*{flex:1 1 260px}
+ .box{border:1px solid #9FB0C0;border-radius:6px;padding:10px;background:#EFF4F8;margin:6px 0}
+ .box.hi{border:2px solid #244B70;background:#fff}
+ .warn{background:#FBF0DC;border-color:#8A5A00}
+ .human{border:2px solid #b3112b;background:#FFF7F8}
+ .btn{display:inline-block;background:#244B70;color:#fff;padding:6px 14px;border-radius:6px;font-weight:600;font-size:14px}
+ .btn.g{background:#fff;color:#244B70;border:2px solid #244B70;padding:4px 12px}
+ .tag{font:600 11px monospace;border:1px solid currentColor;border-radius:99px;padding:2px 8px;margin-right:4px;display:inline-block}
+ .ok{color:#17503A;background:#E7F2EC}.md{color:#8A5A00;background:#FBF0DC}.lo{color:#3C4A57;background:#EDF1F4}
+ .ann{font-size:13px;color:#A4441F;margin-top:4px}
+ small{color:#566878}
+</style>
+</head>
+<body>
+<h1>Wireframes for the three highest-impact changes</h1>
+<p class="note">Low-fidelity. Annotations in orange explain the intent. All names, areas and titles are fictional sample content. Grey-blue boxes are content; boxed in red is a human decision point; yellow is a caution.</p>
+
+<h2>W1 · Match: the run panel stays where the person is looking</h2>
+<p class="note">Problem: after "Screen opportunities" the progress and error panel appear about 600 px below the button, off screen, and the step ticks claim progress the server does not report. Change: put status and errors in the right-hand "This run" card, directly under the button, and replace ticks with an elapsed timer and an honest message.</p>
+<div class="frame"><div class="row">
+ <div>
+  <div class="box"><b>What are you starting from?</b> (radio group, unchanged)</div>
+  <div class="box hi"><b>Researcher</b><br>Name <small>(required)</small>
+   <div class="box" style="background:#fff">[ empty in live mode ]</div>
+   <div class="box warn" role="alert">Enter the researcher's name. <small>(error appears here AND in the summary on the right; field has aria-invalid and aria-describedby)</small></div>
+   Research areas <small>(required, one per line)</small>
+   <div class="box" style="background:#fff;min-height:70px">[ empty. Hint: "Use the words the researcher uses for their own work." ]</div>
+   <span class="btn g">Use the sample researcher</span> <small>(sample mode only)</small>
+  </div>
+ </div>
+ <div>
+  <div class="box hi"><b>This run</b> (window, lead time, funders, minimum rating)
+   <div style="margin-top:8px"><span class="btn">Screen opportunities</span></div>
+   <div class="box warn" style="margin-top:8px"><b>Screening in progress · 1 min 12 s</b><br>
+    This can take from under a minute to several minutes. Keep this tab open.<br>
+    Opportunities are screened one at a time. <small>No step list and no ticks: the server does not report steps.</small>
+    <div style="margin-top:6px"><span class="btn g">Stop waiting</span> <small>(abandons this run in your browser; the server may still finish it)</small></div></div>
+  </div>
+  <div class="box">Runs are logged. · Public and private data only. <small>(unchanged, stays near the button)</small></div>
+ </div>
+</div>
+<div class="ann">Annotations: (1) status text lives in an element with role="status" so it is announced once when a run starts and again every 30 s, not every second. (2) On submit, move focus to the first invalid field, or leave focus on the button and scroll the status into view. (3) When the run ends, move focus to the "Screening finished" heading, as now.</div></div>
+
+<h2>W2 · Result card: summary first, evidence on request</h2>
+<p class="note">Problem: each card shows up to six blocks (three quotes, each with its own source line) before the reader reaches the next card. Change: keep the decision-relevant summary visible and fold the evidence into one disclosure that names how many quotes it holds. The "AI proposes, a person decides" boundary stays visible in the card itself.</p>
+<div class="frame">
+ <div class="box hi">
+  <b>Sample Instrumentation Program for Materials Research</b><br><small>Sample Federal Agency · SS-26-118 · Sponsor deadline Jan 10, 2027 (47 days)</small><br>
+  <span class="tag ok">High · Very strong fit</span><span class="tag md">Eligibility: Needs verification</span><span class="tag lo">Limited submission</span>
+  <p style="margin:8px 0 4px">Instrumentation for structural and biophysical characterization is central to the profile, but the sponsor requires an internal selection that the sources do not resolve.</p>
+  <div class="box human"><b>Your check:</b> The announcement does not say who may apply. Open the sponsor page and read the eligibility section, or ask the program officer. <span class="btn g">Open sponsor page</span><br>
+   <small>(one plain sentence per card, from fixed wording keyed to the eligibility value; never model-written)</small></div>
+  <div class="box"><b>▸ Evidence (3 quotes, all found in the sources)</b> · <b>▸ How this fit was calculated</b>
+   <div class="ann">Collapsed by default. First quote may stay visible as a one-line preview. Each quote keeps its label, link ("Official source for SS-26-118") and retrieval date when expanded.</div></div>
+ </div>
+ <div class="ann">Annotations: the card becomes an article labelled by its title (aria-labelledby). If a quote failed validation, the collapsed line says "1 quote could not be found in the source and was discarded" so the omission is never silent.</div>
+</div>
+
+<h2>W3 · Confirm the researcher's profile (the step between lookup and screening)</h2>
+<p class="note">Required by the PRD (FR-41, "a person edits and confirms the lanes before any matching"), and the main path for a grant consultant looking up a PI at a university. Not buildable until public publication lookup (O20) is allowed; the layout below also works today with areas pasted by hand.</p>
+<div class="frame">
+ <div class="box"><b>Step 1 of 4 · Researcher → <u>Confirm profile</u> → Screen → Review</b></div>
+ <div class="box hi"><b>Proposed research areas for Dr. Sample Person</b> <small>(fictional)</small><br>
+  <small>Proposed from public sources listed below. Tick the ones that are genuinely this researcher's established work. SIGNAL screens only against what you keep.</small>
+  <div class="box"><label>☑ Photochemistry and flavin chemistry</label><br><small>Evidence: "…light-driven flavin photochemistry…" · Publication record, retrieved Nov 25, 2026 · <u>View source</u></small></div>
+  <div class="box"><label>☑ Protein dynamics</label><br><small>Evidence: "…" · Faculty page · <u>View source</u></small></div>
+  <div class="box"><label>☐ Cancer biology</label> <span class="tag md">one paper only</span><br><small>Evidence: "…" · <u>View source</u></small></div>
+  <div class="box" style="background:#fff">+ Add an area in the researcher's own words</div>
+ </div>
+ <div class="row">
+  <div class="box">Career stage: [ Not stated ▾ ] <small>(never guessed)</small></div>
+  <div class="box">Positioning rules (optional): [ … ]</div>
+ </div>
+ <div class="box">Sources used: 2 publication records, 1 faculty page. Nothing here is stored after the run except in the run log.</div>
+ <div class="box human"><label>☐ I have checked these areas and they describe this researcher's established work.</label><br><span class="btn">Screen opportunities</span> <small>(disabled until ticked and at least one area is kept)</small></div>
+ <div class="ann">Annotations: the confirm tick mirrors the Review page pattern, so the person-decides rule appears at both ends of the flow. A consultant who is not the researcher sees the same screen and can say "I am not the researcher" in the notes field, which is logged.</div>
+</div>
+</body>
+</html>

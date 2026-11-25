@@ -142,7 +142,7 @@ def test_endpoints_and_call_log_keep_the_name_out(api):
     assert len(rows) == 2 and all(r["ok"] == 1 and r["http_status"] == 200 for r in rows)
     logged = " ".join(str(dict(r)) for r in rows).lower()
     assert "pat" not in logged and "example" not in logged and "name_length" in logged and "sha256" not in logged
-    assert "a111111" not in logged                         # the author id is logged only as a keyed hash
+    assert "a111111" not in logged and "hmac" not in logged     # who was looked up is not logged
 
 
 def test_error_bodies_carry_code_and_message(api):

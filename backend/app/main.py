@@ -178,6 +178,7 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                                     if unreachable else
                                     "The model's answers could not be read, so nothing was rated. The attempt was logged; please try again later.")
             c["cost_usd"] = run_cost(s, c["input_tokens"], c["output_tokens"])
+            c["cost_basis"] = "estimate from reported token usage; needs both prices set; excludes calls abandoned or failed"
             db.finish_run(rid, "ok", c["latency_ms"], None, c["input_tokens"], c["output_tokens"],
                           c["opportunities_listed"], c["details_fetched"], c["cost_usd"])
             return {"run_id": rid, "results": out["results"], "counters": c,

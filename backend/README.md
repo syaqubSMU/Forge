@@ -111,3 +111,14 @@ Run ids are 32 hex characters for new runs; the 12-character ids of earlier runs
 - *Deploys and rollbacks:* migrations must be additive (new tables or nullable columns; never drop, rename or tighten) because an old and a new server can overlap during a deploy, and rolling code back is only safe when every migration since was additive.
 - *Proxy header rehearsal:* with `FORGE_TRUSTED_PROXY_HOPS` set, also send a request with a forged prefix, for example `X-Forwarded-For: 6.6.6.6` added by the client, and confirm `/api/admin/whoami` still reports your real address and not 6.6.6.6. If it reports the forged one the value is too large. Record the confirmed value for Render.
 - *Cost estimate:* `cost_usd` is an estimate from reported usage and needs both prices set; it excludes calls that were abandoned or failed.
+
+## Running the Neon smoke test (owner, on your own computer or the dev service)
+Use a **dev or scratch Neon branch with its own password, never production.** The sandbox the engineers work in cannot safely hold a database password and may not reach Postgres at all, so you run this yourself. The scripts never print the database address or password.
+1. In Neon, create a branch named `dev-smoke` from your project. Open its connection details and copy the **direct** connection string (host without `-pooler`), not the pooled one: the migration lock does not work through the pooler.
+2. On your computer, in a terminal, from the `backend/` folder: `pip install -r requirements.txt`.
+3. Put the string in an environment variable for this terminal only (do not put it on the command line): macOS or Linux `export FORGE_DB='postgresql://...'`; Windows PowerShell `$env:FORGE_DB='postgresql://...'`.
+4. Run `python scripts/db_smoke.py`. **Pass:** every line starts with `PASS` and the last line is `RESULT: all checks passed` (one `SKIP` about the batched read is normal before step 5). **Fail:** any `FAIL` line, or the exit code is not 0.
+5. Run `python scripts/ingest.py`. **Pass:** one JSON line with `"ok": true`, `details_failed` 0 and `schema_version` 2. It reads about 1,400 records from Grants.gov and writes them one by one, so expect a few minutes (local Postgres took 68 s; Neon will be slower, and that time is the number to report).
+6. Run `python scripts/db_smoke.py` again. It now also times the batched read of 250 stored records.
+7. Optional, on a **separate throwaway branch only** (the test suite drops everything in the database it is pointed at): `FORGE_TEST_PG_URL` set to that branch's direct string, then `python -m pytest -q`. Pass: all tests pass, 1 skipped.
+8. Send back the full text printed by steps 4 to 7. It contains timings and PASS/FAIL lines but never the address. Then delete the `dev-smoke` branch.

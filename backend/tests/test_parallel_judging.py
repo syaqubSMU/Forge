@@ -146,3 +146,16 @@ def test_calls_queued_behind_the_cap_do_not_start_after_the_deadline(monkeypatch
     started = len(a.call_log)
     time.sleep(2.5)                                  # slots free up; queued calls must not start a paid call
     assert a.peak <= 2 and len(a.call_log) <= 2 and started <= 2
+
+
+def test_tokens_of_calls_finishing_after_the_deadline_are_not_counted():
+    a = SlowAdapter(delay=0.6)
+    db = Database(":memory:")
+    corpus = [opp(i, days=10 + i) for i in range(1, 5)]
+    s = dict(DEFAULT_SETTINGS, judge_concurrency=4, max_judgments=4, judge_deadline_s=0.2)
+    rid = db.create_run("v", "pi_name", "x", s, "r", "slow")
+    out = run_match(db, rid, a, s, {"career_stage": "e", "lanes": ["photochemistry and flavin biology"]}, "q",
+                    lister=lambda *x, **k: [dict(o) for o in corpus],
+                    detailer=lambda ids, **k: ([dict(o) for o in corpus if o["source_record_id"] in ids], []))
+    time.sleep(1.0)                                   # the four slow calls finish after the run returned
+    assert a.total_usage["output_tokens"] == 20 and out["counters"]["output_tokens"] == 0

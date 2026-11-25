@@ -126,8 +126,14 @@ def test_invalid_model_output_skips_that_opportunity_and_is_logged(client, monke
 
 def test_judgment_cap_is_respected_and_reported(client):
     client.put("/api/admin/settings", json={"max_judgments": 1}, headers=H)
-    c = live(client).json()["counters"]
+    both = {"career_stage": "established", "lanes": ["photochemistry and flavin biology", "battery energy storage"]}
+    c = live(client, profile=both).json()["counters"]
     assert c["judged"] == 1 and c["not_judged_due_to_cap"] == 1
+
+
+def test_records_sharing_no_term_with_the_research_areas_are_not_sent_to_the_model(client):
+    c = live(client).json()["counters"]                 # the battery record shares nothing with this profile
+    assert c["judged"] == 1 and c["no_term_overlap"] == 1 and c["not_judged_due_to_cap"] == 0
 
 
 def test_run_log_records_sources_tokens_and_counters(client):

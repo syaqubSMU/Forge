@@ -13,6 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 from . import rubric as R
 from .adapters.base import judge_fit
 from .schemas import SchemaError
+from . import retrieval
 from .sources import grants_gov as gg
 from .validator import validate_factors
 
@@ -43,8 +44,8 @@ def profile_text(profile: dict) -> str:
     return "\n".join(parts)
 
 
-def rank_candidates(details, profile, limit):
-    """Order by shared terms with the profile, then by nearest deadline. Returns (ranked, skipped)."""
+def rank_candidates_overlap(details, profile, limit):
+    """The original ranking: shared stems with the profile text. Kept only as the baseline for the retrieval check."""
     pt = terms([profile_text(profile)])
     scored = []
     for d in details:
@@ -53,6 +54,21 @@ def rank_candidates(details, profile, limit):
     scored.sort(key=lambda x: (x[0], x[1], x[2]))
     ranked = [(d, sh) for _, _, _, d, sh in scored[:limit]]
     return ranked, max(0, len(details) - len(ranked))
+
+
+def rank_candidates(details, profile, limit):
+    """BM25 over title and text against the research areas (app/retrieval.py). Records sharing no term with the
+    research areas are never sent to the model. Ties go to the nearest deadline.
+    Returns (ranked, skipped_for_cap, no_overlap) where ranked is [(detail, matched_terms)]."""
+    q = retrieval.query_text(profile)
+    idx = retrieval.BM25([(d.get("title", ""), " ".join(x for x in (d.get("description"), d.get("eligibility_text")) if x))
+                          for d in details])
+    scores = idx.scores(q)
+    order = sorted(range(len(details)), key=lambda i: (-scores[i], details[i].get("close_date") or gg.date.max,
+                                                       details[i].get("source_record_id", "")))
+    hits = [i for i in order if scores[i] > 0]
+    ranked = [(details[i], idx.matched_terms(i, q)) for i in hits[:limit]]
+    return ranked, max(0, len(hits) - len(ranked)), len(details) - len(hits)
 
 
 def run_match(db, run_id, adapter, settings, profile, question, lister=None, detailer=None) -> dict:
@@ -64,9 +80,12 @@ def run_match(db, run_id, adapter, settings, profile, question, lister=None, det
 
     statuses = tuple(settings.get("opportunity_statuses") or ("posted",))
     listed = lister(statuses, timeout=settings["source_timeout_s"], cache_ttl_minutes=settings["cache_ttl_minutes"])
+    # Reading the stored copy is free, so every record in the window is ranked. The cap only guards live pulls,
+    # where each record is a network request; there it would otherwise cut by nearest deadline before relevance.
+    is_local = getattr(detailer, "is_local", None)
+    cap = None if (is_local and is_local()) else settings["max_detail_fetches"]
     short = gg.shortlist(listed, horizon_months=settings["horizon_months"],
-                         include_undated=settings["include_undated_deadlines"],
-                         limit=settings["max_detail_fetches"])
+                         include_undated=settings["include_undated_deadlines"], limit=cap)
     details, failures = detailer([r["source_record_id"] for r in short],
                                  timeout=settings["source_timeout_s"], concurrency=settings["source_concurrency"])
     source_status = {r["source_record_id"]: r.get("status") for r in short}
@@ -79,7 +98,7 @@ def run_match(db, run_id, adapter, settings, profile, question, lister=None, det
     for f in failures:
         db.add_source_failure(run_id, f.get("source_record_id", ""), f.get("error", ""))
 
-    ranked, skipped = rank_candidates(details, profile, settings["max_judgments"])
+    ranked, skipped, no_overlap = rank_candidates(details, profile, settings["max_judgments"])
     prof_text = profile_text(profile)
     results = []
     prepared = []
@@ -147,7 +166,7 @@ def run_match(db, run_id, adapter, settings, profile, question, lister=None, det
                                 r["days_to_deadline"] if r["days_to_deadline"] is not None else 10 ** 6))
     return {"results": results, "counters": {
         "opportunities_listed": len(listed), "in_horizon": len(short), "details_fetched": len(details),
-        "judged": len(ranked) - model_failures, "model_failures": model_failures, "not_judged_due_to_cap": skipped, "source_failures": len(failures),
+        "judged": len(ranked) - model_failures, "model_failures": model_failures, "not_judged_due_to_cap": skipped, "no_term_overlap": no_overlap, "source_failures": len(failures),
         "latency_ms": int((time.time() - t0) * 1000),
         "judging_ms": int((t_judged - t_start_judging) * 1000), "judge_concurrency": workers,
         "input_tokens": adapter.total_usage.get("input_tokens", 0),

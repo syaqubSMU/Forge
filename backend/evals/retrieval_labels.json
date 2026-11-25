@@ -1,0 +1,90 @@
+{
+ "queries": [
+  {
+   "id": "cyber",
+   "lanes": [
+    "cybersecurity, privacy and trustworthy computing"
+   ],
+   "relevant": [
+    "357554",
+    "358004",
+    "361238"
+   ]
+  },
+  {
+   "id": "ai",
+   "lanes": [
+    "machine learning and artificial intelligence for scientific discovery"
+   ],
+   "relevant": [
+    "363268",
+    "361526",
+    "363481",
+    "361318",
+    "320753"
+   ]
+  },
+  {
+   "id": "cancer",
+   "lanes": [
+    "cancer early detection, tumor imaging and biomarkers"
+   ],
+   "relevant": [
+    "357002",
+    "357003",
+    "357748",
+    "361275",
+    "361276",
+    "360946",
+    "361438",
+    "357307",
+    "359892"
+   ]
+  },
+  {
+   "id": "marine",
+   "lanes": [
+    "coastal and marine ecosystems, fisheries and marine mammals"
+   ],
+   "relevant": [
+    "363929",
+    "363992",
+    "363729",
+    "363692",
+    "363958",
+    "356561",
+    "356562",
+    "356559",
+    "362034",
+    "344715"
+   ]
+  },
+  {
+   "id": "stem-ed",
+   "lanes": [
+    "K-12 and undergraduate STEM education and teacher preparation"
+   ],
+   "relevant": [
+    "361008",
+    "344124",
+    "363752",
+    "360350",
+    "320753",
+    "350802",
+    "334326"
+   ]
+  },
+  {
+   "id": "plant",
+   "lanes": [
+    "plant genomics and plant-microbe interactions"
+   ],
+   "relevant": [
+    "352500",
+    "327047",
+    "360205"
+   ]
+  }
+ ],
+ "how_labelled": "One rater (an AI assistant) read titles and opening text of records found by broad keyword browsing, and listed those whose topic substantially matches the profile. Not independently reviewed. Browsing by keyword means relevant records with no shared words may be missing from the labels, which favours keyword methods."
+}

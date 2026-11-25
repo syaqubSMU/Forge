@@ -83,6 +83,12 @@ def _csv_safe(v):
 PLAIN_SETTING = re.compile(r"[A-Za-z0-9._:-]{1,80}")
 
 
+def estimated_run_cost(st) -> float:
+    """What one full run is assumed to cost: judgments per run times an estimated cost per judgment (about 3 cents, measured at
+    claude-opus-5-5 list prices). Derived from max_judgments so that raising it can never make the budget reservation undercount."""
+    return round(st["max_judgments"] * st["estimated_cost_per_judgment_usd"], 4)
+
+
 def cost_of(adapter, settings, input_tokens, output_tokens):
     """Cost estimate for a run. The mock model makes no paid call, so its runs cost nothing and never count toward the
     budget (its token figures are only character counts, used by tests)."""
@@ -215,7 +221,7 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
 
     @app.post("/api/admin/access-codes")
     def create_access_code(body: AccessCodeIn, actor=Depends(admin)):
-        st = db.settings(); limit, est = st["pilot_budget_usd"], st["estimated_run_cost_usd"]
+        st = db.settings(); limit, est = st["pilot_budget_usd"], estimated_run_cost(st)
         if limit and est and isinstance(body.allowance, int) and not isinstance(body.allowance, bool) and 1 <= body.allowance <= 20:
             # BUDGET RESERVATION: recorded spend + every run still allowed to usable codes + this code's runs must fit the pilot budget
             outstanding = sum(c["remaining"] for c in access.listing(db)
@@ -487,8 +493,9 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
         """The money already spoken for: recorded spend plus every run still allowed to usable codes at the estimated run cost."""
         outstanding = sum(c["remaining"] for c in access.listing(db)
                           if not c["revoked"] and not (c["expires_at"] and c["expires_at"] <= now()))
-        est, spent = st["estimated_run_cost_usd"], round(db.spent_usd(), 4)
-        return {"outstanding_runs": outstanding, "estimated_run_cost_usd": est, "committed_estimate_usd": round(outstanding * est, 2),
+        est, spent = estimated_run_cost(st), round(db.spent_usd(), 4)
+        return {"outstanding_runs": outstanding, "estimated_run_cost_usd": est, "derived_from": f"{st['max_judgments']} judgments x ${st['estimated_cost_per_judgment_usd']} each",
+                "committed_estimate_usd": round(outstanding * est, 2),
                 "recorded_spend_estimate_usd": spent, "total_usd": round(spent + outstanding * est, 2), "pilot_budget_usd": st["pilot_budget_usd"]}
 
     @app.get("/api/admin/environment")

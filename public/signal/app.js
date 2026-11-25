@@ -409,7 +409,7 @@
     invalid: "Access code problem",
     expired: "Access code problem",
     revoked: "Access code problem",
-    allowance_used: "Access code problem",
+    allowance_used: "No live runs left",
     too_many_attempts: "Search not started",
     run_in_progress: "Search not started"
   };

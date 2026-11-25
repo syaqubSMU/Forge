@@ -99,3 +99,25 @@ def test_runs_csv_labels_cost_as_an_estimate(c, monkeypatch):
     monkeypatch.setenv("ADMIN_TOKEN", "t")
     head = c.get("/api/admin/runs.csv", headers={"X-Admin-Token": "t"}).text.splitlines()[0]
     assert head.endswith("cost_usd_estimate")
+
+
+@pytest.mark.parametrize("value,shown", [("claude-opus-5-5", "claude-opus-5-5"), ("low", "low"),
+                                         ("sk-ant-SECRET value with spaces", "(set, unusual value)"),
+                                         ("https://u:pw@host/x", "(set, unusual value)"), ("x" * 81, "(set, unusual value)")])
+def test_environment_shows_model_and_effort_only_if_they_look_ordinary(c, monkeypatch, value, shown):
+    monkeypatch.setenv("ADMIN_TOKEN", "t"); monkeypatch.setenv("FORGE_MODEL", value); monkeypatch.setenv("FORGE_EFFORT", value)
+    j = c.get("/api/admin/environment", headers={"X-Admin-Token": "t"}).json()
+    assert j["model"] == shown and j["effort"] == shown
+    assert "SECRET" not in str(j) and "pw@" not in str(j)
+
+
+def test_short_admin_token_logs_a_warning_without_the_token(monkeypatch, caplog):
+    import app.main as main
+    monkeypatch.setenv("ADMIN_TOKEN", "short-token-123")
+    with caplog.at_level("WARNING", logger="uvicorn.error"):
+        main.create_app(":memory:", lister=lambda *a, **k: [], detailer=lambda *a, **k: ([], []))
+    assert "shorter than 32" in caplog.text and "short-token-123" not in caplog.text
+    caplog.clear(); monkeypatch.setenv("ADMIN_TOKEN", "x" * 40)
+    with caplog.at_level("WARNING", logger="uvicorn.error"):
+        main.create_app(":memory:", lister=lambda *a, **k: [], detailer=lambda *a, **k: ([], []))
+    assert "shorter than 32" not in caplog.text

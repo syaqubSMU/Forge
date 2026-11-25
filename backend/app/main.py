@@ -20,6 +20,7 @@ from .exports import to_ics, to_xlsx
 from .pipeline import run_match
 from .schemas import FIT, SchemaError
 from .sources.grants_gov import SourceError
+from .sources import openalex
 from .template_xlsx import preview
 from .validator import validate
 
@@ -58,7 +59,7 @@ def _csv_safe(v):
     return "'" + s if s[:1] in ("=", "+", "-", "@") else s    # block spreadsheet formula injection
 
 
-def create_app(db_path: str = None, lister=None, detailer=None) -> FastAPI:
+def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=None) -> FastAPI:
     """lister/detailer override the live source functions; tests inject fakes so no test hits the network."""
     app = FastAPI(title="FORGE SIGNAL API", version="0.2-skeleton", docs_url=None, redoc_url=None)
     origins = [o.strip() for o in os.environ.get("FORGE_CORS_ORIGINS", "").split(",") if o.strip()]
@@ -151,6 +152,34 @@ def create_app(db_path: str = None, lister=None, detailer=None) -> FastAPI:
         u = adapter.total_usage
         db.finish_run(rid, "ok", int((time.time() - t0) * 1000), None, u.get("input_tokens", 0), u.get("output_tokens", 0))
         return {"run_id": rid, "result": result, "notice": NOTICE}
+
+    # ---------------------------------------------------------------- researcher lookup (OpenAlex)
+    pi_hits = {}                                   # visitor hash -> request times in the last hour (in memory only)
+
+    def pi_limit(request: Request):
+        vh, t = visitor(request), time.time()
+        recent = [x for x in pi_hits.get(vh, []) if t - x < 3600]
+        if len(recent) >= db.settings()["pi_lookups_per_hour"]:
+            raise HTTPException(429, "Too many lookups from this visitor. Try again later.")
+        pi_hits[vh] = recent + [t]
+
+    @app.get("/api/pi/search")
+    def pi_search(name: str, request: Request):
+        pi_limit(request)
+        try:
+            return {"candidates": openalex.search_authors(name, client=openalex_client),
+                    "source": {"system": "OpenAlex", "api": openalex.BASE},
+                    "note": "OpenAlex sometimes splits one person into several records. Pick the one that matches, then confirm the terms before anything is screened."}
+        except openalex.OpenAlexError as e:
+            raise HTTPException(400 if "enter a name" in str(e) else 503, str(e))
+
+    @app.get("/api/pi/{author_id}/expertise")
+    def pi_expertise(author_id: str, request: Request):
+        pi_limit(request)
+        try:
+            return openalex.expertise(author_id, client=openalex_client)
+        except openalex.OpenAlexError as e:
+            raise HTTPException(400 if "not an OpenAlex" in str(e) else 503, str(e))
 
     @app.post("/api/runs/{rid}/email")
     def send_email(rid: str, body: EmailIn, request: Request):

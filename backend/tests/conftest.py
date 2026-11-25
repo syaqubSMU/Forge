@@ -7,6 +7,19 @@ import pytest
 
 
 @pytest.fixture(autouse=True)
+def _generous_limits_for_tests(request, monkeypatch):
+    """Production defaults are sized to the pilot budget (6 runs a day, 3 an hour per visitor, 15 judgments). Tests
+    that make many runs keep their own fixtures: the earlier generous numbers. Mark a test `real_defaults` to see the
+    production defaults."""
+    if request.node.get_closest_marker("real_defaults"):
+        yield; return
+    import app.db as dbmod
+    for k, v in {"daily_cap": 200, "rate_limit_per_hour": 20, "max_judgments": 25}.items():
+        monkeypatch.setitem(dbmod.DEFAULT_SETTINGS, k, v)
+    yield
+
+
+@pytest.fixture(autouse=True)
 def _postgres_for_memory_tests(monkeypatch):
     url = os.environ.get("FORGE_TEST_PG_URL")
     if not url:

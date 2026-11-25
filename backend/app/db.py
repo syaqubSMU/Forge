@@ -4,13 +4,18 @@ from .migrations import MIGRATIONS
 from datetime import datetime, timedelta, timezone
 
 
+# Pilot-safe defaults for a hosted service (budget: $20 for the whole pilot; a 15-judgment run costs about $0.44).
+# The earlier defaults (200 runs a day, 20 an hour per visitor, 25 judgments) could spend about $88 in a day if a
+# public link were shared. The provider's spending limit remains the real guard; these only lower the risk.
+PILOT_DEFAULTS = {"daily_cap": 6, "rate_limit_per_hour": 3, "max_judgments": 15}
+
 DEFAULT_SETTINGS = {
     "scope_level": "A named organization", "units": [], "funder_types": ["federal"],
     "horizon_months": 3, "lead_time_days": 14, "min_fit": "Low", "faculty_per_run": 25,
-    "max_detail_fetches": 250, "max_judgments": 25, "judge_concurrency": 8, "judge_deadline_s": 90, "source_timeout_s": 30, "source_concurrency": 8,
+    "max_detail_fetches": 250, "max_judgments": PILOT_DEFAULTS["max_judgments"], "judge_concurrency": 8, "judge_deadline_s": 90, "source_timeout_s": 30, "source_concurrency": 8,
     "cache_ttl_minutes": 15, "include_undated_deadlines": False,
     "price_per_mtok_input": 0.0, "price_per_mtok_output": 0.0,
-    "rate_limit_per_hour": 20, "pi_lookups_per_hour": 60, "pi_lookups_per_day": 1000, "daily_cap": 200, "retention_days": 90,
+    "rate_limit_per_hour": PILOT_DEFAULTS["rate_limit_per_hour"], "pi_lookups_per_hour": 60, "pi_lookups_per_day": 1000, "daily_cap": PILOT_DEFAULTS["daily_cap"], "retention_days": 90,
     "email_mode": "dummy", "test_mailbox": "", "sender_label": "Forge Signal (pilot)", "active_model": "mock",
 }
 NOTICE = ("Runs, inputs and calendars are logged for the pilot report, kept for 90 days, then archived. "

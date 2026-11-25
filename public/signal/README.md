@@ -41,3 +41,9 @@ Direction and rationale: `docs/BRAND_UX_DIAGNOSIS_AND_DIRECTION.md`; page-by-pag
 - Shared components: `.status` (wait, error, none), `details.evidence`, `.yourcheck`, `.steps4`, spacing scale `--s1`..`--s8` and `.mt1`..`.mb3` utilities instead of inline styles.
 - Settings is a small gear icon in the header (admin preview).
 - The Home explainer video is a placeholder; a new one will replace it.
+
+
+## Recorded example
+
+`recorded-run.js` is one real run (fictional researcher, stored public Grants.gov copy) and must stay byte-identical to the reviewed file (sha256 `0b8cac43862eb95409b9ef5b836c9e0c06c68747c6a740c84392b84c05ddceea`).
+It is the data for every page when `config.js` has `live:false` (no backend), and an opt-in on a live deploy ("See the recorded example", or after a 503 with code `budget_reached`). While it is shown, a label bar (model, rubric, retrieval date, run id, "Not live. Not your input.") is at the top of every page, deadlines are recomputed from today, and no `/api/` request is made. `mock-data.js` is no longer loaded by the pages.

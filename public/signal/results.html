@@ -7,20 +7,21 @@
 <meta name="description" content="Screened funding opportunities with the quote behind every claim and how each rating was calculated.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" href="assets/forge-icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="app.css">
 </head>
 <body data-page="results">
 <a class="skip" href="#main">Skip to main content</a>
-<p class="mock-banner">Interface preview &middot; every figure below is fictional sample data</p>
+<p class="mock-banner" role="region" aria-label="Preview notice"><strong>Preview.</strong> Every figure on these pages is fictional sample data.</p>
 <header class="nav"><div class="wrap">
- <a class="brand" href="index.html">FORGE<small>SIGNAL</small></a>
- <nav aria-label="Main"><ul><li><a href="index.html">Home</a></li><li><a href="match.html">Match</a></li><li><a href="results.html" aria-current="page">Results</a></li><li><a href="calendar.html">Calendar</a></li><li><a href="review.html">Review</a></li><li><a href="about.html">About</a></li><li><a href="settings.html">Settings<span class="admin-tag">admin</span></a></li></ul></nav>
+ <a class="brand" href="index.html" aria-label="FORGE SIGNAL home"><img src="assets/forge-wordmark.svg" alt="" width="114" height="22"><span class="prod" aria-hidden="true">SIGNAL</span></a>
+ <nav aria-label="Main"><ul><li><a href="index.html">Home</a></li><li><a href="match.html">Find funding</a></li><li><a href="results.html" aria-current="page">Results</a></li><li><a href="calendar.html">Calendar</a></li><li><a href="review.html">Review</a></li><li><a href="about.html">About</a></li><li><a class="iconlink" href="settings.html" aria-label="Settings (admin preview)" title="Settings (admin preview)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></a></li></ul></nav>
 </div></header>
 <main id="main">
-<section class="hero"><div class="wrap">
- <p class="eyebrow" id="screened">Step 2 of 3 &middot; screened 24 Nov 2026, 2:05 pm UTC</p>
- <h1>Results</h1>
+<section class="pagehead"><div class="wrap">
+<ol class="steps4" aria-label="Steps in a run"><li class=""><a href="match.html"><span class="num" aria-hidden="true">1</span>Find funding</a></li><li class=""><a href="results.html" aria-current="step"><span class="num" aria-hidden="true">2</span>Results</a></li><li class=""><a href="calendar.html"><span class="num" aria-hidden="true">3</span>Calendar</a></li><li class="you"><a href="review.html"><span class="num" aria-hidden="true">4</span>Review: you decide</a></li></ol><h1>Results</h1>
  <p class="lead" id="count">Loading&hellip;</p>
+ <p class="hint" id="screened"></p>
  <div class="btn-row"><a class="btn accent" href="calendar.html">Open the calendar</a><a class="btn ghost" href="review.html">Draft an alert</a><a class="btn ghost" href="match.html">Change the run</a></div>
 </div></section>
 
@@ -37,23 +38,26 @@
    <div><label for="f-status">Status</label><select id="f-status"><option value="">Any status</option></select></div>
    <div><label for="f-sponsor">Sponsor</label><select id="f-sponsor"><option value="">All sponsors</option></select></div>
   </div>
-  <div id="chips" class="chips" aria-label="Active filters"></div>
+  <div id="chips" class="chips" role="group" aria-label="Active filters"></div>
  </div>
 
- <p id="provenance" class="hint" style="margin-bottom:6px"></p>
- <p id="shown" class="meta" aria-live="polite" style="margin-bottom:12px"></p>
+ <p id="provenance" class="hint mb1"></p>
+ <p id="shown" class="meta mb2" aria-live="polite"></p>
 
- <div class="notice" style="margin-bottom:18px"><strong>These are screening results, not decisions.</strong>
+ <div class="notice mb2"><strong>These are screening results, not decisions.</strong>
  Confirm every deadline and eligibility requirement on the sponsor page before acting. A rating of High means the
- established science is central to the program, not that an award is likely.</div>
+ established science is central to the program, not that an award is likely.
+ <br><strong>Needs verification</strong> means the announcement does not clearly say who may apply. Open the sponsor page and read the eligibility section, or ask the program officer.
+ <br>Screening by a model can differ between runs on the same inputs. <span id="runid"></span></div>
 
+ <h2 class="sr">Opportunities</h2>
  <div id="list"></div>
 </section>
 
 <section>
- <h3>Could not be read (<span id="failcount">0</span>)</h3>
- <p class="hint" style="margin-top:6px">Recorded rather than dropped, so nothing disappears silently.</p>
- <ul id="failures" class="rule-list" style="margin-top:9px"></ul>
+ <h2>Could not be read (<span id="failcount">0</span>)</h2>
+ <p class="hint mt1">Recorded rather than dropped, so nothing disappears silently.</p>
+ <ul id="failures" class="rule-list mt1"></ul>
 </section>
 </div>
 </main>

@@ -3,54 +3,74 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Home | FORGE SIGNAL</title>
+<title>FORGE SIGNAL | Funding screening you can check</title>
 <meta name="description" content="FORGE SIGNAL matches funding opportunities to researchers with cited evidence, flags eligibility problems and builds a deadline calendar.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" href="assets/forge-icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="app.css">
 </head>
 <body data-page="home">
 <a class="skip" href="#main">Skip to main content</a>
-<p class="mock-banner">Interface preview &middot; every figure below is fictional sample data</p>
+<p class="mock-banner" role="region" aria-label="Preview notice"><strong>Preview.</strong> Every figure on these pages is fictional sample data.</p>
 <header class="nav"><div class="wrap">
- <a class="brand" href="index.html">FORGE<small>SIGNAL</small></a>
- <nav aria-label="Main"><ul><li><a href="index.html" aria-current="page">Home</a></li><li><a href="match.html">Match</a></li><li><a href="results.html">Results</a></li><li><a href="calendar.html">Calendar</a></li><li><a href="review.html">Review</a></li><li><a href="about.html">About</a></li><li><a href="settings.html">Settings<span class="admin-tag">admin</span></a></li></ul></nav>
+ <a class="brand" href="index.html" aria-label="FORGE SIGNAL home"><img src="assets/forge-wordmark.svg" alt="" width="114" height="22"><span class="prod" aria-hidden="true">SIGNAL</span></a>
+ <nav aria-label="Main"><ul><li><a href="index.html" aria-current="page">Home</a></li><li><a href="match.html">Find funding</a></li><li><a href="results.html">Results</a></li><li><a href="calendar.html">Calendar</a></li><li><a href="review.html">Review</a></li><li><a href="about.html">About</a></li><li><a class="iconlink" href="settings.html" aria-label="Settings (admin preview)" title="Settings (admin preview)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></a></li></ul></nav>
 </div></header>
 <main id="main">
 <section class="hero"><div class="wrap hero-grid">
  <div>
-  <p class="eyebrow">Research development</p>
-  <h1>Find the right funding signal</h1>
-  <p class="lead">SIGNAL reads current funding announcements, screens them against a researcher&rsquo;s established work, and shows the sentence behind every claim. It builds a deadline calendar and drafts an alert. A person decides what goes out.</p>
-  <div class="btn-row"><a class="btn accent" href="match.html">Start a match</a><a class="btn ghost" href="about.html">What it is and is not</a></div>
-  <ul class="toc" aria-label="On this page">
-   <li><a href="#problem">The problem</a></li><li><a href="#how">How it works</a></li><li><a href="#trust">What you can rely on</a></li>
-  </ul>
+  <p class="eyebrow">For research development offices and grant consultants</p>
+  <h1>Find funding that fits a researcher, and see the sentence that proves it.</h1>
+  <p class="lead">SIGNAL reads current federal funding announcements and screens them against the research areas you confirm. Every judgment quotes the announcement. You review the evidence, then decide what goes out. Nothing is sent without you.</p>
+  <div class="btn-row"><a class="btn accent" href="match.html">Screen for a researcher</a><a class="btn ghost sample-only" href="#sample">See a sample result</a><a class="btn ghost" href="about.html">What it is and is not</a></div>
+  <p class="trustline">Capstone project, SMU Cox MS in AI in Business &middot; Public Grants.gov data &middot; Not an approved or endorsed university service</p>
  </div>
+ <div>
  <figure class="hero-video">
-  <video id="hv" muted loop playsinline preload="metadata" poster="assets/poster.jpg" aria-label="FORGE SIGNAL explainer: too many opportunities, discover and match"><source src="assets/forge-signal-explainer.mp4" type="video/mp4"></video>
+  <video id="hv" muted loop playsinline preload="metadata" poster="assets/poster.jpg" aria-label="Placeholder explainer video, 21 seconds, no sound. A text description follows."><source src="assets/forge-signal-explainer.mp4" type="video/mp4"></video>
   <button class="vctl" id="vb" type="button" aria-pressed="false">Pause video</button>
  </figure>
-</div></section>
-
-<section class="band" id="problem"><div class="wrap">
- <div class="sec-head">
-  <p class="eyebrow">The problem</p>
-  <h2>Too many announcements, too little time</h2>
-  <p>Finding announcements is not the hard part. The burden is vigilance: programs and keywords keep changing, each announcement is a long document to compare with a researcher&rsquo;s expertise, and deadlines do not move.</p>
- </div>
- <div class="cards">
-  <div class="card"><h3>Scattered across sponsors</h3><p class="hint" style="margin-top:7px">Solicitations, deadlines and eligibility rules live in separate portals, PDFs and spreadsheets.</p></div>
-  <div class="card"><h3>Slow to read and judge</h3><p class="hint" style="margin-top:7px">Each announcement takes real reading before anyone can say whether it fits a particular researcher.</p></div>
-  <div class="card"><h3>Easy to find too late</h3><p class="hint" style="margin-top:7px">An opportunity surfaced a week before the deadline cannot become a proposal.</p></div>
+ <p class="trustline">Placeholder video. A new explainer is coming.</p>
+ <details class="evidence vdesc"><summary>Describe this video</summary><div class="body"><p>A 21-second silent animation. It shows a pile of funding announcements and spreadsheets (&ldquo;Too many opportunities. Too little time.&rdquo;), then a researcher profile being compared with an announcement, then a set of options for each opportunity, and ends on the FORGE SIGNAL name. It is a placeholder and will be replaced.</p></div></details>
  </div>
 </div></section>
 
 <div class="wrap">
+<section id="trust">
+ <div class="sec-head">
+  <p class="eyebrow">What you can check</p>
+  <h2>Nothing is asserted without a source</h2>
+ </div>
+ <ul class="rules">
+  <li><strong>Check any claim in one click</strong>Each rating quotes the exact sentence it rests on, with a link to the sponsor page and the date it was read.</li>
+  <li><strong>Unsupported claims never help</strong>If a quote cannot be found in its source it is discarded, and the assessment falls back to the cautious value.</li>
+  <li><strong>Eligibility is never guessed</strong>If the announcement does not say, you see &ldquo;Needs verification&rdquo; and what to check next.</li>
+  <li><strong>The rating is calculated, not chosen</strong>The model reports observations. A published rubric turns them into High, Medium or Low, and every result shows the rule that fired.</li>
+  <li><strong>Dates are computed, not written</strong>Deadlines and the calendar are ordinary code. A missing deadline stays &ldquo;Not stated&rdquo;.</li>
+  <li><strong>Fit is never a percentage</strong>And nobody is ever described as uncompetitive.</li>
+ </ul>
+ <div class="mt3"><div class="notice"><strong>Runs are logged.</strong> Runs, inputs and calendars are logged for the preview report, kept for 90 days, then archived. Only the administrator can see them.</div></div>
+</section>
+<section id="sample" class="sample-only">
+ <div class="sec-head"><p class="eyebrow">What a result looks like</p><h2>A rating, the quote it rests on, and what you check next</h2></div>
+ <figure class="sample-card light">
+  <div class="result r-High">
+   <h3 class="h3like">Sample Program in Photochemical Mechanisms</h3>
+   <p class="meta">Sample Federal Agency &middot; <span class="mono">SS-26-101</span> &middot; Sponsor deadline Jan 28, 2027</p>
+   <div class="badges"><span class="badge b-high">High &middot; Direct fit</span><span class="badge b-needs">Eligibility: Needs verification</span></div>
+   <div class="quote"><span class="for-tag">What it rests on</span><q>supports fundamental studies of photochemical reaction mechanisms and excited-state chemistry</q><span class="src">Official source &middot; read Nov 24, 2026</span></div>
+   <div class="yourcheck"><strong>Your check:</strong> The announcement does not clearly say who may apply. Read the eligibility section on the sponsor page.</div>
+  </div>
+  <figcaption>Fictional sample. Every result shows a rating, the quote it rests on, and what a person checks next.</figcaption>
+ </figure>
+ <div class="btn-row"><a class="btn ghost" href="results.html">See the full sample run</a></div>
+</section>
+
 <section id="how">
  <div class="sec-head">
   <p class="eyebrow">How it works</p>
-  <h2>AI does the first pass. People make the calls.</h2>
+  <h2>The model does the first pass. A person makes the calls.</h2>
   <p>Every run follows the same five steps, and the last two always belong to a person.</p>
  </div>
  <ol class="flow">
@@ -61,23 +81,12 @@
   <li class="human"><strong>Edit and send</strong>A person edits the alert and sends it under their own name. SIGNAL never sends anything.</li>
  </ol>
  <p class="legend"><span>Done by the model, checked by code</span><span class="h">Human decision</span></p>
- <div class="btn-row"><a class="btn" href="match.html">Start a match</a><a class="btn ghost" href="results.html">See a worked example</a></div>
+ <div class="btn-row"><a class="btn" href="match.html">Screen for a researcher</a><a class="btn ghost sample-only" href="results.html">See a sample result</a></div>
 </section>
-
-<section id="trust">
- <div class="sec-head">
-  <p class="eyebrow">What you can rely on</p>
-  <h2>Nothing is asserted without a source</h2>
- </div>
- <ul class="rules">
-  <li><strong>Every claim carries its source</strong>Each rating quotes the exact sentence it rests on, with a link and the date the page was read.</li>
-  <li><strong>Unsupported claims never help</strong>If a quote cannot be found in its source it is discarded, and the assessment falls back to the cautious value.</li>
-  <li><strong>Eligibility is never guessed</strong>If the announcement does not state it, SIGNAL says &ldquo;Needs verification&rdquo; and leaves it to a person.</li>
-  <li><strong>The rating is calculated</strong>The model reports observations. A published rubric turns those into High, Medium or Low, and every result shows which rule produced it.</li>
-  <li><strong>Dates are computed, not written</strong>Deadlines and the calendar are ordinary code. A missing deadline stays &ldquo;Not stated&rdquo;.</li>
-  <li><strong>Fit is never a percentage</strong>And nobody is ever described as uncompetitive.</li>
- </ul>
- <div style="margin-top:22px"><div class="notice"><strong>Runs are logged.</strong> Runs, inputs and calendars are logged for the preview report, kept for 90 days, then archived. Only the administrator can see them.</div></div>
+<section id="why">
+ <div class="sec-head"><p class="eyebrow">Why it matters</p><h2>Too many announcements, too little time</h2>
+ <p>Finding announcements is not the hard part. The burden is reading each long document against a researcher&rsquo;s expertise while deadlines do not move. SIGNAL does the first read and shows its workings, so a person spends time on judgment, not hunting.</p></div>
+ <div class="btn-row"><a class="btn" href="match.html">Screen for a researcher</a></div>
 </section>
 </div>
 </main>

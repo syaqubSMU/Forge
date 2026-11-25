@@ -119,9 +119,9 @@ Precise, calm, accountable, plain-spoken. Not "AI-powered", not "revolutionary",
 | Brand and action | Trust Blue `#244B70` / deep `#1B3A58` | Primary buttons, links, headings, **focus ring** (with a white inner ring) |
 | Ground | Warm `#F3F4F2`, white, Soft Blue `#EFF4F8`, navy `#0d2238` (Home and About hero only) | Page, cards, panels |
 | Accent | Forge Coral `#E98262` | The logo mark, the one accent button per page, eyebrow rules. Not focus, not quote edges. Coral-ink `#A4441F` for small coral text |
-| Human decision | `--human` `#b3112b` | Only "Your check", "You decide", and the human steps |
+| Human decision | `--human` plum `#4B3A8C` (no red) | Only "Your check", "You decide", and the human steps |
 | Rating | green / amber / grey (existing badges) | High / Medium / Low, always with words |
-| Error | a darker red-brown `#8A2F1C` on `#FBEAE5` (existing `--stop`) | Errors only; text always accompanies |
+| Error | brown `#6B3A0F` on `#F3EADF` (`--stop`; no red) | Errors only; text always accompanies |
 | Neutral text | Slate `#344452`, muted `#566878` (5.2:1) | Body and secondary; no text lighter than muted |
 Retire `#F28C28` and the old orange logo files.
 
@@ -190,3 +190,11 @@ Total about 26 to 34 hours. The Dec 2 time budget is mostly claimed by backend s
 6. **Sample result:** may Home offer "See a sample result" even in live mode (clearly labelled fictional)?
 
 I will not change any file in `public/signal/` until you answer. If you say "approved" without detail, I will start with Phase 1 and Phase 2 as written, then the M-items.
+
+---
+
+## F. Status after approval (25 Nov 2026)
+
+Approved: FORGE logo in the header, compact headers on task pages, Dec 2 scope, Settings kept as a preview. Added instructions: **no red** anywhere; keep the explainer video as a placeholder (a new one later); Settings as a small gear icon.
+Decisions made without an explicit answer, easy to reverse: the proposed hero headline and audience line (question 1); "See a sample result" shown in sample mode only (question 6).
+Implemented in `public/signal/` (see its README, "V1 design system"): tokens and components, header and logo, page headers and four-step indicator, Match status and validation, summary-first result cards with "Your check", zero/no-run states, Calendar column order and "(passed)", Review DRAFT marking and empty-alert guard, Home messaging, About "who built this", gear icon. Verified with axe-core on all seven pages (0 issues), no sideways scroll at 320 px, and live-mode flows with the mock model. Still open: real screen-reader pass, phone table roles (S6), video text alternative is a description only, the sidebar error on Match is announced but may sit below the fold when the field error is focused.

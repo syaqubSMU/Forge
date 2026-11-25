@@ -72,3 +72,46 @@ def test_one_failed_call_is_logged_and_does_not_sink_the_run():
 def test_token_totals_are_exact_under_concurrency():
     a = SlowAdapter(0.005); go(a, 8, n=20)
     assert a.total_usage == {"input_tokens": 200, "output_tokens": 100} and len(a.call_log) == 20
+
+
+def test_total_model_failure_marks_the_run_failed_with_a_clear_message(monkeypatch):
+    from fastapi.testclient import TestClient
+    from app.adapters import registry
+    from app.main import create_app
+    from tests.test_pipeline import CORPUS
+
+    class Boom(ModelAdapter):
+        name = "boom"
+        def complete(self, system, prompt): raise RuntimeError("bad key sk-ant-SECRET")
+
+    monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: Boom())
+    app = create_app(":memory:", lister=lambda *a, **k: [dict(o) for o in CORPUS],
+                     detailer=lambda ids, **k: ([dict(o) for o in CORPUS if o["source_record_id"] in [str(i) for i in ids]], []))
+    r = TestClient(app).post("/api/runs", json={"input_type": "pi_name", "input_text": "x",
+                             "profile": {"career_stage": "e", "lanes": ["photochemistry and flavin biology"]}})
+    assert r.status_code == 502 and "nothing was rated" in r.json()["detail"] and "SECRET" not in r.text
+    run = app.state.db.q("SELECT status, error FROM runs", one=True)
+    assert run["status"] == "failed" and "all 1 calls failed" in run["error"] and "SECRET" not in run["error"]
+
+
+def test_judging_budget_records_unfinished_calls_and_returns_in_time():
+    a = SlowAdapter(delay=2.0)
+    db = Database(":memory:")
+    corpus = [opp(i, days=10 + i) for i in range(1, 5)]
+    s = dict(DEFAULT_SETTINGS, judge_concurrency=4, max_judgments=4, judge_deadline_s=0.3)
+    rid = db.create_run("v", "pi_name", "x", s, "r", "slow")
+    t = time.time()
+    out = run_match(db, rid, a, s, {"career_stage": "e", "lanes": ["photochemistry and flavin biology"]}, "q",
+                    lister=lambda *x, **k: [dict(o) for o in corpus],
+                    detailer=lambda ids, **k: ([dict(o) for o in corpus if o["source_record_id"] in ids], []))
+    assert time.time() - t < 1.5 and out["counters"]["model_call_failures"] == 4
+    assert "timed out" in dict(db.q("SELECT error FROM run_source_failures WHERE run_id=?", (rid,))[0])["error"]
+
+
+def test_global_cap_limits_simultaneous_calls_across_runs(monkeypatch):
+    import threading, app.pipeline as pl
+    monkeypatch.setattr(pl, "_model_slots", threading.BoundedSemaphore(3))
+    a = SlowAdapter(0.05)
+    ts = [threading.Thread(target=go, args=(a, 8, 6)) for _ in range(3)]
+    [t.start() for t in ts]; [t.join() for t in ts]
+    assert a.peak <= 3

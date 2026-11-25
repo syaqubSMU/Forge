@@ -28,7 +28,7 @@ class ClaudeAdapter(ModelAdapter):
     never from the page, never returned by the API, never written to a log."""
     name = "claude"
 
-    def __init__(self, model=None, max_tokens=1500, effort=None):
+    def __init__(self, model=None, max_tokens=int(os.environ.get("FORGE_MAX_OUTPUT_TOKENS", "3000")), effort=None):
         super().__init__()
         import anthropic  # imported lazily so the test suite runs without the package
         self.key_var, key = find_key()

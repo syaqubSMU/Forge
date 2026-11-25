@@ -38,10 +38,19 @@ def stem(w: str) -> str:
     return w
 
 
+# Two-letter capitals that are common words or titles, not topics.
+SHORT_STOP = {"us", "uk", "pi", "vs", "dr", "mr", "pm", "am", "ii", "iv", "no", "or", "to", "of", "in", "on", "at", "by", "as", "is", "it", "an"}
+
+
 def tokens(text: str) -> list:
+    """Lower-cased stems. Two-letter words survive only as capitals in the original (AI, ML, EV), so the
+    field's own short names are searchable without letting 'of' or 'to' through."""
     out = []
-    for w in re.findall(r"[a-z0-9]+", (text or "").lower()):
-        if len(w) < 3 or w in STOP or w in BOILERPLATE:
+    for raw in re.findall(r"[A-Za-z0-9]+", text or ""):
+        w = raw.lower()
+        if len(w) < 3 and not (len(w) == 2 and raw.isupper() and w not in SHORT_STOP):
+            continue
+        if w in STOP or w in BOILERPLATE:
             continue
         out.append(stem(w))
     return out

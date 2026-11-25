@@ -24,5 +24,8 @@ def _postgres_for_memory_tests(monkeypatch):
                 path = url
             super().__init__(path)
 
-    monkeypatch.setattr(main, "Database", PgDatabase)
+    import sys
+    for mod in list(sys.modules.values()):          # every module that imported Database by name (tests included)
+        if getattr(mod, "Database", None) is real:
+            monkeypatch.setattr(mod, "Database", PgDatabase)
     yield

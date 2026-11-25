@@ -1,19 +1,21 @@
 """FORGE SIGNAL API skeleton: public run endpoint, dummy email, admin dashboard API, run log.
 Hard rules enforced here: keys only from the server environment and never returned; human confirmation
 before any email; per-visitor rate limit and daily cap; no raw source text returned to the public."""
-import csv, hashlib, hmac, io, os, pathlib, re, tempfile, time
+import csv, hashlib, json, hmac, io, os, pathlib, re, tempfile, time
 from datetime import date, datetime, timedelta, timezone
 
 from fastapi import Depends, FastAPI, File, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from typing import Annotated
+
+from pydantic import BaseModel, Field, StringConstraints, field_validator
 
 from . import rubric as R
 from . import store
 from .adapters.registry import available, get_adapter
-from .db import DEFAULT_SETTINGS, NOTICE, Database, run_cost
+from .db import DEFAULT_SETTINGS, NOTICE, Database, now, run_cost
 from .fit import DEFAULT_RUBRIC
 from .calendar import build_calendar
 from .exports import to_ics, to_xlsx
@@ -24,23 +26,39 @@ from .sources import openalex
 from .template_xlsx import preview
 from .validator import validate
 
+MAX_SOURCES, MAX_SOURCE_CHARS = 5, 60000        # pasted evidence goes straight to the model: bound the cost of one request
+MAX_BODY_BYTES = int(os.environ.get("FORGE_MAX_BODY_BYTES", "400000"))   # public POST bodies; admin uploads are exempt
 INPUT_TYPES = ("pi_name", "project", "keywords", "opportunity_unit")
 
 
 class Profile(BaseModel):
     """Researcher evidence for ONE run. Never stored outside that run's log (hard rule 1)."""
     career_stage: str = Field(default="", max_length=200)
-    lanes: list[str] = Field(default_factory=list, max_length=40)
-    positioning_rules: list[str] = Field(default_factory=list, max_length=20)
+    lanes: list[Annotated[str, StringConstraints(max_length=300)]] = Field(default_factory=list, max_length=40)
+    positioning_rules: list[Annotated[str, StringConstraints(max_length=600)]] = Field(default_factory=list, max_length=20)
 
 
 class RunIn(BaseModel):
     input_type: str
     input_text: str = Field(min_length=1, max_length=4000)
-    question: str = "Does this researcher fit this opportunity, and is the researcher's institution eligible?"
+    question: str = Field(default="Does this researcher fit this opportunity, and is the researcher's institution eligible?", max_length=1000)
     profile: Profile = Field(default_factory=Profile)
     sources: dict[str, str] = {}      # pasted evidence; omit it to pull live from Grants.gov (FR-5)
     options: dict = Field(default_factory=dict)   # per-run overrides: horizon_months, lead_time_days (never saved as settings)
+
+    @field_validator("sources")
+    @classmethod
+    def _sources_bounded(cls, v):
+        if len(v) > MAX_SOURCES: raise ValueError(f"at most {MAX_SOURCES} pasted sources")
+        for k, t in v.items():
+            if len(k) > 500 or len(t) > MAX_SOURCE_CHARS: raise ValueError(f"each pasted source must be at most {MAX_SOURCE_CHARS} characters")
+        return v
+
+    @field_validator("options")
+    @classmethod
+    def _options_bounded(cls, v):
+        if len(v) > 10: raise ValueError("too many options")
+        return v
 
 
 class EmailIn(BaseModel):
@@ -71,8 +89,31 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
     if lister is None and detailer is None:                    # not under test: use the stored copy once it exists
         lister, detailer = store.sources(db)
 
+    @app.middleware("http")
+    async def cap_body(request: Request, call_next):
+        if request.method in ("POST", "PUT") and not request.url.path.startswith("/api/admin"):
+            n = request.headers.get("content-length")
+            if n is None or not n.isdigit() or int(n) > MAX_BODY_BYTES:
+                return Response("request too large or missing its length", status_code=413 if n else 411)
+        return await call_next(request)
+
+    def client_ip(request: Request) -> str:
+        """The socket peer, unless the server sits behind N trusted proxies (FORGE_TRUSTED_PROXY_HOPS=N). Then the
+        address the outermost trusted proxy saw is the Nth entry from the RIGHT of X-Forwarded-For: entries further
+        left were supplied by the client and can be forged. Unset or 0 ignores the header entirely (safe default)."""
+        peer = request.client.host if request.client else "unknown"
+        try:
+            hops = int(os.environ.get("FORGE_TRUSTED_PROXY_HOPS", "0"))
+        except ValueError:
+            hops = 0
+        if hops > 0:
+            parts = [x.strip() for x in request.headers.get("x-forwarded-for", "").split(",") if x.strip()]
+            if len(parts) >= hops:
+                return parts[-hops]
+        return peer
+
     def visitor(request: Request) -> str:
-        ip = request.client.host if request.client else "unknown"
+        ip = client_ip(request)
         return hashlib.sha256((ip + os.environ.get("FORGE_SALT", "dev-salt")).encode()).hexdigest()[:16]
 
     def admin(x_admin_token: str = Header(default="")):
@@ -126,6 +167,11 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                 db.finish_run(rid, "failed", int((time.time() - t0) * 1000), f"source unavailable: {e}")
                 raise HTTPException(503, "The funding source could not be read right now. The attempt was logged.")
             c = out["counters"]
+            if c["model_call_failures"] and c["judged"] == 0 and c["model_call_failures"] == c["model_failures"]:
+                # every model call failed (bad key, outage, rate limit): a failed run, not an empty result list
+                db.finish_run(rid, "failed", c["latency_ms"], f"model unavailable: all {c['model_call_failures']} calls failed",
+                              c["input_tokens"], c["output_tokens"], c["opportunities_listed"], c["details_fetched"])
+                raise HTTPException(502, "The model could not be reached, so nothing was rated. The attempt was logged; please try again later.")
             c["cost_usd"] = run_cost(s, c["input_tokens"], c["output_tokens"])
             db.finish_run(rid, "ok", c["latency_ms"], None, c["input_tokens"], c["output_tokens"],
                           c["opportunities_listed"], c["details_fetched"], c["cost_usd"])
@@ -156,32 +202,47 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
         return {"run_id": rid, "result": result, "notice": NOTICE}
 
     # ---------------------------------------------------------------- researcher lookup (OpenAlex)
-    pi_hits = {}                                   # visitor hash -> request times in the last hour (in memory only)
+    pi_hits = {}                                   # visitor hash -> request times in the last hour; per process, resets on restart
+    pi_day = {"date": None, "n": 0}                # global daily count; per process
+
+    def pi_log(endpoint, params, ok, status, ms, error):
+        db.q("INSERT INTO api_calls(at,source,endpoint,params,ok,http_status,latency_ms,error,ingest_id) VALUES(?,?,?,?,?,?,?,?,?)",
+             (now(), "OpenAlex", endpoint, json.dumps(params), int(ok), status, ms, error, None), write=True)
+
+    lookup = openalex.Lookup(client=openalex_client, log=pi_log)
 
     def pi_limit(request: Request):
-        vh, t = visitor(request), time.time()
+        st = db.settings(); vh, t = visitor(request), time.time()
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        if pi_day["date"] != today: pi_day.update(date=today, n=0)
+        if pi_day["n"] >= st["pi_lookups_per_day"]: raise openalex.OpenAlexError("daily_limit")
         recent = [x for x in pi_hits.get(vh, []) if t - x < 3600]
-        if len(recent) >= db.settings()["pi_lookups_per_hour"]:
-            raise HTTPException(429, "Too many lookups from this visitor. Try again later.")
-        pi_hits[vh] = recent + [t]
+        if len(recent) >= st["pi_lookups_per_hour"]: raise openalex.OpenAlexError("hourly_limit")
+        pi_hits[vh] = recent + [t]; pi_day["n"] += 1
 
-    @app.get("/api/pi/search")
-    def pi_search(name: str, request: Request):
-        pi_limit(request)
+    def pi_error(e: "openalex.OpenAlexError"):
+        return HTTPException(e.status, {"code": e.code, "message": e.message})
+
+    class PiSearchIn(BaseModel):
+        name: str = Field(max_length=500)           # real limits (3 to 120 characters, after cleaning) are checked with clear messages
+
+    @app.post("/api/pi/search")                       # POST so the name never appears in a URL or access log
+    def pi_search(body: PiSearchIn, request: Request):
         try:
-            return {"candidates": openalex.search_authors(name, client=openalex_client),
-                    "source": {"system": "OpenAlex", "api": openalex.BASE},
-                    "note": "OpenAlex sometimes splits one person into several records. Pick the one that matches, then confirm the terms before anything is screened."}
+            openalex.clean_name(body.name)            # refuse before spending a lookup
+            pi_limit(request)
+            return lookup.search(body.name)
         except openalex.OpenAlexError as e:
-            raise HTTPException(400 if "enter a name" in str(e) else 503, str(e))
+            raise pi_error(e)
 
     @app.get("/api/pi/{author_id}/expertise")
     def pi_expertise(author_id: str, request: Request):
-        pi_limit(request)
         try:
-            return openalex.expertise(author_id, client=openalex_client)
+            if not openalex.ID_RE.match(author_id): raise openalex.OpenAlexError("bad_author_id")
+            pi_limit(request)
+            return lookup.expertise(author_id)
         except openalex.OpenAlexError as e:
-            raise HTTPException(400 if "not an OpenAlex" in str(e) else 503, str(e))
+            raise pi_error(e)
 
     @app.post("/api/runs/{rid}/email")
     def send_email(rid: str, body: EmailIn, request: Request):

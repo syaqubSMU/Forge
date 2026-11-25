@@ -7,12 +7,9 @@ Flow the page follows (nothing is screened until the person confirms):
   3. the person confirms; only then does POST /api/runs use the terms as `profile.lanes`
 
 Privacy: requests carry a generic client name and only the typed name or the chosen OpenAlex id. No email, no contact
-details, no key. The typed name is never logged or stored: the call log keeps only its length (and a keyed HMAC of an author id). Answers are kept
+details, no key. The typed name is never logged or stored: the call log keeps only the endpoint, status, latency and, for a name search, its length. Answers are kept
 in memory for a few minutes (so repeat lookups do not hit OpenAlex again) and are never written to the database.
 """
-import hashlib
-import hmac
-import os
 import re
 import threading
 import time
@@ -147,7 +144,7 @@ class Lookup:
         j, _ = self._get("/works", {"filter": f"author.id:{author_id},from_publication_date:{since}-01-01",
                                     "sort": "publication_date:desc", "per-page": max(1, min(max_works, 100)),
                                     "select": "id,title,publication_year,doi,topics,keywords"},
-                         {"author_hmac_16": hmac.new(os.environ.get("FORGE_SALT", "dev-salt").encode(), author_id.encode(), hashlib.sha256).hexdigest()[:16]})
+                         {})      # nothing about who was looked up is logged
         works = j.get("results", [])
         support = defaultdict(list)
         for w in works:

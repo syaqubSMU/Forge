@@ -138,6 +138,7 @@ def run_match(db, run_id, adapter, settings, profile, question, lister=None, det
     futures = [pool.submit(call, p) for p in prepared]
     wait(futures, timeout=deadline or None)
     cancelled.set()
+    usage_at_deadline = dict(adapter.total_usage)         # calls finishing after this are not counted in the run's totals
     outcomes = []
     for f in futures:
         if f.done():
@@ -193,5 +194,5 @@ def run_match(db, run_id, adapter, settings, profile, question, lister=None, det
         "judged": len(ranked) - model_failures, "model_failures": model_failures, "model_call_failures": call_failures, "not_judged_due_to_cap": skipped, "no_term_overlap": no_overlap, "source_failures": len(failures),
         "latency_ms": int((time.time() - t0) * 1000),
         "judging_ms": int((t_judged - t_start_judging) * 1000), "judge_concurrency": workers,
-        "input_tokens": adapter.total_usage.get("input_tokens", 0),
-        "output_tokens": adapter.total_usage.get("output_tokens", 0)}}
+        "input_tokens": usage_at_deadline.get("input_tokens", 0),
+        "output_tokens": usage_at_deadline.get("output_tokens", 0)}}

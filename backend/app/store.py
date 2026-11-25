@@ -124,11 +124,18 @@ def stored_lister(db):
 
 def stored_detailer(db):
     def detailer(record_ids, timeout=30.0, concurrency=8, **_):
+        ids = [str(r) for r in record_ids]
+        found = {}
+        for i in range(0, len(ids), 200):             # one query per 200 ids, not one per record (a round trip each on a hosted database)
+            chunk = ids[i:i + 200]
+            for r in db.q("SELECT source_record_id, detail, detail_at FROM opportunities WHERE detail IS NOT NULL AND source_record_id IN (%s)"
+                          % ",".join("?" * len(chunk)), tuple(chunk)):
+                found[r["source_record_id"]] = r
         details, failures = [], []
-        for rid in record_ids:
-            r = db.q("SELECT detail, detail_at FROM opportunities WHERE source_record_id=?", (str(rid),), one=True)
-            if not r or not r["detail"]:
-                failures.append({"source_record_id": str(rid), "error": "full text not in the stored copy yet"}); continue
+        for rid in ids:
+            r = found.get(rid)
+            if not r:
+                failures.append({"source_record_id": rid, "error": "full text not in the stored copy yet"}); continue
             d = json.loads(r["detail"])
             for k in DATE_FIELDS:
                 d[k] = _date(d.get(k))

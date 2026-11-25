@@ -1,6 +1,6 @@
 """Run log (the only database, PRD section 6) plus admin settings, audit trail and rubric versions.
 SQLite by default (a file path or :memory:); Postgres when FORGE_DB is a postgres:// or postgresql:// URL.
-No opportunity, faculty or profile tables (hard rule 1)."""
+The stored Grants.gov copy (opportunities, api_calls) lives here too; researcher profiles and judgments are never stored outside a run's own log."""
 import json, sqlite3, threading, uuid
 from .migrations import MIGRATIONS
 from datetime import datetime, timedelta, timezone
@@ -9,10 +9,10 @@ from datetime import datetime, timedelta, timezone
 DEFAULT_SETTINGS = {
     "scope_level": "A named organization", "units": [], "funder_types": ["federal"],
     "horizon_months": 3, "lead_time_days": 14, "min_fit": "Low", "faculty_per_run": 25,
-    "max_detail_fetches": 250, "max_judgments": 25, "judge_concurrency": 8, "source_timeout_s": 30, "source_concurrency": 8,
+    "max_detail_fetches": 250, "max_judgments": 25, "judge_concurrency": 8, "judge_deadline_s": 90, "source_timeout_s": 30, "source_concurrency": 8,
     "cache_ttl_minutes": 15, "include_undated_deadlines": False,
     "price_per_mtok_input": 0.0, "price_per_mtok_output": 0.0,
-    "rate_limit_per_hour": 20, "pi_lookups_per_hour": 60, "daily_cap": 200, "retention_days": 90,
+    "rate_limit_per_hour": 20, "pi_lookups_per_hour": 60, "pi_lookups_per_day": 1000, "daily_cap": 200, "retention_days": 90,
     "email_mode": "dummy", "test_mailbox": "", "sender_label": "Forge Signal (pilot)", "active_model": "mock",
 }
 NOTICE = ("Runs, inputs and calendars are logged for the pilot report, kept for 90 days, then archived. "

@@ -6,9 +6,11 @@ Division of labour, per the hard rules:
   * the validator: rejects any quote not found in its source
 Nothing about an opportunity is stored outside the run log.
 """
+import os
 import re
+import threading
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, wait
 
 from . import rubric as R
 from .adapters.base import judge_fit
@@ -16,6 +18,11 @@ from .schemas import SchemaError
 from . import retrieval
 from .sources import grants_gov as gg
 from .validator import validate_factors
+
+# One cap on simultaneous model calls for the whole process, however many runs are in flight. Per process: with
+# several server workers each has its own, so the demo runs one worker.
+MODEL_MAX_CONCURRENT = max(1, int(os.environ.get("FORGE_MODEL_MAX_CONCURRENT", "16")))
+_model_slots = threading.BoundedSemaphore(MODEL_MAX_CONCURRENT)
 
 STOP = set("a an and are as at be by for from in into of on or that the their to with within using use via "
            "data new based study research approach approaches method methods program programs project projects "
@@ -114,20 +121,32 @@ def run_match(db, run_id, adapter, settings, profile, question, lister=None, det
     # so the log and the result order do not depend on which call finishes first.
     def call(item):
         try:
-            return judge_fit(adapter, item[3], question, rubric), None
+            with _model_slots:
+                return judge_fit(adapter, item[3], question, rubric), None, False
         except SchemaError as e:
-            return None, f"model output invalid: {e}"
+            return None, f"model output invalid: {e}", False
         except Exception as e:                       # rate limit after retries, timeout, refusal: never a key in the text
-            return None, f"model call failed: {type(e).__name__}"
+            return None, f"model call failed: {type(e).__name__}", True
 
     workers = max(1, min(int(settings.get("judge_concurrency") or 1), 16, len(prepared) or 1))
-    with ThreadPoolExecutor(max_workers=workers) as pool:
-        outcomes = list(pool.map(call, prepared))
+    deadline = float(settings.get("judge_deadline_s") or 0)
+    pool = ThreadPoolExecutor(max_workers=workers)
+    futures = [pool.submit(call, p) for p in prepared]
+    wait(futures, timeout=deadline or None)
+    outcomes = []
+    for f in futures:
+        if f.done():
+            outcomes.append(f.result())
+        else:                                        # past the time budget: stop waiting, record it, move on
+            f.cancel()
+            outcomes.append((None, f"model call timed out (judging budget {int(deadline)} s)", True))
+    pool.shutdown(wait=False, cancel_futures=True)
     t_judged = time.time()
-    model_failures = 0
-    for (d, shared, opp_id, sources), (fj, err) in zip(prepared, outcomes):
+    model_failures = call_failures = 0
+    for (d, shared, opp_id, sources), (fj, err, was_call) in zip(prepared, outcomes):
         if err:
             model_failures += 1
+            call_failures += was_call
             db.add_source_failure(run_id, opp_id, err)
             continue
         checked = validate_factors(fj, sources, rubric)
@@ -166,7 +185,7 @@ def run_match(db, run_id, adapter, settings, profile, question, lister=None, det
                                 r["days_to_deadline"] if r["days_to_deadline"] is not None else 10 ** 6))
     return {"results": results, "counters": {
         "opportunities_listed": len(listed), "in_horizon": len(short), "details_fetched": len(details),
-        "judged": len(ranked) - model_failures, "model_failures": model_failures, "not_judged_due_to_cap": skipped, "no_term_overlap": no_overlap, "source_failures": len(failures),
+        "judged": len(ranked) - model_failures, "model_failures": model_failures, "model_call_failures": call_failures, "not_judged_due_to_cap": skipped, "no_term_overlap": no_overlap, "source_failures": len(failures),
         "latency_ms": int((time.time() - t0) * 1000),
         "judging_ms": int((t_judged - t_start_judging) * 1000), "judge_concurrency": workers,
         "input_tokens": adapter.total_usage.get("input_tokens", 0),

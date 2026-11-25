@@ -31,3 +31,17 @@ def test_labelled_check_bm25_beats_word_overlap_on_the_frozen_snapshot():
     mean = lambda rows, k: sum(r[k] for r in rows) / len(rows)
     assert mean(new, "recall") > mean(base, "recall") + 0.2
     assert mean(new, "mrr") >= 0.8
+
+
+def test_short_field_names_are_kept_only_as_capitals():
+    assert retrieval.tokens("AI for science") == ["ai", "science"]
+    assert retrieval.tokens("ML for imaging") == ["ml", "imag"]
+    assert retrieval.tokens("US tumors") == retrieval.tokens("tumors")
+    assert retrieval.tokens("OF TO ai ml") == []          # stop words stay out; lower-case two-letter words are not topics
+    assert retrieval.tokens("they may go to it") == []
+
+
+def test_ai_query_finds_ai_record():
+    docs = [("AI for materials", "machine learning"), ("Fisheries", "fish stocks")]
+    s = retrieval.BM25(docs).scores("AI")
+    assert s[0] > 0 and s[1] == 0

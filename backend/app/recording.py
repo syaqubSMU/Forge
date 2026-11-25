@@ -38,6 +38,17 @@ LABEL = "Recorded run: real model output on a fictional researcher, from the sto
 QUESTION = "Does this opportunity fit this researcher?"
 
 
+def working_tree_clean(path=None) -> bool:
+    """True only if `git status --porcelain` is empty, so the commit id recorded in the file is the code that really ran.
+    False when git is unavailable or the folder is not a repository (unknown is treated as not clean)."""
+    try:
+        r = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True, timeout=30,
+                           cwd=path or os.path.dirname(os.path.abspath(__file__)))
+        return r.returncode == 0 and r.stdout.strip() == ""
+    except Exception:
+        return False
+
+
 def code_commit() -> str:
     try:
         return subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, timeout=10,
@@ -86,7 +97,8 @@ def record(db, adapter, settings, profile=None, max_judgments=15, effort=None, p
                     QUESTION, lister=lister, detailer=detailer)
     c = out["counters"]
     if c["judged"] == 0 and c["model_failures"] > 0:
-        db.finish_run(rid, "failed", c["latency_ms"], "recorded run: nothing could be rated")
+        db.finish_run(rid, "failed", c["latency_ms"], "recorded run: nothing could be rated", c["input_tokens"], c["output_tokens"],
+                      c["opportunities_listed"], c["details_fetched"], run_cost(prices or {}, c["input_tokens"], c["output_tokens"]))
         raise RuntimeError("nothing could be rated; no file written")
     cost = run_cost(prices or {}, c["input_tokens"], c["output_tokens"])
     db.finish_run(rid, "ok", c["latency_ms"], None, c["input_tokens"], c["output_tokens"],
@@ -129,7 +141,7 @@ def record(db, adapter, settings, profile=None, max_judgments=15, effort=None, p
                                            "deadline that has passed since must be shown as passed.")},
     }
     rec["recorded_run"]["integrity"] = {"results_sha256": hashlib.sha256(json.dumps(rec["results"], sort_keys=True).encode()).hexdigest(),
-                                        "note": "Hash of the results exactly as produced by the pipeline; recompute to detect edits."}
+                                        "note": "Hash of the results exactly as produced by the pipeline. It only detects accidental edits: anyone can recompute it after changing the results. The commit that adds this file must carry the run-detail sha256 and the code commit id in its message."}
     return rec
 
 

@@ -9,12 +9,15 @@ from datetime import datetime, timedelta, timezone
 # public link were shared. The provider's spending limit remains the real guard; these only lower the risk.
 PILOT_DEFAULTS = {"daily_cap": 3, "rate_limit_per_hour": 3, "max_judgments": 15}
 
+# Prices are ESTIMATES: list prices for claude-opus-5-5 in USD per million tokens (cached 2026-11-03). The owner confirms them
+# in the provider console and can change them. They are non-zero by default so the application budget stop is active out of
+# the box. pilot_budget_usd counts only the runs in this database, not spend made elsewhere (about $7 of engineering tests).
 DEFAULT_SETTINGS = {
     "scope_level": "A named organization", "units": [], "funder_types": ["federal"],
     "horizon_months": 3, "lead_time_days": 14, "min_fit": "Low", "faculty_per_run": 25,
     "max_detail_fetches": 250, "max_judgments": PILOT_DEFAULTS["max_judgments"], "judge_concurrency": 8, "judge_deadline_s": 90, "source_timeout_s": 30, "source_concurrency": 8,
     "cache_ttl_minutes": 15, "include_undated_deadlines": False,
-    "price_per_mtok_input": 0.0, "price_per_mtok_output": 0.0, "pilot_budget_usd": 11.0,
+    "price_per_mtok_input": 4.0, "price_per_mtok_output": 20.0, "pilot_budget_usd": 9.0,
     "rate_limit_per_hour": PILOT_DEFAULTS["rate_limit_per_hour"], "pi_lookups_per_hour": 60, "pi_lookups_per_day": 1000, "daily_cap": PILOT_DEFAULTS["daily_cap"], "retention_days": 90,
     "email_mode": "dummy", "test_mailbox": "", "sender_label": "Forge Signal (pilot)", "active_model": "mock",
 }

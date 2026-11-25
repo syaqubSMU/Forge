@@ -2,11 +2,11 @@
   python scripts/record_run.py --db forge.db --out ../public/signal/recorded-run.js --yes-spend-money [--price-in 4.0 --price-out 20.0]
 Prints the planned calls and estimated cost first and refuses to call the model without --yes-spend-money. Uses a COPY of a SQLite database, so
 the original is untouched. Fictional researcher only (see app/recording.py). Writes nothing unless every quote is
-found in its stored source text, and exports the run's logged detail next to the file (its sha256 is recorded in the file). Never run it without the approvals the project requires."""
+found in its stored source text, and exports the run's logged detail next to the file (its sha256 is recorded in the file). Refuses to spend when the git working tree is dirty, so the recorded commit id is true. Never run it without the approvals the project requires."""
 import argparse, json, os, shutil, sys, tempfile
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from app.db import Database
-from app.recording import record, to_js, FICTIONAL_PROFILE, integrity_checks, verify_file
+from app.recording import record, to_js, FICTIONAL_PROFILE, integrity_checks, verify_file, working_tree_clean
 sys.path.insert(0, os.path.dirname(__file__))
 from _spend_guard import guard
 
@@ -32,6 +32,8 @@ print(f"Fictional researcher: {FICTIONAL_PROFILE['investigator']}; areas: {FICTI
 guard(a.yes_spend_money, a.max_judgments, "record_run", max_calls=30)
 if a.yes_spend_money and not (a.price_in and a.price_out):
     sys.exit("pass --price-in and --price-out (USD per million tokens) so the cost estimate is recorded; nothing was spent")
+if a.yes_spend_money and not working_tree_clean():
+    sys.exit("the git working tree is not clean (or git is unavailable): commit or stash first, so the commit id recorded in the file is the code that ran. Nothing was spent.")
 from app.adapters.claude import ClaudeAdapter
 tmp = os.path.join(tempfile.mkdtemp(), "copy.db"); shutil.copy(a.db, tmp)
 db = Database(tmp)

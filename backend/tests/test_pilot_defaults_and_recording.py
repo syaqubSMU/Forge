@@ -105,8 +105,17 @@ def _app(monkeypatch):
 BODY = {"input_type": "pi_name", "input_text": "x", "profile": {"career_stage": "e", "lanes": ["photochemistry and flavin biology"]}}
 
 
+def test_budget_stop_is_active_out_of_the_box_and_names_the_prices_in_use(monkeypatch):
+    app = _app(monkeypatch); c = TestClient(app)
+    j = c.get("/api/admin/environment", headers={"X-Admin-Token": "t"}).json()["budget_stop"]
+    assert j["state"] == "active" and j["pilot_budget_usd"] == 9.0
+    assert j["prices_in_use"]["input_usd_per_million"] == 4.0 and j["prices_in_use"]["output_usd_per_million"] == 20.0
+    assert "estimate" in j["prices_in_use"]["basis"] and "only runs in this database" in j["counts"]
+
+
 def test_budget_stop_is_inactive_without_prices_and_says_so(monkeypatch):
     app = _app(monkeypatch); c = TestClient(app)
+    app.state.db.set_setting("price_per_mtok_input", 0.0); app.state.db.set_setting("price_per_mtok_output", 0.0)
     j = c.get("/api/admin/environment", headers={"X-Admin-Token": "t"}).json()
     assert j["budget_stop"]["state"] == "inactive: prices not set"
     assert c.post("/api/runs", json=BODY).status_code == 200          # nothing stops a run while cost is unknown
@@ -185,3 +194,40 @@ def test_record_run_needs_prices_so_cost_is_never_blank():
     r = subprocess.run([sys.executable, "scripts/record_run.py", "--db", "x.db", "--out", "o.js", "--yes-spend-money"],
                        capture_output=True, text=True, env=env)
     assert r.returncode != 0 and "--price-in" in (r.stdout + r.stderr) and "at most about 30" in r.stdout
+
+
+def test_failed_runs_keep_their_cost_so_the_budget_sum_is_not_understated(monkeypatch):
+    monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: MockAdapter(["{not json"]))
+    app = create_app(":memory:", lister=lambda *a, **k: [dict(o) for o in CORPUS],
+                     detailer=lambda ids, **k: ([dict(o) for o in CORPUS if o["source_record_id"] in [str(i) for i in ids]], []))
+    app.state.db.set_setting("price_per_mtok_input", 1000.0); app.state.db.set_setting("price_per_mtok_output", 1000.0)
+    assert TestClient(app).post("/api/runs", json=BODY).status_code == 502
+    row = app.state.db.q("SELECT status, cost_usd, output_tokens FROM runs", one=True)
+    assert row["status"] == "failed" and row["output_tokens"] > 0 and row["cost_usd"] > 0
+    assert app.state.db.spent_usd() == row["cost_usd"]
+
+
+def test_working_tree_check_is_true_only_for_a_clean_git_folder(tmp_path):
+    import subprocess
+    run = lambda *a: subprocess.run(["git", *a], cwd=tmp_path, check=True, capture_output=True)
+    assert recording.working_tree_clean(str(tmp_path)) is False                   # not a repository: unknown counts as not clean
+    run("init", "-q"); run("config", "user.email", "t@example.com"); run("config", "user.name", "t")
+    (tmp_path / "f.txt").write_text("a"); run("add", "."); run("commit", "-qm", "x")
+    assert recording.working_tree_clean(str(tmp_path)) is True
+    (tmp_path / "f.txt").write_text("b")
+    assert recording.working_tree_clean(str(tmp_path)) is False
+    (tmp_path / "f.txt").write_text("a"); (tmp_path / "new.txt").write_text("untracked")
+    assert recording.working_tree_clean(str(tmp_path)) is False                   # untracked files count
+
+
+def test_record_run_refuses_to_spend_from_a_dirty_tree(tmp_path, monkeypatch):
+    import subprocess, sys, os, shutil
+    # a throwaway git copy of the backend with an uncommitted change, so the real repository state does not matter
+    dst = tmp_path / "repo"; shutil.copytree(".", dst / "backend", ignore=shutil.ignore_patterns("__pycache__", ".pytest_cache", "*.db"))
+    for a in (["init", "-q"], ["config", "user.email", "t@example.com"], ["config", "user.name", "t"], ["add", "."], ["commit", "-qm", "x"]):
+        subprocess.run(["git", *a], cwd=dst, check=True, capture_output=True)
+    (dst / "backend" / "dirty.txt").write_text("uncommitted")
+    env = {k: v for k, v in os.environ.items() if k not in ("FORGE_API_KEY", "FORGE_MODEL_KEY", "SIGNAL_MODEL_KEY", "ANTHROPIC_API_KEY")}
+    r = subprocess.run([sys.executable, "scripts/record_run.py", "--db", "x.db", "--out", "o.js", "--yes-spend-money",
+                        "--price-in", "4.0", "--price-out", "20.0"], capture_output=True, text=True, cwd=dst / "backend", env=env)
+    assert r.returncode != 0 and "working tree is not clean" in (r.stdout + r.stderr) and "Nothing was spent" in (r.stdout + r.stderr)

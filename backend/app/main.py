@@ -193,8 +193,9 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                 unreachable = c["model_call_failures"] > 0
                 reason = (f"model unavailable: all {c['model_failures']} calls failed" if unreachable
                           else f"model answers unreadable: all {c['model_failures']} answers were invalid")
+                # a failed run still spent tokens (unreadable answers cost output): keep its cost so the budget sum is not understated
                 db.finish_run(rid, "failed", c["latency_ms"], reason, c["input_tokens"], c["output_tokens"],
-                              c["opportunities_listed"], c["details_fetched"])
+                              c["opportunities_listed"], c["details_fetched"], run_cost(s, c["input_tokens"], c["output_tokens"]))
                 raise HTTPException(502, "The model could not be reached, so nothing was rated. The attempt was logged; please try again later."
                                     if unreachable else
                                     "The model's answers could not be read, so nothing was rated. The attempt was logged; please try again later.")
@@ -332,11 +333,14 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
         calls, and spend made outside this database), so it must be set below the provider limit, which stays the real guard."""
         limit = st.get("pilot_budget_usd") or 0
         if not st.get("price_per_mtok_input") or not st.get("price_per_mtok_output"):
-            return {"state": "inactive: prices not set", "pilot_budget_usd": limit, "recorded_spend_estimate_usd": None}
+            return {"state": "inactive: prices not set", "pilot_budget_usd": limit, "recorded_spend_estimate_usd": None, "prices_in_use": None}
         if not limit:
-            return {"state": "inactive: pilot_budget_usd is 0", "pilot_budget_usd": 0, "recorded_spend_estimate_usd": round(db.spent_usd(), 4)}
+            return {"state": "inactive: pilot_budget_usd is 0", "pilot_budget_usd": 0, "recorded_spend_estimate_usd": round(db.spent_usd(), 4), "prices_in_use": None}
         spent = round(db.spent_usd(), 4)
-        return {"state": "reached" if spent >= limit else "active", "pilot_budget_usd": limit, "recorded_spend_estimate_usd": spent}
+        return {"state": "reached" if spent >= limit else "active", "pilot_budget_usd": limit, "recorded_spend_estimate_usd": spent,
+                "prices_in_use": {"input_usd_per_million": st["price_per_mtok_input"], "output_usd_per_million": st["price_per_mtok_output"],
+                                  "basis": "estimate: list prices for claude-opus-5-5 (cached 2026-11-03); the owner confirms them in the provider console"},
+                "counts": "only runs in this database; not the roughly $7 of earlier engineering spend"}
 
     @app.get("/api/admin/environment")
     def environment(_=Depends(admin)):

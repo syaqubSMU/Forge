@@ -93,3 +93,9 @@ Errors arrive as `{"detail": {"code", "message"}}`. Limits: `pi_lookups_per_hour
 
 ## Request limits and client address
 Public POST bodies are capped at 400 KB (`FORGE_MAX_BODY_BYTES`; 413 above, 411 without a length). Question 1,000 characters, each research area 300, each positioning rule 600, at most 5 pasted sources of 60,000 characters each. The client address for rate limits is the connection's address unless `FORGE_TRUSTED_PROXY_HOPS=N` is set for N trusted proxies (then the Nth entry from the right of `X-Forwarded-For`). Additional server-side settings: `judge_deadline_s` (90), `FORGE_MODEL_MAX_CONCURRENT` (16, whole process). Run a single server worker for the demo: every cap and limiter above is per process.
+
+**Checking the client address (do this once on the real host).** Set `ADMIN_TOKEN`, then from your own browser or `curl` call `GET /api/admin/whoami` with the `X-Admin-Token` header. It returns `believed_client_ip`, the connection's `socket_peer`, the raw `x_forwarded_for` header and the current `trusted_proxy_hops`. With `FORGE_TRUSTED_PROXY_HOPS` unset, `believed_client_ip` will be the proxy's address, the same for everyone (that is the problem to fix). Set it to 1, restart, and call again from two different networks (for example your phone off Wi-Fi): `believed_client_ip` should now be your own public address and differ between the two. If it shows a private or the proxy's address, try 2. The endpoint is admin-only; the address is never returned to the public.
+
+**One server worker.** Production runs a single server process. Every limiter and cap described above (visitor hourly limit, daily lookup cap, model-call cap, OpenAlex cache) lives in that process's memory; with several workers each would have its own counters and the limits would multiply.
+
+Run ids are 32 hex characters for new runs; the 12-character ids of earlier runs still open.

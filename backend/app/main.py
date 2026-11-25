@@ -298,6 +298,14 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                         headers={"Content-Disposition": f'attachment; filename="{_slug(run)}.xlsx"'})
 
     # ---------------------------------------------------------------- admin
+    @app.get("/api/admin/whoami")
+    def whoami(request: Request, _=Depends(admin)):
+        """What address the server believes this request came from, for setting FORGE_TRUSTED_PROXY_HOPS. Admin only;
+        the address is never shown to the public and the visitor hash is the only form that is stored."""
+        return {"believed_client_ip": client_ip(request), "socket_peer": request.client.host if request.client else None,
+                "x_forwarded_for": request.headers.get("x-forwarded-for"),
+                "trusted_proxy_hops": os.environ.get("FORGE_TRUSTED_PROXY_HOPS", "0")}
+
     @app.get("/api/admin/settings")
     def get_settings(_=Depends(admin)):
         return {"settings": db.settings(), "available_models": available()}

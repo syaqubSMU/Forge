@@ -142,7 +142,7 @@ class Database:
 
     # runs -----------------------------------------------------------------
     def create_run(self, visitor_hash, input_type, input_text, settings, rubric_version, model) -> str:
-        rid = uuid.uuid4().hex[:12]
+        rid = uuid.uuid4().hex                      # 32 hex characters; runs created before this change keep their 12-character ids
         scope = {k: settings[k] for k in ("scope_level", "units", "funder_types")}
         self.q("INSERT INTO runs(id,created_at,visitor_hash,input_type,input_text,scope_snapshot,settings_snapshot,rubric_version,model,status) VALUES(?,?,?,?,?,?,?,?,?,?)",
                (rid, now(), visitor_hash, input_type, input_text, json.dumps(scope), json.dumps(settings), rubric_version, model, "running"), write=True)

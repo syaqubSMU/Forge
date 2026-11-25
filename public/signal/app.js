@@ -76,9 +76,13 @@
     return el("span", { class: "badge " + c }, ["Eligibility: " + e]);
   }
 
+  /* sponsor-supplied addresses are only ever linked when they point at Grants.gov; anything else is shown as plain text */
+  function safeUrl(u) { return typeof u === "string" && /^https:\/\/www\.grants\.gov\//.test(u) ? u : null; }
+
   function citationBlock(c, r) {
     var src = c.source_id === "researcher-profile"
       ? el("span", {}, ["Researcher profile, supplied for this run"])
+      : !safeUrl(c.source_id) ? el("span", {}, ["Official source (link not shown)"])
       : el("a", { href: c.source_id, rel: "noopener noreferrer", target: "_blank", "aria-label": "Official source for " + (r && r.number ? r.number : "this opportunity") + " (opens in a new tab)" }, ["Official source"]);
     return el("div", { class: "quote", role: "group", "aria-label": String(c["for"]).replace(/_/g, " ") + " evidence" }, [
       el("span", { class: "for-tag" }, [String(c["for"]).replace(/_/g, " ")]),
@@ -135,7 +139,7 @@
   function resultCard(r) {
     var tid = "res-" + (++cardSeq);
     var card = el("article", { class: "result r-" + (r.fit || "Excluded"), "aria-labelledby": tid });
-    var h = el("h3", { id: tid }, [el("a", { href: r.url, rel: "noopener noreferrer", target: "_blank" }, [r.title])]);
+    var h = el("h3", { id: tid }, [safeUrl(r.url) ? el("a", { href: r.url, rel: "noopener noreferrer", target: "_blank" }, [r.title]) : document.createTextNode(String(r.title))]);
     card.appendChild(h);
     var dl = el("li", {}, ["Sponsor deadline: "]);
     dl.appendChild(orNot(dateLong(r.close_date), "Not stated"));
@@ -393,17 +397,18 @@
     });
   }
 
-  function asOfLine() { return "Days counted from today, " + dateLong(isoDay(new Date())) + "; the recording was made as of " + dateLong(M.recorded_run.as_of_date) + ". A deadline earlier than today shows as passed"; }
+  function asOfLine() { return "Days counted from " + dateLong(M.recorded_run.as_of_date) + ", the day this was recorded; a deadline earlier than today shows as passed"; }
   function recStamp(iso) { return iso ? new Date(iso).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }) + " UTC" : "unknown time"; }
 
   function prepRecorded() {
     var lead = (M.settings && M.settings.lead_time_days) || 14;
     M.screened_at = (M.recorded_run || {}).recorded_at;
-    (M.results || []).forEach(function (r) {   // deadlines are counted from today, in code, never taken from the recording
+    (M.results || []).forEach(function (r) {   // one day count per row, computed here in code from close_date
       if (r.close_date) {
-        r.days_to_deadline = daysUntil(r.close_date);        // one number per row, counted from today; the page says so
+        var asof = (M.recorded_run || {}).as_of_date;
+        r.days_to_deadline = Math.round((parseDay(r.close_date) - parseDay(asof)) / 864e5);   // counted from the recording date; the page says so
         r.internal_deadline = addDays(r.close_date, -lead);
-        r.passed = r.days_to_deadline < 0;
+        r.passed = daysUntil(r.close_date) < 0;                                              // passed only when the close date is before the viewer's today
       } else { r.days_to_deadline = null; r.internal_deadline = null; r.passed = false; }
     });
   }
@@ -483,7 +488,7 @@
     if (ex.length && list) {
       var ul = el("ul", { class: "rule-list" });
       ex.forEach(function (x) {
-        var t = /^https:\/\/www\.grants\.gov\//.test(x.url || "")
+        var t = safeUrl(x.url)
           ? el("a", { href: x.url, rel: "noopener noreferrer", target: "_blank" }, [x.title]) : document.createTextNode(String(x.title));
         var li = el("li", {}, [t, document.createTextNode(" · "), el("span", { class: "mono" }, [x.number || ""])]);
         (x.reasons || []).forEach(function (why) { li.appendChild(el("div", { class: "hint" }, [why])); });
@@ -679,7 +684,7 @@
             [r.sponsor], [el("span", { class: "mono" }, [r.number])],
             [r.days_to_deadline == null ? el("span", { class: "nostate" }, ["\u2014"]) : (r.passed || r.days_to_deadline < 0) ? el("span", { class: "passed" }, ["Passed"]) : document.createTextNode(String(r.days_to_deadline))],
             [r.amount ? document.createTextNode(r.amount) : orNot(r.award_ceiling ? "up to " + money(r.award_ceiling) : null, "Not specified")],
-            [el("a", { href: r.url, rel: "noopener noreferrer", target: "_blank", "aria-label": "Open announcement " + r.number + " (opens in a new tab)" }, ["Open announcement"])]
+            [safeUrl(r.url) ? el("a", { href: r.url, rel: "noopener noreferrer", target: "_blank", "aria-label": "Open announcement " + r.number + " (opens in a new tab)" }, ["Open announcement"]) : el("span", { class: "nostate" }, ["Link not shown"])]
           ];
           var tr = el("tr");
           cells.forEach(function (c, i) { tr.appendChild(el("td", { "data-label": cols[i] }, c)); });

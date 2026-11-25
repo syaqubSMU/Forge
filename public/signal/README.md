@@ -35,8 +35,8 @@ The earlier prototype (Workbench, Prompt Builder, Explorer) was removed per deci
 
 ## V1 design system (25 Nov 2026)
 Direction and rationale: `docs/BRAND_UX_DIAGNOSIS_AND_DIRECTION.md`; page-by-page findings and test script: `docs/UX_IMPROVEMENT_PLAN.md`.
-- FORGE wordmark in the header (`assets/forge-wordmark.svg`); the old orange logo files were removed.
-- Colour roles: Trust Blue for action and focus; coral only for the brand mark and one accent button; plum (`--human`) only where a person decides; brown (`--stop`) for errors. No red.
+- The supplied FORGE SIGNAL logo (orange signal arcs) is used as supplied: `assets/forge-signal-logo-white.svg` in the header and `-navy.svg` for light grounds; `-dark-bg` and `-light-bg` are the original files with backgrounds; `forge-signal-icon.svg` is the arcs only, used as the favicon. Transparent versions only have their empty margin cropped.
+- Colour roles: Trust Blue for action and focus; coral for one accent button (the logo keeps its own orange, #F28C28; the two oranges should be unified later); plum (`--human`) only where a person decides; brown (`--stop`) for errors. No red.
 - Task pages use `.pagehead` and a four-step indicator; only Home and About use `.hero`.
 - Shared components: `.status` (wait, error, none), `details.evidence`, `.yourcheck`, `.steps4`, spacing scale `--s1`..`--s8` and `.mt1`..`.mb3` utilities instead of inline styles.
 - Settings is a small gear icon in the header (admin preview).

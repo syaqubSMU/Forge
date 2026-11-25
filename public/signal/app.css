@@ -28,7 +28,7 @@ p{margin:0} a{color:var(--blue)}
 .wrap{max-width:1140px;margin:0 auto;padding:0 20px}
 
 /* header ------------------------------------------------------------ */
-header.nav{background:var(--blue);color:#fff;padding:12px 0;border-bottom:3px solid var(--coral)}
+header.nav{background:var(--blue);color:#fff;padding:8px 0;border-bottom:3px solid var(--coral)}
 header.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font-family:var(--f-head);font-weight:700;letter-spacing:.1em;font-size:15px}
 .brand small{display:block;color:#F4B49F;font-weight:600;letter-spacing:.26em;font-size:9px;margin-top:-3px}
@@ -320,9 +320,9 @@ main>.hero:first-child{margin-top:-28px}
 
 /* brand */
 .brand{gap:var(--s3)}
-.brand img{display:block;height:22px;width:auto}
+.brand img{display:block;height:60px;width:auto}
 .brand .prod{font-family:var(--f-head);font-weight:600;letter-spacing:.14em;font-size:13px;color:#F4B49F;border-left:1px solid #ffffff55;padding-left:var(--s3)}
-header.nav{border-bottom-width:2px}
+header.nav{border-bottom:2px solid #F28C28}
 
 /* compact page header for task pages */
 .pagehead{background:#fff;border-bottom:1px solid var(--border);padding:var(--s5) 0 var(--s4)}
@@ -415,3 +415,5 @@ details.vdesc>summary{color:#fff}
 header.nav nav a.iconlink{display:grid;place-items:center;width:40px;height:36px;padding:0;margin-left:var(--s2)}
 header.nav nav a.iconlink[aria-current=page]{background:#fff;color:var(--blue)}
 header.nav nav a.iconlink svg{display:block}
+
+.brand .prod{display:none}

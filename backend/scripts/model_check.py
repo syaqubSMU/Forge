@@ -1,7 +1,7 @@
 """Model check on the gold set (PRD section 9 measures).
   python scripts/model_check.py --mock                    dry run, no model
   python scripts/model_check.py --responses FILE.json     score saved model outputs {case_id: raw JSON string or object}
-  ANTHROPIC_API_KEY=... python scripts/model_check.py     live Claude
+  ANTHROPIC_API_KEY=... python scripts/model_check.py --yes-spend-money     live Claude (costs money)
 Reports: schema-valid, citation pass rate, silent-eligibility handling, and agreement with the
 customer's expected labels (only for cases where she has filled them in)."""
 import json, sys, os
@@ -28,6 +28,9 @@ def main():
         a = PerCase({c["id"]: {"fit": "Low", "eligibility": "Needs verification", "rationale": "mock",
                                "fit_citations": [], "eligibility_citations": []} for c in cases})
     else:
+        sys.path.insert(0, os.path.dirname(__file__))
+        from _spend_guard import guard
+        guard("--yes-spend-money" in sys.argv, len(cases), "model_check (live)")
         from app.adapters.claude import ClaudeAdapter
         a = ClaudeAdapter()
     n = schema_ok = silent_n = silent_ok = cites = bad = lab = fit_agree = el_agree = 0

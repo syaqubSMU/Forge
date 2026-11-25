@@ -16,8 +16,11 @@ Q = "Does this opportunity fit this researcher?"
 ap = argparse.ArgumentParser()
 ap.add_argument("--db", required=True); ap.add_argument("--n", type=int, default=3)
 ap.add_argument("--workers", type=int, default=1); ap.add_argument("--effort"); ap.add_argument("--model")
-ap.add_argument("--lane", action="append"); ap.add_argument("--max-tokens", type=int, default=3000)
+ap.add_argument("--lane", action="append"); ap.add_argument("--yes-spend-money", action="store_true"); ap.add_argument("--max-tokens", type=int, default=3000)
 a = ap.parse_args()
+sys.path.insert(0, os.path.dirname(__file__))
+from _spend_guard import guard
+guard(a.yes_spend_money, a.n, "bench_judging")
 if a.lane: PROFILE = dict(PROFILE, lanes=a.lane)
 db = Database(a.db)
 s = db.settings(); s.update(max_judgments=a.n, judge_concurrency=a.workers)

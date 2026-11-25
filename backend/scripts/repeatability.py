@@ -2,7 +2,7 @@
   python scripts/repeatability.py --db forge.db --runs 4 --n 8 [--effort low] [--lane "..."]
 The candidate set is fixed (ranking is deterministic), so any difference comes from the model.
 Reports, per item, how many runs agreed on the tier, and how similar the visible result lists were."""
-import argparse, collections, itertools, json, sys, time
+import argparse, collections, itertools, json, os, sys, time
 sys.path.insert(0, ".")
 from app.db import Database
 from app import store
@@ -11,8 +11,11 @@ from app.adapters.claude import ClaudeAdapter
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--db", required=True); ap.add_argument("--runs", type=int, default=4); ap.add_argument("--n", type=int, default=8)
-ap.add_argument("--workers", type=int, default=8); ap.add_argument("--effort"); ap.add_argument("--lane", action="append", required=True)
+ap.add_argument("--workers", type=int, default=8); ap.add_argument("--effort"); ap.add_argument("--lane", action="append", required=True); ap.add_argument("--yes-spend-money", action="store_true")
 a = ap.parse_args()
+sys.path.insert(0, os.path.dirname(__file__))
+from _spend_guard import guard
+guard(a.yes_spend_money, a.runs * a.n, "repeatability")
 db = Database(a.db); lister, detailer = store.sources(db)
 profile = {"career_stage": "established", "lanes": a.lane, "positioning_rules": []}
 tiers = collections.defaultdict(list); lists = []; secs = []; tok = [0, 0]

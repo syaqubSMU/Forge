@@ -9,6 +9,11 @@ from app.adapters import registry
 from app.adapters.mock import MockAdapter
 from app.main import create_app
 
+class PricedMock(MockAdapter):
+    """A fake model that, unlike the mock, counts as a paid model for cost tests (the mock never costs anything)."""
+    name = "mock-priced"
+
+
 H = {"X-Admin-Token": "secret-token"}
 TODAY = date.today()
 

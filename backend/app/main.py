@@ -81,6 +81,12 @@ def _csv_safe(v):
 PLAIN_SETTING = re.compile(r"[A-Za-z0-9._:-]{1,80}")
 
 
+def cost_of(adapter, settings, input_tokens, output_tokens):
+    """Cost estimate for a run. The mock model makes no paid call, so its runs cost nothing and never count toward the
+    budget (its token figures are only character counts, used by tests)."""
+    return None if getattr(adapter, "name", "") == "mock" else run_cost(settings, input_tokens, output_tokens)
+
+
 def plain_setting(v):
     """Echo a setting only if it looks like an ordinary identifier; anything else (a pasted key, a URL, a sentence)
     is reported as set but never shown."""
@@ -195,11 +201,11 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                           else f"model answers unreadable: all {c['model_failures']} answers were invalid")
                 # a failed run still spent tokens (unreadable answers cost output): keep its cost so the budget sum is not understated
                 db.finish_run(rid, "failed", c["latency_ms"], reason, c["input_tokens"], c["output_tokens"],
-                              c["opportunities_listed"], c["details_fetched"], run_cost(s, c["input_tokens"], c["output_tokens"]))
+                              c["opportunities_listed"], c["details_fetched"], cost_of(adapter, s, c["input_tokens"], c["output_tokens"]))
                 raise HTTPException(502, "The model could not be reached, so nothing was rated. The attempt was logged; please try again later."
                                     if unreachable else
                                     "The model's answers could not be read, so nothing was rated. The attempt was logged; please try again later.")
-            c["cost_usd"] = run_cost(s, c["input_tokens"], c["output_tokens"])
+            c["cost_usd"] = cost_of(adapter, s, c["input_tokens"], c["output_tokens"])
             c["cost_basis"] = "estimate from reported token usage; needs both prices set; excludes calls abandoned or failed"
             db.finish_run(rid, "ok", c["latency_ms"], None, c["input_tokens"], c["output_tokens"],
                           c["opportunities_listed"], c["details_fetched"], c["cost_usd"])
@@ -226,7 +232,7 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
         db.add_match(rid, result)
         u = adapter.total_usage
         db.finish_run(rid, "ok", int((time.time() - t0) * 1000), None, u.get("input_tokens", 0), u.get("output_tokens", 0),
-                      cost_usd=run_cost(s, u.get("input_tokens", 0), u.get("output_tokens", 0)))
+                      cost_usd=cost_of(adapter, s, u.get("input_tokens", 0), u.get("output_tokens", 0)))
         return {"run_id": rid, "result": result, "notice": NOTICE}
 
     # ---------------------------------------------------------------- researcher lookup (OpenAlex)

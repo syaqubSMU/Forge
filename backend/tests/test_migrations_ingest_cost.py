@@ -47,9 +47,8 @@ def test_run_cost_needs_prices_and_never_shows_zero_for_unknown():
 def test_cost_is_logged_with_the_run(monkeypatch):
     from fastapi.testclient import TestClient
     from app.adapters import registry
-    from app.adapters.mock import MockAdapter
-    from tests.test_pipeline import factors_json
-    monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: MockAdapter([factors_json()]))
+    from tests.test_pipeline import factors_json, PricedMock
+    monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: PricedMock([factors_json()]))
     from app.main import create_app
     from tests.test_pipeline import CORPUS
     app = create_app(":memory:", lister=lambda *a, **k: [dict(o) for o in CORPUS],

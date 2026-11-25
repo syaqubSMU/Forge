@@ -8,7 +8,7 @@ from app.adapters.mock import MockAdapter
 from app.db import Database, DEFAULT_SETTINGS, PILOT_DEFAULTS
 from app import recording
 from app.main import create_app
-from tests.test_pipeline import CORPUS, factors_json
+from tests.test_pipeline import CORPUS, factors_json, PricedMock
 
 
 @pytest.mark.real_defaults
@@ -96,7 +96,7 @@ def test_fictional_profile_has_no_real_names():
 
 # ---- application budget stop ----------------------------------------------------------------------------------
 def _app(monkeypatch):
-    monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: MockAdapter([factors_json()]))
+    monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: PricedMock([factors_json()]))
     monkeypatch.setenv("ADMIN_TOKEN", "t")
     return create_app(":memory:", lister=lambda *a, **k: [dict(o) for o in CORPUS],
                       detailer=lambda ids, **k: ([dict(o) for o in CORPUS if o["source_record_id"] in [str(i) for i in ids]], []))
@@ -135,7 +135,7 @@ def test_budget_stop_refuses_live_runs_once_the_recorded_estimate_reaches_the_li
 
 def test_budget_stop_reads_the_database_so_it_survives_a_restart(tmp_path, monkeypatch):
     path = str(tmp_path / "b.db")
-    monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: MockAdapter([factors_json()]))
+    monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: PricedMock([factors_json()]))
     a1 = create_app(path, lister=lambda *a, **k: [dict(o) for o in CORPUS],
                     detailer=lambda ids, **k: ([dict(o) for o in CORPUS if o["source_record_id"] in [str(i) for i in ids]], []))
     for k, v in {"price_per_mtok_input": 1000.0, "price_per_mtok_output": 1000.0, "pilot_budget_usd": 0.0001}.items():
@@ -197,7 +197,7 @@ def test_record_run_needs_prices_so_cost_is_never_blank():
 
 
 def test_failed_runs_keep_their_cost_so_the_budget_sum_is_not_understated(monkeypatch):
-    monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: MockAdapter(["{not json"]))
+    monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: PricedMock(["{not json"]))
     app = create_app(":memory:", lister=lambda *a, **k: [dict(o) for o in CORPUS],
                      detailer=lambda ids, **k: ([dict(o) for o in CORPUS if o["source_record_id"] in [str(i) for i in ids]], []))
     app.state.db.set_setting("price_per_mtok_input", 1000.0); app.state.db.set_setting("price_per_mtok_output", 1000.0)
@@ -231,3 +231,18 @@ def test_record_run_refuses_to_spend_from_a_dirty_tree(tmp_path, monkeypatch):
     r = subprocess.run([sys.executable, "scripts/record_run.py", "--db", "x.db", "--out", "o.js", "--yes-spend-money",
                         "--price-in", "4.0", "--price-out", "20.0"], capture_output=True, text=True, cwd=dst / "backend", env=env)
     assert r.returncode != 0 and "working tree is not clean" in (r.stdout + r.stderr) and "Nothing was spent" in (r.stdout + r.stderr)
+
+
+def test_a_mock_run_costs_nothing_and_adds_nothing_to_the_budget_sum(monkeypatch):
+    monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: MockAdapter([factors_json()]))      # name "mock"
+    app = create_app(":memory:", lister=lambda *a, **k: [dict(o) for o in CORPUS],
+                     detailer=lambda ids, **k: ([dict(o) for o in CORPUS if o["source_record_id"] in [str(i) for i in ids]], []))
+    app.state.db.set_setting("price_per_mtok_input", 1000.0); app.state.db.set_setting("price_per_mtok_output", 1000.0)
+    c = TestClient(app)
+    j = c.post("/api/runs", json=BODY).json()
+    assert j["counters"]["cost_usd"] is None and j["counters"]["input_tokens"] > 0       # tokens counted, no cost
+    assert app.state.db.spent_usd() == 0
+    # also when the mock fails every answer (the default mock returns {}): a failed run, still no cost
+    monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: MockAdapter(["{not json"]))
+    assert c.post("/api/runs", json=BODY).status_code == 502
+    assert app.state.db.spent_usd() == 0

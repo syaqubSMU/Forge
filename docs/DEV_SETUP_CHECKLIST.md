@@ -51,6 +51,28 @@ Assumed pilot window: Dec 2 to 6 (the PRD schedule; the owner did not state a le
   4. Setting `active_model` to `mock` also spends nothing, but live runs then fail with 502 instead of the daily-limit message.
 - [ ] **Not allowed without the owner's approval:** model changes, the larger repeatability check (about 500 calls, roughly $15, declined), and any engineering run against the live model. After ANY live call, report the calls, tokens and dollar estimate to the project manager with a running total.
 
+## 3c. Running live for the owner only (Dec 2 to 6: the public site is static and shows the recorded run; only the owner runs live searches)
+Variable names only; never write a value or key into this file, a chat or a commit. Commands are for the owner's own terminal.
+**Run the engine on your own computer (the key never leaves it)**
+1. From the repository's `backend/` folder: `pip install -r requirements.txt`.
+2. Set the variables **in the terminal session, not on the command line** (macOS or Linux `export NAME='...'`; Windows PowerShell `$env:NAME='...'`). Never `echo` them or paste them into chat: `FORGE_API_KEY` (the model key), `ADMIN_TOKEN` (a long random string), `FORGE_SALT` (a different long random string), `FORGE_DB` (for example `forge.db`, a local SQLite file).
+3. Fill the opportunity library once: `python scripts/ingest.py` (public Grants.gov data, no model, no cost, about a minute).
+4. Start the server: `uvicorn --factory app.main:create_app --port 8000`. Without `--host` it listens only on your own computer (127.0.0.1), so nobody else can reach it. Do not add `--host 0.0.0.0`.
+5. Switch the model on (the default `mock` cannot rate anything): `curl -X PUT http://localhost:8000/api/admin/settings -H "X-Admin-Token: $ADMIN_TOKEN" -H "Content-Type: application/json" -d '{"active_model": "claude"}'`. Check with `GET /api/admin/environment`: `active_model` is `claude`, `model_key_variable` names the variable you set (never its value), `budget_stop.state` is `active`.
+6. Open `http://localhost:8000/`. The pages served by this server run live (its `/config.js` says `live: true`); the published static site is unchanged and keeps showing the recording.
+7. Stop the server when you are done (Ctrl+C), and unset the key in that terminal (`unset FORGE_API_KEY`; PowerShell `Remove-Item Env:FORGE_API_KEY`).
+**Check the cost after each live run** (the $20 ceiling still applies, spend so far included; ask before going past it)
+- The run response carries `counters.cost_usd` (an estimate, with `cost_basis` saying so), the tokens and the time.
+- `GET /api/admin/environment` shows `budget_stop`: the recorded estimate so far in this database, the limit (`pilot_budget_usd`, 9.0 by default) and the prices in use. When the limit is reached, live runs stop with a plain message. It counts only this database's runs, not earlier spend elsewhere, so keep your own running total as in section 3b.
+- `GET /api/admin/runs.csv` (column `cost_usd_estimate`) lists every run. Compare with the model provider's usage page, which is the real figure. Failed runs and abandoned calls can make the estimate a little low.
+- A run takes about 20 to 25 seconds at 15 judgments and costs about $0.44 (estimate at $4 and $20 per million tokens).
+**If it is hosted, keep the backend address unshared**
+- Do not put the address in any page, `config.js` or document that the public can see. The public site stays static (`live: false`) and never calls the backend.
+- Leave `FORGE_CORS_ORIGINS` empty, so browsers on other sites cannot call it.
+- An unguessable address is **not** protection: anyone who has the address can start runs, up to the caps (`daily_cap` 3, `rate_limit_per_hour` 3, the budget stop). Keep those caps small and the provider spending limit in place.
+- If the host offers a password or an allowed-addresses list in front of the service, turn it on (this document did not check what a given host offers). Use a long random `ADMIN_TOKEN`.
+- When you are not running searches, make the service unable to spend: set `daily_cap` to 0 (`PUT /api/admin/settings`), or remove the key from the service's environment. Scale to one instance only.
+
 ## 4. Do not
 - Do not put values in this file, tickets or chat. Do not pass the database address with `--db` (it appears in process lists and shell history).
 - Do not point the Neon smoke test, the benchmark scripts or the test suite at a production database.

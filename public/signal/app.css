@@ -814,3 +814,8 @@ main>.subbar:first-child{margin-top:-28px}
 @media(max-width:900px){
   header.nav,.subbar,.filters{position:static}
 }
+
+/* V5 logo: horizontal lockup, F with a red middle arm (the highlighted sentence) */
+.brand img{height:34px;width:auto}
+header.nav{padding:10px 0}
+:root{--hdr:67px}

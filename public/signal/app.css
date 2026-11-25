@@ -819,3 +819,8 @@ main>.subbar:first-child{margin-top:-28px}
 .brand img{height:34px;width:auto}
 header.nav{padding:10px 0}
 :root{--hdr:67px}
+
+/* V6 logo: option B1 "words as the funnel" is the main logo; its compact sibling (B3) is the header version */
+.brand img{height:46px;width:auto}
+header.nav{padding:8px 0}
+:root{--hdr:67px}

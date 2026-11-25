@@ -4,7 +4,7 @@ from .migrations import MIGRATIONS
 from datetime import datetime, timedelta, timezone
 
 
-# Pilot-safe defaults for a hosted service (budget: $20 for the whole pilot; a 15-judgment run costs about $0.44).
+# Pilot-safe defaults for a hosted service (budget: $20 for the whole pilot; a 15-judgment run costs about $0.45).
 # The earlier defaults (200 runs a day, 20 an hour per visitor, 25 judgments) could spend about $88 in a day if a
 # public link were shared. The provider's spending limit remains the real guard; these only lower the risk.
 PILOT_DEFAULTS = {"daily_cap": 3, "rate_limit_per_hour": 3, "max_judgments": 15}
@@ -17,7 +17,7 @@ DEFAULT_SETTINGS = {
     "horizon_months": 3, "lead_time_days": 14, "min_fit": "Low", "faculty_per_run": 25,
     "max_detail_fetches": 250, "max_judgments": PILOT_DEFAULTS["max_judgments"], "judge_concurrency": 8, "judge_deadline_s": 90, "source_timeout_s": 30, "source_concurrency": 8,
     "cache_ttl_minutes": 15, "include_undated_deadlines": False,
-    "require_access_code": True, "access_code_default_expiry": "2026-12-08", "access_failures_per_hour": 20, "estimated_run_cost_usd": 0.44,
+    "require_access_code": True, "access_code_default_expiry": "2026-12-08", "access_failures_per_hour": 20, "estimated_cost_per_judgment_usd": 0.03,
     "price_per_mtok_input": 4.0, "price_per_mtok_output": 20.0, "pilot_budget_usd": 9.0,
     "rate_limit_per_hour": PILOT_DEFAULTS["rate_limit_per_hour"], "pi_lookups_per_hour": 60, "pi_lookups_per_day": 1000, "daily_cap": PILOT_DEFAULTS["daily_cap"], "retention_days": 90,
     "email_mode": "dummy", "test_mailbox": "", "sender_label": "Forge Signal (pilot)", "active_model": "mock",

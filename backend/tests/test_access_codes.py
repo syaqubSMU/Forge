@@ -29,6 +29,7 @@ def hosted(monkeypatch):
     monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: PricedMock([factors_json()]))
     app = create_app(":memory:", lister=lambda *a, **k: [dict(o) for o in CORPUS], detailer=detailer)
     app.state.db.set_setting("require_access_code", True)
+    app.state.db.set_setting("max_judgments", 15)                     # the production default (tests otherwise use 25)
     c = TestClient(app); c.db = app.state.db
     return c
 
@@ -312,9 +313,9 @@ def test_the_in_flight_slot_is_released_when_a_run_fails(hosted, monkeypatch):
 
 # ---- budget reservation at creation --------------------------------------------------------------------------------
 def test_creating_a_code_is_refused_when_outstanding_allowances_would_exceed_the_budget(hosted):
-    assert hosted.db.settings()["pilot_budget_usd"] == 9.0 and hosted.db.settings()["estimated_run_cost_usd"] == 0.44
-    for i in range(6): make(hosted, f"tester {i + 1}", 3)                       # 18 runs, about $7.92
-    make(hosted, "owner", 2)                                                     # 20 runs, $8.80: fits
+    assert hosted.db.settings()["pilot_budget_usd"] == 9.0 and hosted.db.settings()["estimated_cost_per_judgment_usd"] == 0.03
+    for i in range(6): make(hosted, f"tester {i + 1}", 3)                       # 18 runs, $8.10 at 0.45 a run
+    make(hosted, "owner", 2)                                                     # 20 runs, exactly $9.00: fits
     r = hosted.post("/api/admin/access-codes", json={"label": "owner extra", "allowance": 1}, headers=ADMIN)
     assert r.status_code == 409 and err(r)["code"] == "budget_would_be_exceeded" and "exceed the pilot budget" in err(r)["message"]
     assert hosted.db.q("SELECT COUNT(*) c FROM access_codes", one=True)["c"] == 7
@@ -394,8 +395,8 @@ def test_cors_allows_the_access_code_header_when_pages_are_on_another_host(monke
 def test_environment_report_shows_the_committed_estimate(hosted):
     make(hosted, "tester 1", 3); make(hosted, "tester 2", 2)
     j = hosted.get("/api/admin/environment", headers=ADMIN).json()["access_codes"]["budget_reservation"]
-    assert j == {"outstanding_runs": 5, "estimated_run_cost_usd": 0.44, "committed_estimate_usd": 2.2,
-                 "recorded_spend_estimate_usd": 0.0, "total_usd": 2.2, "pilot_budget_usd": 9.0}
+    assert j == {"outstanding_runs": 5, "estimated_run_cost_usd": 0.45, "derived_from": "15 judgments x $0.03 each",
+                 "committed_estimate_usd": 2.25, "recorded_spend_estimate_usd": 0.0, "total_usd": 2.25, "pilot_budget_usd": 9.0}
 
 
 def test_an_unexpected_error_marks_the_run_failed_and_refunds_when_nothing_was_billed(monkeypatch):
@@ -411,3 +412,28 @@ def test_an_unexpected_error_marks_the_run_failed_and_refunds_when_nothing_was_b
     assert row["status"] == "failed" and row["error"] == "unexpected error: ValueError" and "LEAK" not in row["error"]
     assert c.db.q("SELECT runs_used FROM access_codes", one=True)["runs_used"] == 0
     assert run(c, out["code"]).status_code == 500                              # the in-flight slot was released too
+
+
+# ---- the run estimate follows max_judgments -----------------------------------------------------------------------
+def test_estimated_run_cost_is_derived_from_max_judgments(hosted):
+    st = hosted.db.settings()
+    from app.main import estimated_run_cost
+    assert estimated_run_cost(st) == 0.45
+    hosted.db.set_setting("max_judgments", 25)
+    assert estimated_run_cost(hosted.db.settings()) == 0.75
+
+
+def test_raising_max_judgments_tightens_the_reservation_so_it_cannot_undercount(hosted):
+    for i in range(6): make(hosted, f"tester {i + 1}", 3)
+    make(hosted, "owner", 2)                                                      # 20 runs x 0.45 = 9.00: fits
+    hosted.db.set_setting("max_judgments", 25)                                    # a run is now assumed to cost 0.75
+    r = hosted.post("/api/admin/access-codes", json={"label": "one more", "allowance": 1}, headers=ADMIN)
+    assert r.status_code == 409 and "$0.75 a run" in err(r)["message"]
+    j = hosted.get("/api/admin/environment", headers=ADMIN).json()["access_codes"]["budget_reservation"]
+    assert j["estimated_run_cost_usd"] == 0.75 and j["committed_estimate_usd"] == 15.0 and j["total_usd"] == 15.0   # honest: already over the budget
+
+
+def test_exactly_fitting_the_budget_is_allowed_and_one_run_more_is_not(hosted):
+    for i in range(6): make(hosted, f"tester {i + 1}", 3)
+    assert hosted.post("/api/admin/access-codes", json={"label": "owner", "allowance": 2}, headers=ADMIN).status_code == 201
+    assert hosted.post("/api/admin/access-codes", json={"label": "owner 2", "allowance": 1}, headers=ADMIN).status_code == 409

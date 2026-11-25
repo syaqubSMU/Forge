@@ -78,6 +78,17 @@ def _csv_safe(v):
     return "'" + s if s[:1] in ("=", "+", "-", "@") else s    # block spreadsheet formula injection
 
 
+PLAIN_SETTING = re.compile(r"[A-Za-z0-9._:-]{1,80}")
+
+
+def plain_setting(v):
+    """Echo a setting only if it looks like an ordinary identifier; anything else (a pasted key, a URL, a sentence)
+    is reported as set but never shown."""
+    if v is None:
+        return None
+    return v if PLAIN_SETTING.fullmatch(v) else "(set, unusual value)"
+
+
 def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=None) -> FastAPI:
     """lister/detailer override the live source functions; tests inject fakes so no test hits the network."""
     app = FastAPI(title="FORGE SIGNAL API", version="0.2-skeleton", docs_url=None, redoc_url=None)
@@ -87,6 +98,10 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                            allow_headers=["Content-Type", "X-Admin-Token"])
     db = Database(db_path or os.environ.get("FORGE_DB", "forge.db"))
     app.state.db = db
+    admin_token = os.environ.get("ADMIN_TOKEN", "")
+    if admin_token and len(admin_token) < 32:
+        import logging
+        logging.getLogger("uvicorn.error").warning("ADMIN_TOKEN is shorter than 32 characters. Use a long random string.")
     if db.pg and not os.environ.get("FORGE_SALT"):
         import logging
         logging.getLogger("uvicorn.error").warning("FORGE_SALT is not set: visitor hashes use a public default salt. Set it in every hosted environment.")
@@ -320,7 +335,8 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                 "admin_token_set": bool(os.environ.get("ADMIN_TOKEN")), "salt_set": bool(os.environ.get("FORGE_SALT")),
                 "model_key_variable": key_var,                      # the variable's NAME, never its value
                 "active_model": db.settings()["active_model"],
-                "model": os.environ.get("FORGE_MODEL", "claude-opus-5-5"), "effort": os.environ.get("FORGE_EFFORT") or None,
+                "model": plain_setting(os.environ.get("FORGE_MODEL", "claude-opus-5-5")),
+                "effort": plain_setting(os.environ.get("FORGE_EFFORT") or None),
                 "trusted_proxy_hops": os.environ.get("FORGE_TRUSTED_PROXY_HOPS", "0"),
                 "cors_origins": origins, "model_max_concurrent": MODEL_MAX_CONCURRENT,
                 "judge_concurrency": db.settings()["judge_concurrency"],

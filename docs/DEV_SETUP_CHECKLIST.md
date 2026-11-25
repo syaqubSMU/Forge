@@ -1,6 +1,6 @@
 # Dev environment setup checklist (owner)
 
-One page. Variable **names only**: never write a value or secret into this file, a chat or a commit. Render menu names below are from general knowledge and were not checked against the live Render screens; where a label differs, use the nearest match. Everything about the application itself is from this repository.
+One page. Variable **names only**: never write a value or secret into this file, a chat or a commit. The Render menu names below are from general knowledge and were NOT checked against the live Render screens; the owner should correct any label that differs. Everything about the application itself is from this repository.
 
 ## 1. Service
 - [ ] New **Web Service** from this repository, branch `integration` (dev only; main is the live site and is not touched by this).

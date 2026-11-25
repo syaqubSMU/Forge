@@ -17,7 +17,7 @@ DEFAULT_SETTINGS = {
     "horizon_months": 3, "lead_time_days": 14, "min_fit": "Low", "faculty_per_run": 25,
     "max_detail_fetches": 250, "max_judgments": PILOT_DEFAULTS["max_judgments"], "judge_concurrency": 8, "judge_deadline_s": 90, "source_timeout_s": 30, "source_concurrency": 8,
     "cache_ttl_minutes": 15, "include_undated_deadlines": False,
-    "require_access_code": True, "access_code_default_expiry": "2026-12-08", "access_checks_per_hour": 120,
+    "require_access_code": True, "access_code_default_expiry": "2026-12-08", "access_failures_per_hour": 20, "estimated_run_cost_usd": 0.44,
     "price_per_mtok_input": 4.0, "price_per_mtok_output": 20.0, "pilot_budget_usd": 9.0,
     "rate_limit_per_hour": PILOT_DEFAULTS["rate_limit_per_hour"], "pi_lookups_per_hour": 60, "pi_lookups_per_day": 1000, "daily_cap": PILOT_DEFAULTS["daily_cap"], "retention_days": 90,
     "email_mode": "dummy", "test_mailbox": "", "sender_label": "Forge Signal (pilot)", "active_model": "mock",

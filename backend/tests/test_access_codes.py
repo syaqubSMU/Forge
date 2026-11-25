@@ -214,12 +214,22 @@ def test_pages_and_config_need_no_code(hosted):
     assert hosted.get("/api/health").status_code == 200 and hosted.get("/config.js").status_code == 200
 
 
-def test_per_visitor_attempt_ceiling_counts_real_attempts_only(hosted):
-    hosted.db.set_setting("access_checks_per_hour", 2)
-    for _ in range(5): assert err(run(hosted))["code"] == "missing"                       # a missing code costs nothing
+def test_only_failed_attempts_are_counted_and_no_code_is_locked(hosted):
+    good = make(hosted)["code"]
+    hosted.db.set_setting("access_failures_per_hour", 2)
+    for _ in range(5): assert err(run(hosted))["code"] == "missing"                      # a missing code is not a failed attempt
+    assert run(hosted, good).status_code == 200 and run(hosted, good).status_code == 200  # valid use is not counted
     assert err(run(hosted, "fsa_a"))["code"] == "invalid" and err(run(hosted, "fsa_b"))["code"] == "invalid"
-    r = run(hosted, "fsa_c"); assert r.status_code == 429 and err(r)["code"] == "too_many_attempts"
-    assert "recorded_example" not in err(r)
+    r = run(hosted, "fsa_c"); assert r.status_code == 429 and err(r)["code"] == "too_many_attempts" and "recorded_example" not in err(r)
+    assert hosted.db.q("SELECT revoked_at FROM access_codes", one=True)["revoked_at"] is None    # the address is throttled, the code is not locked
+    assert err(hosted.get("/api/access/check", headers={"X-Access-Code": "fsa_d"}))["code"] == "too_many_attempts"
+
+
+def test_failed_attempts_are_not_logged_or_stored(hosted, caplog):
+    with caplog.at_level(logging.DEBUG):
+        run(hosted, "fsa_guess-one"); run(hosted, "fsa_guess-two")
+    assert "guess" not in caplog.text and "access code" not in caplog.text.lower()
+    assert hosted.db.q("SELECT COUNT(*) c FROM admin_audit WHERE action IN ('access_code_created', 'access_code_revoked', 'access_code_failed')", one=True)["c"] == 0
 
 
 def test_comparison_uses_a_constant_time_function(hosted, monkeypatch):
@@ -266,3 +276,107 @@ def test_database_at_version_2_upgrades_to_3_with_data_intact(tmp_path, monkeypa
     row = new.q("SELECT id, cost_usd, access_code_id FROM runs", one=True)
     assert (row["id"], row["cost_usd"], row["access_code_id"]) == ("abcdef123456", 0.5, None)
     assert new.q("SELECT COUNT(*) c FROM access_codes", one=True)["c"] == 0
+
+
+# ---- one run in flight per code ------------------------------------------------------------------------------------
+def test_a_second_concurrent_run_from_the_same_code_is_refused_then_allowed_after(hosted, monkeypatch):
+    started, release = threading.Event(), threading.Event()
+
+    class Slow(PricedMock):
+        def complete(self, system, prompt):
+            started.set(); release.wait(10)
+            return super().complete(system, prompt)
+    monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: Slow([factors_json()]))
+    out = make(hosted); box = []
+    t = threading.Thread(target=lambda: box.append(run(hosted, out["code"]))); t.start()
+    assert started.wait(10)
+    r = run(hosted, out["code"])
+    assert r.status_code == 429 and err(r)["code"] == "run_in_progress" and "still running" in err(r)["message"]
+    assert hosted.db.q("SELECT runs_used FROM access_codes", one=True)["runs_used"] == 1      # the refused request took nothing
+    other = make(hosted, "tester 2")                                                            # another code is not blocked by this one
+    release.set(); t.join(30)
+    assert box[0].status_code == 200 and run(hosted, other["code"]).status_code == 200
+    assert run(hosted, out["code"]).status_code == 200                                         # released after the first finished
+
+
+def test_the_in_flight_slot_is_released_when_a_run_fails(hosted, monkeypatch):
+    class Boom(ModelAdapter):
+        name = "boom"
+        def complete(self, system, prompt): raise RuntimeError("down")
+    monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: Boom())
+    out = make(hosted)
+    assert run(hosted, out["code"]).status_code == 502
+    r = run(hosted, out["code"])
+    assert r.status_code == 502 and "run_in_progress" not in r.text                  # reached the model again: the slot was free
+
+
+# ---- budget reservation at creation --------------------------------------------------------------------------------
+def test_creating_a_code_is_refused_when_outstanding_allowances_would_exceed_the_budget(hosted):
+    assert hosted.db.settings()["pilot_budget_usd"] == 9.0 and hosted.db.settings()["estimated_run_cost_usd"] == 0.44
+    for i in range(6): make(hosted, f"tester {i + 1}", 3)                       # 18 runs, about $7.92
+    make(hosted, "owner", 2)                                                     # 20 runs, $8.80: fits
+    r = hosted.post("/api/admin/access-codes", json={"label": "owner extra", "allowance": 1}, headers=ADMIN)
+    assert r.status_code == 409 and err(r)["code"] == "budget_would_be_exceeded" and "exceed the pilot budget" in err(r)["message"]
+    assert hosted.db.q("SELECT COUNT(*) c FROM access_codes", one=True)["c"] == 7
+
+
+def test_an_owner_code_of_three_is_refused_after_six_testers_of_three(hosted):
+    for i in range(6): make(hosted, f"tester {i + 1}", 3)
+    assert hosted.post("/api/admin/access-codes", json={"label": "owner", "allowance": 3}, headers=ADMIN).status_code == 409
+
+
+def test_revoking_or_using_runs_frees_budget_and_a_raised_limit_allows_more(hosted):
+    ids = [make(hosted, f"tester {i + 1}", 3) for i in range(6)]
+    make(hosted, "owner", 2)
+    assert hosted.post("/api/admin/access-codes", json={"label": "x", "allowance": 3}, headers=ADMIN).status_code == 409
+    hosted.post(f"/api/admin/access-codes/{ids[0]['id']}/revoke", headers=ADMIN)       # frees 3 runs
+    assert hosted.post("/api/admin/access-codes", json={"label": "x", "allowance": 3}, headers=ADMIN).status_code == 201
+    assert hosted.post("/api/admin/access-codes", json={"label": "y", "allowance": 1}, headers=ADMIN).status_code == 409
+    hosted.db.set_setting("pilot_budget_usd", 20.0)                                    # deliberate
+    assert hosted.post("/api/admin/access-codes", json={"label": "y", "allowance": 1}, headers=ADMIN).status_code == 201
+
+
+def test_recorded_spend_counts_against_the_reservation(hosted):
+    out = make(hosted, "tester 1", 1)
+    assert run(hosted, out["code"]).status_code == 200
+    hosted.db.q("UPDATE runs SET cost_usd=8.9", write=True)                            # spend already recorded in this database
+    assert hosted.post("/api/admin/access-codes", json={"label": "z", "allowance": 1}, headers=ADMIN).status_code == 409
+
+
+def test_out_of_range_allowance_still_says_400_not_a_budget_message(hosted):
+    assert hosted.post("/api/admin/access-codes", json={"label": "x", "allowance": 21}, headers=ADMIN).status_code == 400
+
+
+# ---- the researcher lookup also needs a code ---------------------------------------------------------------------
+def test_pi_lookup_needs_a_valid_code_and_does_not_spend_an_allowance(monkeypatch):
+    from tests.test_openalex import FakeClient
+    monkeypatch.setenv("ADMIN_TOKEN", "admin-secret-token-for-tests-1234567890"); monkeypatch.setenv("FORGE_SALT", "s")
+    app = create_app(":memory:", lister=lambda *a, **k: [], detailer=detailer, openalex_client=FakeClient())
+    app.state.db.set_setting("require_access_code", True)
+    c = TestClient(app); c.db = app.state.db
+    out = make(c)
+    assert err(c.post("/api/pi/search", json={"name": "Pat Example"}))["code"] == "missing"
+    assert err(c.get("/api/pi/A111111/expertise"))["code"] == "missing"
+    assert err(c.post("/api/pi/search", json={"name": "Pat Example"}, headers={"X-Access-Code": "fsa_nope"}))["code"] == "invalid"
+    h = {"X-Access-Code": out["code"]}
+    assert c.post("/api/pi/search", json={"name": "Pat Example"}, headers=h).status_code == 200
+    assert c.get("/api/pi/A111111/expertise", headers=h).status_code == 200
+    assert c.db.q("SELECT runs_used FROM access_codes", one=True)["runs_used"] == 0
+    c.db.set_setting("require_access_code", False)
+    assert c.post("/api/pi/search", json={"name": "Pat Example"}).status_code == 200
+
+
+# ---- admin API on a hosted database ----------------------------------------------------------------------------
+@pytest.mark.real_defaults
+def test_a_short_admin_token_disables_the_admin_api_on_a_hosted_database(monkeypatch):
+    monkeypatch.setenv("ADMIN_TOKEN", "short-token")
+    app = create_app(":memory:", lister=lambda *a, **k: [], detailer=detailer)
+    c = TestClient(app)
+    app.state.db.pg = False                                                                                   # behave as a local database
+    assert c.get("/api/admin/settings", headers={"X-Admin-Token": "short-token"}).status_code == 200      # local database: fine
+    app.state.db.pg = True                                                                                    # behave as hosted Postgres
+    r = c.get("/api/admin/settings", headers={"X-Admin-Token": "short-token"})
+    assert r.status_code == 503 and "at least 32 characters" in r.text and "short-token" not in r.text
+    monkeypatch.setenv("ADMIN_TOKEN", "x" * 40)
+    app.state.db.pg = False                                                                                   # settings are read through the real engine below
+    assert c.get("/api/admin/settings", headers={"X-Admin-Token": "x" * 40}).status_code == 200

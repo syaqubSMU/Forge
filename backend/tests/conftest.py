@@ -14,6 +14,8 @@ def _generous_limits_for_tests(request, monkeypatch):
     if request.node.get_closest_marker("real_defaults"):
         yield; return
     import app.db as dbmod
+    import app.main as mainmod
+    monkeypatch.setattr(mainmod, "MIN_HOSTED_ADMIN_TOKEN", 0)          # tests use short admin tokens, also against Postgres
     for k, v in {"daily_cap": 200, "rate_limit_per_hour": 20, "max_judgments": 25, "require_access_code": False}.items():
         monkeypatch.setitem(dbmod.DEFAULT_SETTINGS, k, v)
     yield

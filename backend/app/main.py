@@ -1,7 +1,7 @@
 """FORGE SIGNAL API skeleton: public run endpoint, dummy email, admin dashboard API, run log.
 Hard rules enforced here: keys only from the server environment and never returned; human confirmation
 before any email; per-visitor rate limit and daily cap; no raw source text returned to the public."""
-import csv, hashlib, json, hmac, io, os, pathlib, re, tempfile, time
+import contextlib, csv, hashlib, json, hmac, io, os, pathlib, re, tempfile, threading, time
 from datetime import date, datetime, timedelta, timezone
 
 from fastapi import Depends, FastAPI, File, Header, HTTPException, Request, UploadFile
@@ -30,6 +30,7 @@ from .validator import validate
 
 MAX_SOURCES, MAX_SOURCE_CHARS = 3, 20000        # pasted evidence goes straight to the model: bound the cost of one request
 MAX_BODY_BYTES = int(os.environ.get("FORGE_MAX_BODY_BYTES", "400000"))   # public POST bodies; admin uploads are exempt
+MIN_HOSTED_ADMIN_TOKEN = 32                      # on a hosted (Postgres) database a shorter ADMIN_TOKEN disables the admin API
 INPUT_TYPES = ("pi_name", "project", "keywords", "opportunity_unit")
 
 
@@ -145,6 +146,8 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
     def admin(x_admin_token: str = Header(default="")):
         expected = os.environ.get("ADMIN_TOKEN", "")
         if not expected: raise HTTPException(503, "admin is disabled: ADMIN_TOKEN is not set on the server")
+        if db.pg and len(expected) < MIN_HOSTED_ADMIN_TOKEN:
+            raise HTTPException(503, f"The admin API is disabled: on a hosted database ADMIN_TOKEN must be at least {MIN_HOSTED_ADMIN_TOKEN} characters. Set a longer one and restart.")
         if not hmac.compare_digest(x_admin_token, expected): raise HTTPException(401, "admin sign-in required")
         return "admin"
 
@@ -160,27 +163,40 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
         return {"notice": NOTICE}
 
     # ---------------------------------------------------------------- tester access codes
-    access_hits = {}                               # visitor hash -> times of code checks in the last hour; per process
+    access_fails = {}                              # visitor hash -> times of FAILED code attempts in the last hour; per process, in memory only
+    busy_codes = set()                             # access code ids with a run in flight; per process
+    busy_lock = threading.Lock()
+
+    @contextlib.contextmanager
+    def in_flight(code_id):
+        """One live run at a time per code: a second concurrent run from the same code is refused, never queued."""
+        with busy_lock:
+            if code_id in busy_codes:
+                raise HTTPException(429, {"code": "run_in_progress", "message": "Another search with this access code is still running. Please wait for it to finish, then try again."})
+            busy_codes.add(code_id)
+        try:
+            yield
+        finally:
+            with busy_lock:
+                busy_codes.discard(code_id)
 
     def access_gate(st, vh, code):
-        """Validate the X-Access-Code header. A missing code costs nothing; each real attempt counts toward a per-visitor
-        hourly ceiling (load and noise only: there is deliberately no lockout, see docs/BACKEND_DECISIONS.md D7)."""
+        """Validate the X-Access-Code header. Only FAILED attempts are counted, per visitor address, in memory (about 20 an
+        hour, then 429): a throttle on guessing, never a lock on any code. Failures are not logged or stored."""
         if not code:
             raise HTTPException(403, access.AccessError("missing").detail())
         t = time.time()
-        for k in [k for k, v in access_hits.items() if not v or t - v[-1] >= 3600]: del access_hits[k]
-        recent = [x for x in access_hits.get(vh, []) if t - x < 3600]
-        if len(recent) >= st["access_checks_per_hour"]:
+        for k in [k for k, v in access_fails.items() if not v or t - v[-1] >= 3600]: del access_fails[k]
+        recent = [x for x in access_fails.get(vh, []) if t - x < 3600]
+        if len(recent) >= st["access_failures_per_hour"]:
             raise HTTPException(429, access.AccessError("too_many_attempts").detail())
-        access_hits[vh] = recent + [t]
         try:
             return access.check(db, code)
         except access.NoSalt:
             raise HTTPException(503, "Access codes are not configured on this server.")
         except access.AccessError as e:
             if e.code == "invalid":
-                import logging
-                logging.getLogger("uvicorn.error").info("access code not recognised (visitor %s)", vh)       # never the code
+                access_fails[vh] = recent + [t]
             raise HTTPException(e.status, e.detail())
 
     @app.get("/api/access/check")
@@ -199,6 +215,17 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
 
     @app.post("/api/admin/access-codes")
     def create_access_code(body: AccessCodeIn, actor=Depends(admin)):
+        st = db.settings(); limit, est = st["pilot_budget_usd"], st["estimated_run_cost_usd"]
+        if limit and est and isinstance(body.allowance, int) and not isinstance(body.allowance, bool) and 1 <= body.allowance <= 20:
+            # BUDGET RESERVATION: recorded spend + every run still allowed to usable codes + this code's runs must fit the pilot budget
+            outstanding = sum(c["remaining"] for c in access.listing(db)
+                              if not c["revoked"] and not (c["expires_at"] and c["expires_at"] <= now()))
+            spent = db.spent_usd()
+            if spent + (outstanding + body.allowance) * est > limit + 1e-9:
+                raise HTTPException(409, {"code": "budget_would_be_exceeded",
+                    "message": (f"Creating this code would exceed the pilot budget: ${spent:.2f} is already recorded, {outstanding} runs are already "
+                                f"allowed to other codes and this code adds {body.allowance}, at about ${est:.2f} a run, against a budget of ${limit:.2f}. "
+                                "Lower the allowance, revoke an unused code, or raise pilot_budget_usd on purpose after checking the provider console.")})
         try:
             exp = access.iso_expiry(body.expires_at, db.settings()["access_code_default_expiry"])
             out = access.create(db, body.label, body.allowance, exp, actor)
@@ -245,6 +272,12 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
             adapter = get_adapter(s)
         except (ValueError, RuntimeError) as e:
             raise HTTPException(503, f"model not available: {e}")        # message never contains a key
+        if code_row is None:
+            return _execute(body, s, vh, live, adapter, None)
+        with in_flight(code_row["id"]):
+            return _execute(body, s, vh, live, adapter, code_row)
+
+    def _execute(body, s, vh, live, adapter, code_row):
         if code_row is not None and not access.claim(db, code_row):          # atomic: two simultaneous requests cannot both take the last run
             fresh = db.q("SELECT * FROM access_codes WHERE id=?", (code_row["id"],), one=True)
             raise HTTPException(403, access.AccessError(access.state(fresh) or "allowance_used").detail())
@@ -333,11 +366,18 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
     def pi_error(e: "openalex.OpenAlexError"):
         return HTTPException(e.status, {"code": e.code, "message": e.message})
 
+    def pi_access(request, code):
+        """The researcher lookup calls a third party, so it needs a valid access code too (checked, never consuming an allowance)."""
+        st = db.settings()
+        if st["require_access_code"]:
+            access_gate(st, visitor(request), code)
+
     class PiSearchIn(BaseModel):
         name: str = Field(max_length=500)           # real limits (3 to 120 characters, after cleaning) are checked with clear messages
 
     @app.post("/api/pi/search")                       # POST so the name never appears in a URL or access log
-    def pi_search(body: PiSearchIn, request: Request):
+    def pi_search(body: PiSearchIn, request: Request, x_access_code: str = Header(default="")):
+        pi_access(request, x_access_code)
         try:
             openalex.clean_name(body.name)            # refuse before spending a lookup
             pi_limit(request)
@@ -346,7 +386,8 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
             raise pi_error(e)
 
     @app.get("/api/pi/{author_id}/expertise")
-    def pi_expertise(author_id: str, request: Request):
+    def pi_expertise(author_id: str, request: Request, x_access_code: str = Header(default="")):
+        pi_access(request, x_access_code)
         try:
             if not openalex.ID_RE.fullmatch(author_id): raise openalex.OpenAlexError("bad_author_id")
             pi_limit(request)

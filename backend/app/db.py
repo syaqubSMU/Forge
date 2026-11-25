@@ -33,7 +33,7 @@ DEFAULT_SETTINGS = {
     "max_detail_fetches": 250, "max_judgments": 25, "judge_concurrency": 8, "source_timeout_s": 30, "source_concurrency": 8,
     "cache_ttl_minutes": 15, "include_undated_deadlines": False,
     "price_per_mtok_input": 0.0, "price_per_mtok_output": 0.0,
-    "rate_limit_per_hour": 20, "daily_cap": 200, "retention_days": 90,
+    "rate_limit_per_hour": 20, "pi_lookups_per_hour": 60, "daily_cap": 200, "retention_days": 90,
     "email_mode": "dummy", "test_mailbox": "", "sender_label": "Forge Signal (pilot)", "active_model": "mock",
 }
 NOTICE = ("Runs, inputs and calendars are logged for the pilot report, kept for 90 days, then archived. "

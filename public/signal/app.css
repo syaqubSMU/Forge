@@ -680,3 +680,92 @@ mark{background:linear-gradient(transparent 40%,rgba(249,200,14,.7) 40%);color:v
 .because::before{content:"\2193  "}
 .sample-card .result{box-shadow:none}
 .hero{background:linear-gradient(180deg,#fff 0,#fff 100%)}
+
+/* ==========================================================================
+   V4: fresher palette from the owner's reference (navy #213159, blue #3D6098,
+   grey #E7E7E7), a bold sans headline with an italic serif phrase, uppercase nav.
+   The reference's red button is replaced by the logo's orange, because the owner asked for no red.
+   Red is the single primary action per page; everything else is blue.
+   ========================================================================== */
+:root{
+  --ink:#213159; --slate:#2B3347; --muted:#5B6475;
+  --blue:#3D6098; --blue-deep:#2F4C7C; --sky:#4A95D6; --tint:#EAF1FB;
+  --soft:#F1F4F9; --warm:#F6F7F9; --border:#DCE1EA; --field:#6B7790;
+  --focus:#213159; --human:#213159; --coral:#F28C28; --accent:#F28C28;
+  --f-head:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-serif:Georgia,"Times New Roman",serif;
+}
+body{background:var(--warm)}
+h1,h2,h3,h4{font-family:var(--f-head);color:var(--ink);font-weight:750;letter-spacing:-.025em}
+h1 em,h2 em{font-family:var(--f-serif);font-style:italic;font-weight:400;letter-spacing:-.01em;color:var(--blue)}
+.hero h1{font-family:var(--f-head);font-weight:800;letter-spacing:-.035em;max-width:18ch}
+.pagehead h1{font-family:var(--f-head);font-weight:800;letter-spacing:-.03em}
+a{color:var(--blue)}
+:focus-visible{outline:3px solid var(--ink);box-shadow:0 0 0 2px #fff}
+
+/* header: crisp, uppercase navigation as in the reference */
+header.nav{border-top:4px solid var(--blue)}
+header.nav nav a{text-transform:uppercase;letter-spacing:.06em;font-size:13px;font-weight:600;color:var(--ink)}
+header.nav nav a:hover{color:var(--blue)}
+header.nav nav a[aria-current=page]{color:var(--blue)}
+header.nav nav a[aria-current=page]::after{background:var(--accent);height:3px}
+.mock-banner{background:var(--ink);color:#EAF1FB;border:0}
+.mock-banner strong{color:#fff}
+
+/* buttons: orange is the one primary action, blue is secondary */
+.btn{background:var(--blue);border-color:var(--blue);color:#fff;text-transform:uppercase;letter-spacing:.05em;font-size:13px;font-weight:700;padding:13px 22px;border-radius:4px}
+.btn:hover{background:var(--blue-deep);border-color:var(--blue-deep)}
+.btn.accent{background:var(--accent);border-color:var(--accent);color:var(--ink)}
+.btn.accent:hover{background:#E07F1B;border-color:#E07F1B}
+.btn.ghost,.hero .btn.ghost{background:#fff;color:var(--blue);border:2px solid var(--blue)}
+.btn.ghost:hover,.hero .btn.ghost:hover{background:var(--tint);color:var(--ink);border-color:var(--ink)}
+.btn.s{font-size:12px;padding:8px 14px}
+.btn[disabled]{background:var(--soft);color:#8A93A6;border-color:var(--border)}
+.btn-row .btn:first-child:not(.ghost):not(.accent){}
+
+/* hero: fresh blue tint, the sample is the picture */
+.hero{background:linear-gradient(135deg,var(--tint) 0,#fff 62%);border-bottom:1px solid var(--border)}
+.hero .lead{color:#3B4660}
+.eyebrow,.page-head .eyebrow,.sec-head .eyebrow,.pagehead .eyebrow,.hero .eyebrow{color:var(--blue);font-weight:700}
+.sec-head .eyebrow::before,.hero .eyebrow::before{background:var(--accent);height:3px;width:24px}
+.sample-card .result,.excerpt{box-shadow:0 18px 40px rgba(33,49,89,.12)}
+.excerpt{border-left-color:var(--sky);font-family:var(--f-serif)}
+.because{color:var(--blue)}
+
+/* surfaces and ratings */
+.b-high{background:var(--blue);border-color:var(--blue);color:#fff}
+.b-medium{color:var(--blue);border:1.5px solid var(--blue);background:#fff}
+.steps4 [aria-current=step] .num{background:var(--blue);border-color:var(--blue)}
+.steps4 [aria-current=step]{color:var(--blue)}
+.steps4 .you a,.steps4 .you .num{color:var(--ink);border-color:var(--ink)}
+.counters .n{color:var(--blue);font-family:var(--f-head);font-weight:750}
+.notice{border-left-color:var(--sky);background:var(--tint);border-color:#CFDBEE}
+.notice strong{color:var(--ink)}
+.notice.warn{background:#FFF4E5;border-color:#F0D3A6;border-left-color:#C77012}
+.notice.warn strong{color:#8A4B00}
+.filters{border-top:3px solid var(--blue)}
+.choice:has(input:checked){border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue);background:var(--tint)}
+.quote{border-left-color:var(--sky)}
+.for-tag{color:var(--blue)}
+.yourcheck{border-color:var(--ink);border-left-color:var(--ink);background:#fff}
+.decide,.flow li.human{background:var(--ink)}
+.flow li::before{border-color:var(--blue);color:var(--blue)}
+.pull{background:var(--ink);border-left-color:var(--accent)}
+thead th{color:var(--ink);border-bottom:2px solid var(--ink)}
+tr:hover td{background:var(--tint)}
+tbody tr:hover td:first-child{background:var(--tint)}
+.band{background:var(--soft)}
+footer{background:var(--ink);color:#C4CCDD;border:0}
+footer a{color:#fff}
+.status{border-left-color:var(--blue)}
+.status.wait{background:var(--tint)}
+.chip{background:var(--tint);border-color:#B9CBE8}
+.hero-video,.vdesc{border-radius:8px}
+.hero .btn.accent,.btn.accent{color:var(--ink)}
+
+/* V4 accent is the reference red. Decoration uses the exact #F04B4C; filled buttons use a slightly
+   deeper #D93638 so white text reaches 4.5:1 (white on #F04B4C is only 3.6:1). */
+:root{--accent:#F04B4C;--accent-btn:#D93638;--accent-btn-hover:#BC2A2C}
+.btn.accent,.hero .btn.accent{background:var(--accent-btn);border-color:var(--accent-btn);color:#fff}
+.btn.accent:hover,.hero .btn.accent:hover{background:var(--accent-btn-hover);border-color:var(--accent-btn-hover)}
+.hero h1 em{font-size:.9em}

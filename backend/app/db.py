@@ -2,30 +2,9 @@
 SQLite by default (a file path or :memory:); Postgres when FORGE_DB is a postgres:// or postgresql:// URL.
 No opportunity, faculty or profile tables (hard rule 1)."""
 import json, sqlite3, threading, uuid
+from .migrations import MIGRATIONS
 from datetime import datetime, timedelta, timezone
 
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS runs(id TEXT PRIMARY KEY, created_at TEXT, visitor_hash TEXT, input_type TEXT, input_text TEXT,
-  scope_snapshot TEXT, settings_snapshot TEXT, rubric_version TEXT, model TEXT, latency_ms INTEGER, status TEXT, error TEXT, archived INTEGER DEFAULT 0,
-  input_tokens INTEGER DEFAULT 0, output_tokens INTEGER DEFAULT 0, opportunities_listed INTEGER DEFAULT 0, details_fetched INTEGER DEFAULT 0);
-CREATE TABLE IF NOT EXISTS run_source_failures(id INTEGER PRIMARY KEY, run_id TEXT, source_id TEXT, error TEXT);
-CREATE TABLE IF NOT EXISTS run_sources(id INTEGER PRIMARY KEY, run_id TEXT, source_id TEXT, url TEXT, retrieved_at TEXT, text_hash TEXT);
-CREATE TABLE IF NOT EXISTS run_matches(id INTEGER PRIMARY KEY, run_id TEXT, data TEXT);
-CREATE TABLE IF NOT EXISTS run_citations(id INTEGER PRIMARY KEY, run_id TEXT, source_id TEXT, quote TEXT, validated INTEGER, reason TEXT);
-CREATE TABLE IF NOT EXISTS email_events(id INTEGER PRIMARY KEY, run_id TEXT, draft TEXT, recipient TEXT, confirmed INTEGER, mode TEXT, created_at TEXT);
-CREATE TABLE IF NOT EXISTS chat_entries(id INTEGER PRIMARY KEY, run_id TEXT, role TEXT, text TEXT, created_at TEXT);
-CREATE TABLE IF NOT EXISTS annotations(id INTEGER PRIMARY KEY, run_id TEXT, label TEXT, note TEXT, created_at TEXT);
-CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT);
-CREATE TABLE IF NOT EXISTS admin_audit(id INTEGER PRIMARY KEY, at TEXT, actor TEXT, action TEXT, detail TEXT);
-CREATE TABLE IF NOT EXISTS rubric_versions(version TEXT PRIMARY KEY, body TEXT, status TEXT, created_at TEXT, published_at TEXT, note TEXT);
-CREATE TABLE IF NOT EXISTS opportunities(source_record_id TEXT PRIMARY KEY, source_system TEXT, number TEXT, title TEXT, sponsor TEXT,
-  agency_code TEXT, status TEXT, open_date TEXT, close_date TEXT, url TEXT, detail TEXT, text_hash TEXT, listed_at TEXT, detail_at TEXT);
-CREATE TABLE IF NOT EXISTS api_calls(id INTEGER PRIMARY KEY, at TEXT, source TEXT, endpoint TEXT, params TEXT, ok INTEGER,
-  http_status INTEGER, latency_ms INTEGER, error TEXT, ingest_id TEXT);
-CREATE INDEX IF NOT EXISTS ix_opps_close ON opportunities(close_date);
-CREATE INDEX IF NOT EXISTS ix_calls_at ON api_calls(at);
-CREATE INDEX IF NOT EXISTS ix_runs_visitor ON runs(visitor_hash, created_at);
-"""
 
 DEFAULT_SETTINGS = {
     "scope_level": "A named organization", "units": [], "funder_types": ["federal"],
@@ -38,6 +17,15 @@ DEFAULT_SETTINGS = {
 }
 NOTICE = ("Runs, inputs and calendars are logged for the pilot report, kept for 90 days, then archived. "
           "Only the administrator can see them. Do not enter restricted data.")
+
+
+def run_cost(settings, input_tokens, output_tokens):
+    """Tokens times the prices set in settings (USD per million tokens). None while no price is set, so a
+    missing price is never shown as a cost of zero."""
+    pi, po = settings.get("price_per_mtok_input") or 0, settings.get("price_per_mtok_output") or 0
+    if not pi and not po:
+        return None
+    return round((input_tokens or 0) / 1e6 * pi + (output_tokens or 0) / 1e6 * po, 6)
 
 
 def now():
@@ -60,12 +48,50 @@ class Database:
         self.lock = threading.Lock()
         self._connect()
         with self.lock:
+            self.migrate()
+
+    # schema versions ------------------------------------------------------
+    def schema_version(self) -> int:
+        with self.lock:
+            try:
+                rows = self.conn.execute("SELECT MAX(version) v FROM schema_migrations").fetchall()
+            except Exception:
+                if self.pg: self.conn.rollback()
+                return 0
+            if self.pg: self.conn.commit()
+            return int((rows[0]["v"] if rows else 0) or 0)
+
+    def migrate(self, target=None) -> list:
+        """Apply pending migrations in order, each in its own transaction. Returns the versions applied.
+        Caller holds self.lock. On Postgres an advisory lock keeps two starting servers from racing."""
+        pk = "BIGSERIAL PRIMARY KEY" if self.pg else "INTEGER PRIMARY KEY"
+        applied = []
+        if self.pg:
+            self.conn.execute("SELECT pg_advisory_lock(727274)")
+        try:
+            self.conn.execute("CREATE TABLE IF NOT EXISTS schema_migrations(version INTEGER PRIMARY KEY, name TEXT, applied_at TEXT)")
+            self.conn.commit()
+            done = {r["version"] for r in self.conn.execute("SELECT version FROM schema_migrations").fetchall()}
+            for version, name, stmts in MIGRATIONS:
+                if version in done or (target is not None and version > target):
+                    continue
+                try:
+                    if not self.pg: self.conn.execute("BEGIN")
+                    for st in stmts:
+                        self.conn.execute(st.replace("{PK}", pk))
+                    self.conn.execute(self._ins(), (version, name, now()))
+                    self.conn.commit()
+                except Exception:
+                    self.conn.rollback()
+                    raise
+                applied.append(version)
+        finally:
             if self.pg:
-                for stmt in filter(None, (x.strip() for x in SCHEMA.replace("id INTEGER PRIMARY KEY", "id BIGSERIAL PRIMARY KEY").split(";"))):
-                    self.conn.execute(stmt)
-                self.conn.commit()
-            else:
-                self.conn.executescript(SCHEMA); self.conn.commit()
+                self.conn.execute("SELECT pg_advisory_unlock(727274)"); self.conn.commit()
+        return applied
+
+    def _ins(self):
+        return "INSERT INTO schema_migrations(version,name,applied_at) VALUES(" + ("%s,%s,%s" if self.pg else "?,?,?") + ")"
 
     def _connect(self):
         if self.pg:
@@ -125,10 +151,10 @@ class Database:
         return rid
 
     def finish_run(self, rid, status, latency_ms, error=None, input_tokens=0, output_tokens=0,
-                   opportunities_listed=0, details_fetched=0):
+                   opportunities_listed=0, details_fetched=0, cost_usd=None):
         self.q("UPDATE runs SET status=?, latency_ms=?, error=?, input_tokens=?, output_tokens=?,"
-               " opportunities_listed=?, details_fetched=? WHERE id=?",
-               (status, latency_ms, error, input_tokens, output_tokens, opportunities_listed, details_fetched, rid), write=True)
+               " opportunities_listed=?, details_fetched=?, cost_usd=? WHERE id=?",
+               (status, latency_ms, error, input_tokens, output_tokens, opportunities_listed, details_fetched, cost_usd, rid), write=True)
 
     def add_source_failure(self, rid, source_id, error):
         self.q("INSERT INTO run_source_failures(run_id,source_id,error) VALUES(?,?,?)", (rid, source_id, str(error)[:300]), write=True)
@@ -163,7 +189,7 @@ class Database:
 
     def list_runs(self, limit=50, offset=0, q=None, include_archived=False):
         sql, args = ("SELECT id,created_at,input_type,input_text,model,status,latency_ms,rubric_version,archived,"
-                     "input_tokens,output_tokens,opportunities_listed,details_fetched FROM runs WHERE 1=1"), []
+                     "input_tokens,output_tokens,opportunities_listed,details_fetched,cost_usd FROM runs WHERE 1=1"), []
         if not include_archived: sql += " AND archived=0"
         if q: sql += " AND LOWER(input_text) LIKE LOWER(?)"; args.append(f"%{q}%")
         sql += " ORDER BY created_at DESC, id LIMIT ? OFFSET ?"; args += [limit, offset]

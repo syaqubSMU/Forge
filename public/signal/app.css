@@ -610,3 +610,73 @@ main .wrap>section{padding:56px 0}
 #explainer .hero-video{margin:0}
 .result.r-High,.result.r-Medium,.result.r-Low{border-left-color:var(--border)}
 .sample-card .h3like{font-size:18px;font-weight:650;color:var(--ink);margin:0 0 6px;letter-spacing:-.02em}
+
+/* ==========================================================================
+   V3: SMU-inspired, not SMU-branded.
+   Adapted from SMU's public brand pages (palette logic and serif + sans pairing):
+   blue is the primary, warm secondaries are used as highlights, near-black is the ink,
+   Georgia (SMU's approved alternative to Tiempos) carries headlines.
+   Not used: any SMU logo, seal, mark or wordmark; SMU red. FORGE SIGNAL keeps its own
+   logo and the "not an approved or endorsed university service" statement.
+   Teal and yellow fail contrast as text, so they are decoration and highlights only.
+   ========================================================================== */
+:root{
+  --ink:#262626; --blue:#354CA1; --blue-deep:#283B80; --slate:#2E3138; --muted:#565B66;
+  --warm:#FAFAF8; --soft:#F1F3F9; --border:#DEE1EA; --field:#6F7787; --focus:#354CA1;
+  --coral:#59C3C3; --coral-lt:#59C3C3; --hl:#F9C80E; --human:#262626;
+  --f-head:Georgia,"Times New Roman",serif;
+}
+h1,h2,h3,h4{font-family:var(--f-head);color:var(--ink);font-weight:700;letter-spacing:-.01em}
+.hero h1{font-family:var(--f-head);font-weight:700;letter-spacing:-.02em;line-height:1.08;max-width:19ch}
+.pagehead h1{font-family:var(--f-head);letter-spacing:-.015em}
+a{color:var(--blue)}
+:focus-visible{outline:3px solid var(--blue);box-shadow:0 0 0 2px #fff}
+
+header.nav{border-top:4px solid var(--blue)}
+header.nav nav a[aria-current=page]::after{background:var(--blue)}
+header.nav nav a{color:var(--slate)}
+header.nav nav a:hover{color:var(--blue)}
+.mock-banner{background:var(--soft);color:var(--ink);border-bottom:1px solid var(--border)}
+.mock-banner strong{color:var(--blue)}
+
+.btn{background:var(--blue);border-color:var(--blue)}
+.btn:hover{background:var(--blue-deep);border-color:var(--blue-deep)}
+.btn.accent{background:var(--blue);border-color:var(--blue)}
+.btn.ghost{background:#fff;color:var(--blue);border-color:var(--blue)}
+.btn.ghost:hover{background:var(--soft);border-color:var(--blue-deep);color:var(--blue-deep)}
+.hero .btn.ghost{color:var(--blue);border-color:var(--blue)}
+.hero .btn.ghost:hover{background:var(--soft)}
+
+.b-high{background:var(--blue);border-color:var(--blue)}
+.b-medium{color:var(--blue);border:1.5px solid var(--blue)}
+.steps4 [aria-current=step] .num{background:var(--blue);border-color:var(--blue)}
+.steps4 [aria-current=step]{color:var(--blue)}
+.counters .n{color:var(--blue)}
+.notice{border-left-color:var(--blue)}
+.choice:has(input:checked){border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue)}
+input[type=radio],input[type=checkbox]{accent-color:var(--blue)}
+.eyebrow,.page-head .eyebrow,.sec-head .eyebrow,.pagehead .eyebrow{color:var(--blue)}
+.sec-head .eyebrow::before,.hero .eyebrow::before{background:var(--coral);height:3px;width:24px}
+.flow li::before{border-color:var(--blue);color:var(--blue)}
+.flow li.human{background:var(--ink)}
+.decide{background:var(--ink)}
+.yourcheck{border-color:var(--ink);border-left-color:var(--ink)}
+.result h3 a{color:var(--ink)}
+.filters{border-top:3px solid var(--blue)}
+tr:hover td{background:var(--soft)}
+
+/* evidence: the quoted sentence is highlighted like a marker pen, with a teal edge */
+.quote{background:#fff;border-left:3px solid var(--coral);border-radius:0 var(--r-sm) var(--r-sm) 0;border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+.quote q{font-style:normal;background:linear-gradient(transparent 52%,rgba(249,200,14,.6) 52%);padding:0 2px;color:var(--ink)}
+.quote q::before,.quote q::after{content:""}
+.for-tag{color:var(--blue)}
+mark{background:linear-gradient(transparent 40%,rgba(249,200,14,.7) 40%);color:var(--ink);padding:0 2px}
+
+/* Home hero: announcement excerpt, highlighted sentence, then the rating it produced */
+.excerpt{background:#fff;border:1px solid var(--border);border-left:3px solid var(--coral);border-radius:var(--r-md);padding:20px 22px;font-family:var(--f-head);font-size:17px;line-height:1.6;color:var(--ink)}
+.excerpt .src{font-family:var(--f-body);font-size:13px;color:var(--muted);margin:0 0 8px}
+.excerpt p:last-child{margin:0}
+.because{margin:10px 0;text-align:center;font-size:14px;color:var(--blue);font-weight:600}
+.because::before{content:"\2193  "}
+.sample-card .result{box-shadow:none}
+.hero{background:linear-gradient(180deg,#fff 0,#fff 100%)}

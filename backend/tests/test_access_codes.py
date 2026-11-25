@@ -253,7 +253,7 @@ def test_the_code_never_appears_in_logs_errors_runs_or_the_database(hosted, capl
 def test_environment_report_shows_access_code_state(hosted):
     make(hosted); make(hosted, "e", expires_at="2020-01-01")
     j = hosted.get("/api/admin/environment", headers=ADMIN).json()["access_codes"]
-    assert j == {"required": True, "salt_set": True, "usable_codes": 1}
+    assert (j["required"], j["salt_set"], j["usable_codes"]) == (True, True, 1) and j["budget_reservation"]["outstanding_runs"] == 3
 
 
 # ---- migration -----------------------------------------------------------------------------------------------------
@@ -380,3 +380,34 @@ def test_a_short_admin_token_disables_the_admin_api_on_a_hosted_database(monkeyp
     monkeypatch.setenv("ADMIN_TOKEN", "x" * 40)
     app.state.db.pg = False                                                                                   # settings are read through the real engine below
     assert c.get("/api/admin/settings", headers={"X-Admin-Token": "x" * 40}).status_code == 200
+
+
+# ---- follow-up: CORS header, committed estimate, unexpected errors -------------------------------------------------
+def test_cors_allows_the_access_code_header_when_pages_are_on_another_host(monkeypatch):
+    monkeypatch.setenv("FORGE_CORS_ORIGINS", "https://pages.example.org")
+    app = create_app(":memory:", lister=lambda *a, **k: [], detailer=detailer)
+    r = TestClient(app).options("/api/runs", headers={"Origin": "https://pages.example.org", "Access-Control-Request-Method": "POST",
+                                                      "Access-Control-Request-Headers": "X-Access-Code"})
+    assert r.status_code == 200 and "x-access-code" in r.headers["access-control-allow-headers"].lower()
+
+
+def test_environment_report_shows_the_committed_estimate(hosted):
+    make(hosted, "tester 1", 3); make(hosted, "tester 2", 2)
+    j = hosted.get("/api/admin/environment", headers=ADMIN).json()["access_codes"]["budget_reservation"]
+    assert j == {"outstanding_runs": 5, "estimated_run_cost_usd": 0.44, "committed_estimate_usd": 2.2,
+                 "recorded_spend_estimate_usd": 0.0, "total_usd": 2.2, "pilot_budget_usd": 9.0}
+
+
+def test_an_unexpected_error_marks_the_run_failed_and_refunds_when_nothing_was_billed(monkeypatch):
+    monkeypatch.setenv("ADMIN_TOKEN", "admin-secret-token-for-tests-1234567890"); monkeypatch.setenv("FORGE_SALT", "s")
+    monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: PricedMock([factors_json()]))
+    def broken(*a, **k): raise ValueError("secret detail sk-ant-LEAK")
+    app = create_app(":memory:", lister=broken, detailer=detailer); app.state.db.set_setting("require_access_code", True)
+    c = TestClient(app, raise_server_exceptions=False); c.db = app.state.db
+    out = make(c)
+    r = run(c, out["code"])
+    assert r.status_code == 500
+    row = c.db.q("SELECT status, error FROM runs", one=True)
+    assert row["status"] == "failed" and row["error"] == "unexpected error: ValueError" and "LEAK" not in row["error"]
+    assert c.db.q("SELECT runs_used FROM access_codes", one=True)["runs_used"] == 0
+    assert run(c, out["code"]).status_code == 500                              # the in-flight slot was released too

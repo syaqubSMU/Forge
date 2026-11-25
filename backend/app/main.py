@@ -103,7 +103,7 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
     origins = [o.strip() for o in os.environ.get("FORGE_CORS_ORIGINS", "").split(",") if o.strip()]
     if origins:                                   # only when the pages are hosted on a different address than the API
         app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["GET", "POST", "PUT"],
-                           allow_headers=["Content-Type", "X-Admin-Token"])
+                           allow_headers=["Content-Type", "X-Admin-Token", "X-Access-Code"])
     db = Database(db_path or os.environ.get("FORGE_DB", "forge.db"))
     app.state.db = db
     admin_token = os.environ.get("ADMIN_TOKEN", "")
@@ -278,10 +278,29 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
             return _execute(body, s, vh, live, adapter, code_row)
 
     def _execute(body, s, vh, live, adapter, code_row):
+        ctx = {"claimed": False, "rid": None}
+        try:
+            return _execute_inner(body, s, vh, live, adapter, code_row, ctx)
+        except HTTPException:
+            raise
+        except Exception as e:
+            # an unexpected error after the allowance was taken: mark the run failed (not left 'running'), refund if nothing
+            # was billed, and let the error surface. The exception text is never stored (it could hold a secret).
+            if ctx["rid"]:
+                u = getattr(adapter, "total_usage", {}) or {}
+                db.finish_run(ctx["rid"], "failed", 0, f"unexpected error: {type(e).__name__}", u.get("input_tokens", 0), u.get("output_tokens", 0),
+                              cost_usd=cost_of(adapter, s, u.get("input_tokens", 0), u.get("output_tokens", 0)))
+            if ctx["claimed"] and code_row is not None and not (getattr(adapter, "total_usage", {}) or {}).get("input_tokens"):
+                access.refund(db, code_row["id"])
+            raise
+
+    def _execute_inner(body, s, vh, live, adapter, code_row, ctx):
         if code_row is not None and not access.claim(db, code_row):          # atomic: two simultaneous requests cannot both take the last run
             fresh = db.q("SELECT * FROM access_codes WHERE id=?", (code_row["id"],), one=True)
             raise HTTPException(403, access.AccessError(access.state(fresh) or "allowance_used").detail())
+        ctx["claimed"] = code_row is not None
         rid = db.create_run(vh, body.input_type, body.input_text, s, R.version(current_rubric()), adapter.name)
+        ctx["rid"] = rid
         if code_row is not None:
             db.q("UPDATE runs SET access_code_id=? WHERE id=?", (code_row["id"], rid), write=True)
         t0 = time.time()
@@ -464,6 +483,14 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                                   "basis": "estimate: list prices for claude-opus-5-5 (cached 2026-11-03); the owner confirms them in the provider console"},
                 "counts": "only runs in this database; not the roughly $7 of earlier engineering spend"}
 
+    def reservation(st) -> dict:
+        """The money already spoken for: recorded spend plus every run still allowed to usable codes at the estimated run cost."""
+        outstanding = sum(c["remaining"] for c in access.listing(db)
+                          if not c["revoked"] and not (c["expires_at"] and c["expires_at"] <= now()))
+        est, spent = st["estimated_run_cost_usd"], round(db.spent_usd(), 4)
+        return {"outstanding_runs": outstanding, "estimated_run_cost_usd": est, "committed_estimate_usd": round(outstanding * est, 2),
+                "recorded_spend_estimate_usd": spent, "total_usd": round(spent + outstanding * est, 2), "pilot_budget_usd": st["pilot_budget_usd"]}
+
     @app.get("/api/admin/environment")
     def environment(_=Depends(admin)):
         """Which settings are in effect, WITHOUT any secret value: yes/no for secrets, the kind of database (never its
@@ -483,6 +510,7 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                 "static_dir_found": static_dir.is_dir(), "max_body_bytes": MAX_BODY_BYTES,
                 "budget_stop": budget_state(db.settings()),
                 "access_codes": {"required": db.settings()["require_access_code"], "salt_set": bool(os.environ.get("FORGE_SALT")),
+                                 "budget_reservation": reservation(db.settings()),
                                  "usable_codes": sum(1 for c in access.listing(db) if not c["revoked"] and c["remaining"] > 0
                                                      and not (c["expires_at"] and c["expires_at"] <= now()))},
                 "daily_cap": db.settings()["daily_cap"], "rate_limit_per_hour": db.settings()["rate_limit_per_hour"],

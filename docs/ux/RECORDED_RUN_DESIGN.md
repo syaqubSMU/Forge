@@ -53,6 +53,9 @@ A visitor who asks for a live run sees, in the same place the button would be:
 - The button for the recorded example stays active.
 - If the switch is on for a tester, the label bar changes to **Live run** and shows the live counts.
 
+## Status after build: how live runs are limited
+The proposed wording above was replaced by what is built. When live runs need an access code, or the open demo window has a daily limit, the Find funding page shows the access card and the states described in `docs/UX_IMPROVEMENT_PLAN.md` section 5.6 (no code needed, entry, problem, accepted, no live runs left, search not started, with the public-cap and reserved-budget variants). Those states use the server's own message word for word, and each one has a button to the recorded example. The recorded view itself (label bar, read-only input, deadlines counted from the recording date, no cost or timing or "runs are logged" text) is as in sections 1 to 7 and is built.
+
 ## The switch (open)
 How a tester turns live mode on is the architect's decision. The page needs one thing from it: a visible state ("Recorded" or "Live") and a plain way to see which one is active. Candidate for the UI: a small segmented control in the label bar, "Recorded | Live", where Live is disabled with the explanation above unless the tester is allowed.
 

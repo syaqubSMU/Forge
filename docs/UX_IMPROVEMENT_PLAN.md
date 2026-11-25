@@ -322,6 +322,38 @@ No "AI accuracy", "match score as a percentage", "saves X hours", "fast" or "ins
 
 ---
 
+### 5.6 Access code card (live pages, Find funding)
+Built and merged (DR-9 and the open-window amendment). Every message below that comes from the server is shown word for word; the page only adds the heading and the buttons. The recorded example is reachable from every state.
+
+**When codes are required**
+
+| State (server answer) | Heading | Body | Buttons and search |
+|---|---|---|---|
+| Checking | none (spoken "Checking the code.") | none | unchanged |
+| No code yet (403 `missing`) | Access code needed | Server text: "Live searches are for approved testers. Enter your access code, or look at the recorded example." | Field, Use this code, Show code, See the recorded example. Search disabled; reason in text: "Enter an access code first." |
+| Problem (403 `invalid`, `expired`, `revoked`) | Access code problem | Server text, unchanged (for example "That access code was not recognised…") | Same as above. `invalid` keeps the field and marks it invalid; `expired` and `revoked` clear any saved code. |
+| Accepted (200) | Access code accepted | "Code fsa_•••••••• is saved for this tab only. N live runs left, valid until [date]." | Forget code. Search enabled while N is above 0. |
+| No live runs left (403 `allowance_used`) | No live runs left | Server text. | Field, Use this code, See the recorded example. Search disabled. The saved code is cleared. |
+| Search not started (429 `too_many_attempts`, 429 `run_in_progress`) | Search not started | Server text. | No field for `too_many_attempts`. See the recorded example. |
+
+**When the open demo window is on (the server says `required: false`)**
+
+| State | Heading | Body | Buttons and search |
+|---|---|---|---|
+| No code needed | none (one line) | "I have an access code" (a link-styled button) "Searching without a code also works; searches without a code are limited each day." | Search enabled, never disabled. |
+| Entry (after the link) | Access code | "Enter your access code to use its live runs. Searches without a code are limited each day." | Field, Use this code, Show code, I don't have a code, See the recorded example. Search enabled. |
+| Problem with a code (any of the codes above) | as in the table above | Server text. | Adds "Search without a code". Search disabled with "Fix the access code, or choose Search without a code." The page never starts a public search by itself after a wrong code. |
+| Public cap reached (503 `public_cap_reached`) | Search not started | Server text (it already says that codes still work). | See the recorded example, I have an access code (opens the entry state and moves focus to it). |
+| Reserved budget (503 `budget_reached` with `recorded_example` and "reserved" in the message) | Search not started | Server text. | Same two buttons. |
+| Plain budget used up (503 `budget_reached`) | Live searches are paused | Server text. | See the recorded example only. |
+
+**Rules for every state**
+- The code is kept in this tab only (session storage, else memory), is sent only in the `X-Access-Code` header on the run call and the check call, is never put in a URL, the page text or the console, and is never shown back (masked as `fsa_••••••••`). "Forget code" clears it.
+- After a check response, focus moves to the state heading; "Checking the code." is spoken through a polite live region. Nothing depends on colour.
+- After every run attempt that carried a code, success or any error, the page checks the code again and sets the card and the Search button from the server's answer: Search is enabled only when the code is accepted with runs left (or, in the open window, when no code is in use).
+- After each successful run the note and the card say how many live runs are left, taken from the server.
+- A saved code that the server calls expired, revoked or used up is not kept.
+
 ## 6. Wireframe-level sketches
 
 HTML version with annotations: `docs/ux/wireframes.html`. Text summaries:

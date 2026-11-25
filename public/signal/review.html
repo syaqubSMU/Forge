@@ -33,12 +33,12 @@
   <form id="sendform" class="mt2">
    <div class="field"><label for="to">Send to</label>
     <input type="email" id="to" placeholder="name@university.edu" required>
-    <p class="hint">The recipient is recorded in the run log for each send.</p></div>
+    <p class="hint live-only">The recipient is recorded in the run log for each send.</p></div>
    <label class="choice"><input type="checkbox" id="confirm">
     <span><strong>I have reviewed this draft.</strong><span class="hint">I have checked the deadlines and eligibility statements against the sponsor pages, and I take responsibility for sending it.</span></span></label>
    <button class="btn" type="submit" id="send" disabled>Log alert (nothing is emailed)</button>
    <p class="notice warn mt2" id="sent" role="status" hidden></p>
-   <p class="hint mt1">Test mode: the alert is written to the run log and no email leaves the system.</p>
+   <p class="hint mt1" data-rec="Test mode: nothing is sent and nothing is saved.">Test mode: the alert is written to the run log and no email leaves the system.</p>
   </form>
  </div>
 
@@ -51,7 +51,7 @@
    <p class="hint mb1">Rated Low. Listed here so that leaving them out is your choice.</p>
    <ul class="rule-list" id="held"></ul>
    <h3 class="mt2">Excluded</h3>
-   <p class="hint mb1">Ruled out by a stated restriction, with the quote in the run log.</p>
+   <p class="hint mb1" data-rec="Set aside by the rules. Each one is listed with its reason on the Results page.">Ruled out by a stated restriction, with the quote in the run log.</p>
    <ul class="rule-list" id="excluded"></ul>
   </div>
   <div class="notice mt2"><strong>Check who is missing.</strong> Search can only see what the
@@ -63,7 +63,6 @@
 </main>
 <footer><div class="wrap"><p>FORGE SIGNAL &middot; capstone project, SMU Cox MS in AI in Business. Not an approved or endorsed university service, and not a replacement for university systems. <a href="about.html">About</a></p></div></footer>
 <script src="config.js"></script>
-<script src="mock-data.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

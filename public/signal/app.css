@@ -825,3 +825,11 @@ header.nav{padding:10px 0}
 header.nav{padding:8px 0}
 :root{--hdr:67px}
 .countline{margin:var(--s4) 0}
+
+/* Recorded example label bar (DR-8): on every page that shows the recording */
+.rec-bar{text-align:left;padding:10px 20px;font-size:14px;line-height:1.5}
+.rec-bar .rec-line{display:block;max-width:1160px;margin:0 auto}
+.rec-bar a{color:#fff;text-decoration:underline;font-weight:600}
+.rec-bar a:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.passed{font-weight:600}
+[hidden]{display:none!important}

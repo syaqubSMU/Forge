@@ -82,3 +82,20 @@ def test_hosted_database_without_a_salt_logs_a_warning(monkeypatch, caplog):
     with caplog.at_level("WARNING", logger="uvicorn.error"):
         main.create_app("postgresql://x", lister=lambda *a, **k: [], detailer=lambda *a, **k: ([], []))
     assert "FORGE_SALT is not set" in caplog.text
+
+
+def test_environment_report_shows_no_secret_values(c, monkeypatch):
+    monkeypatch.setenv("ADMIN_TOKEN", "super-secret-admin"); monkeypatch.setenv("FORGE_SALT", "salty-secret")
+    monkeypatch.setenv("FORGE_API_KEY", "sk-ant-VERYSECRET"); monkeypatch.setenv("FORGE_DB", "postgresql://u:pw123@h/db")
+    assert c.get("/api/admin/environment").status_code == 401
+    r = c.get("/api/admin/environment", headers={"X-Admin-Token": "super-secret-admin"})
+    j = r.json()
+    assert j["admin_token_set"] and j["salt_set"] and j["model_key_variable"] == "FORGE_API_KEY"
+    for secret in ("super-secret-admin", "salty-secret", "VERYSECRET", "pw123", "postgresql://"):
+        assert secret not in r.text
+
+
+def test_runs_csv_labels_cost_as_an_estimate(c, monkeypatch):
+    monkeypatch.setenv("ADMIN_TOKEN", "t")
+    head = c.get("/api/admin/runs.csv", headers={"X-Admin-Token": "t"}).text.splitlines()[0]
+    assert head.endswith("cost_usd_estimate")

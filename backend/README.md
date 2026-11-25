@@ -132,3 +132,7 @@ Run these once on the dev environment; none has been verified yet. Record each r
 4. **Two simultaneous runs:** start two live runs at the same moment from two browsers or terminals. Both must finish without a 429 or a 502, and each must report `counters.judged` above 0. If either is refused or runs slowly, note the times before changing `FORGE_MODEL_MAX_CONCURRENT` (default 16; each run uses up to `judge_concurrency`, default 8).
 5. **Timing:** one live run with the default 25 judgments; note `counters.latency_ms` and `judging_ms`. The measured sandbox figure was about 22 to 24 s at 16 workers and about 44 s at 8.
 6. **Failure paths:** with the model key temporarily wrong on the dev service only, a live run must return 502 "The model could not be reached...", and the run must show as failed in the admin run list.
+
+**Cost figures are estimates.** `runs.cost_usd` (and the `cost_usd_estimate` column of the run-log CSV) is tokens reported by the model API times the prices in settings. It needs both prices set and excludes calls that were abandoned or failed. The admin page should label the column "estimate".
+
+**Checking which settings are in effect.** `GET /api/admin/environment` (admin token) reports, without any secret value: database kind (never its address), schema version, whether `ADMIN_TOKEN` and `FORGE_SALT` are set, the NAME of the model-key variable found, the active model, effort, proxy hops, allowed page origins, the concurrency caps, and whether the static pages folder was found.

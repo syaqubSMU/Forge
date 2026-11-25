@@ -2,7 +2,7 @@
 
 Status: DRAFT for customer review (Shazia Yaqub). Date: 23 Nov 2026.
 Governing scope: **Forge Signal – Business Case (Nov 23, 2026)**. This PRD **supersedes PRD v0.1** (Nov 21, discovery-only). Anything not in the Business Case is in section 11 (Future builds).
-Context: ITOM 6216 capstone. Nothing is built yet; `public/signal/` is a static mock only.
+Context: ITOM 6216 capstone. Status as of 25 Nov 2026 (source: `backend/README.md` and `docs/ARCHITECTURE.md`). **Built:** the FastAPI engine (live Grants.gov pull and stored copy, model adapter with a mock default, quote validator, rubric-calculated fit tiers, calendar and `.ics`/`.xlsx` exports, dummy email, admin API, run log on SQLite or Postgres) and the SIGNAL pages, connected to the engine in live mode (Match, Results, Calendar, Review). **Not built or not finished:** PI lookup by name (OpenAlex), unit/faculty matching (FR-4), real email, the Settings page in live mode (still sample data), cost per run, and any measured accuracy (the gold-set labels are blank). Speed and retrieval improvements are under architect review and are not yet in the integrated code. The public GitHub Pages copy of `public/signal/` shows fictional sample data only.
 
 ---
 
@@ -189,7 +189,7 @@ Admin settings (scope, adapter, limits, email mode) are held in a small settings
 ## 7. Architecture (recommendation, not mandate)
 - **Front end:** static pages built from the final wireframe, wired to the API. Existing brand tokens (Trust Blue #244B70, Forge Coral #E98262, Sora/Inter).
 - **Back end:** Python FastAPI. Modules: `adapters/model` (chatbot/LLM behind one interface), `sources` (Grants.gov, OpenAlex, faculty-page reader, curated state/foundation), `validator` (quote-in-source), `calendar` (plain code), `exports` (.xlsx/.ics), `mailer` (dummy now), `admin`, `limits`.
-- **Database:** a managed Postgres (or SQLite for local), holding only the run log and settings.
+- **Database:** a managed Postgres (or SQLite for local), holding the run log, settings, rubric versions and the public Grants.gov copy (no faculty or researcher-profile tables).
 - **Secrets:** environment variables; never committed.
 - **Pipeline per run:** parse input → live fetch → retrieve relevant passages → model returns schema-valid JSON with quotes → validator checks quotes → plain-code dates/status/calendar → persist run → render.
 

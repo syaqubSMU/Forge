@@ -30,7 +30,7 @@ CREATE INDEX IF NOT EXISTS ix_runs_visitor ON runs(visitor_hash, created_at);
 DEFAULT_SETTINGS = {
     "scope_level": "A named organization", "units": [], "funder_types": ["federal"],
     "horizon_months": 3, "lead_time_days": 14, "min_fit": "Low", "faculty_per_run": 25,
-    "max_detail_fetches": 250, "max_judgments": 25, "source_timeout_s": 30, "source_concurrency": 8,
+    "max_detail_fetches": 250, "max_judgments": 25, "judge_concurrency": 8, "source_timeout_s": 30, "source_concurrency": 8,
     "cache_ttl_minutes": 15, "include_undated_deadlines": False,
     "price_per_mtok_input": 0.0, "price_per_mtok_output": 0.0,
     "rate_limit_per_hour": 20, "daily_cap": 200, "retention_days": 90,

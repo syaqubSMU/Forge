@@ -461,7 +461,7 @@
     fig.appendChild(el("div", { class: "excerpt" }, [
       el("p", { class: "src" }, ["From the announcement \u00b7 " + r.number + " \u00b7 recorded example"]),
       el("p", {}, [el("mark", {}, [c.quote])])]));
-    fig.appendChild(el("p", { class: "because", "aria-hidden": "true" }, ["The highlighted sentence is what the rating rests on"]));
+    fig.appendChild(el("p", { class: "because", "aria-hidden": "true" }, ["One of the sentences the rating rests on"]));
     fig.appendChild(el("div", { class: "result r-" + r.fit }, [
       el("p", { class: "h3like" }, [r.title]),
       el("div", { class: "badges" }, [fitBadge(r), eligBadge(r.eligibility)]),

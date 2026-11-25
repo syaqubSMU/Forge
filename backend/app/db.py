@@ -1,6 +1,4 @@
-"""Run log (the only database, PRD section 6) plus admin settings, audit trail and rubric versions.
-SQLite by default (a file path or :memory:); Postgres when FORGE_DB is a postgres:// or postgresql:// URL.
-The stored Grants.gov copy (opportunities, api_calls) lives here too; researcher profiles and judgments are never stored outside a run's own log."""
+"""Run log plus admin settings, audit trail, rubric versions and the stored public Grants.gov copy (`opportunities`, `api_calls`; customer-approved for the demo, see docs/ARCHITECTURE.md DR-1). No faculty or researcher-profile tables (hard rule 1)."""
 import json, sqlite3, threading, uuid
 from .migrations import MIGRATIONS
 from datetime import datetime, timedelta, timezone

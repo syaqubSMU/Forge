@@ -840,3 +840,8 @@ header.nav{padding:8px 0}
 #access .field{margin:12px 0}
 #access input{max-width:28em;width:100%}
 #access .btn-row{margin-top:12px}
+
+/* open demo window: a small text link instead of a full card */
+.linkbtn{background:none;border:0;padding:0;margin:0;font:inherit;color:var(--blue);text-decoration:underline;cursor:pointer;border-radius:4px}
+.linkbtn:hover{color:var(--blue-deep,var(--blue))}
+.access-collapsed p{margin:0;color:var(--muted);font-size:15px}

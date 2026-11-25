@@ -386,7 +386,12 @@
       } else {
         showError("Search did not finish", e.message);
       }
-    }).then(function () { clearInterval(iv); btn.disabled = ACC.required && ACC.remaining === 0; });
+    }).then(function () {
+      clearInterval(iv);
+      if (!ACC.required) { btn.disabled = false; return; }
+      btn.disabled = true;                                   // held until the server says what the code can still do
+      return checkAccess(null, true, true);                  // after a success or any error: the server's count is the truth
+    });
   }
 
 
@@ -400,13 +405,13 @@
   function codeHeaders() { var c = getCode(); return c ? { "X-Access-Code": c } : {}; }
 
   var ACCESS_HEAD = {
-    missing: "Live searches are for approved testers",
-    invalid: "That access code was not recognised",
-    expired: "This access code has expired",
-    revoked: "This access code is no longer active",
-    allowance_used: "This access code has used all of its live runs",
-    too_many_attempts: "Too many access code attempts",
-    run_in_progress: "A search is still running"
+    missing: "Access code needed",
+    invalid: "Access code problem",
+    expired: "Access code problem",
+    revoked: "Access code problem",
+    allowance_used: "Access code problem",
+    too_many_attempts: "Search not started",
+    run_in_progress: "Search not started"
   };
 
   function renderAccess(kind, msg, focus) {
@@ -441,7 +446,7 @@
         var show = el("button", { class: "btn ghost s", type: "button", "aria-pressed": "false" }, ["Show code"]);
         show.addEventListener("click", function () {
           var on = inp.type === "password"; inp.type = on ? "text" : "password";
-          show.setAttribute("aria-pressed", on ? "true" : "false"); show.textContent = on ? "Hide code" : "Show code";
+          show.setAttribute("aria-pressed", on ? "true" : "false");      // the label stays "Show code"; aria-pressed carries the state
         });
         var use = el("button", { class: "btn s", type: "button" }, ["Use this code"]);
         function go() { var v = inp.value.trim(); if (!v) { renderAccess("missing", "Enter your access code first.", true); return; } checkAccess(v); }
@@ -459,7 +464,7 @@
   }
 
   /* one Access card on Find funding. No code box at all when the server says codes are not required. */
-  function checkAccess(typed, quiet) {
+  function checkAccess(typed, quiet, afterRun) {
     var code = typed != null ? typed : getCode();
     var say = $("accessay"); if (say && !quiet) say.textContent = "Checking the code.";
     return api("/api/access/check", { headers: code ? { "X-Access-Code": code } : {} }).then(function (r) {
@@ -471,10 +476,12 @@
       if (e.status === 403 || e.status === 429) {
         ACC.required = true;
         if (typed == null && e.code === "missing") { renderAccess("missing", e.message, false); return; }   // first look at the page: the plain "no code yet" state
-        if (e.code === "expired" || e.code === "revoked") setCode("");
+        if (e.code === "expired" || e.code === "revoked" || e.code === "allowance_used") setCode("");   // a saved code that cannot be used is not kept
         else if (e.code === "invalid" && typed == null) setCode("");
+        if (e.code !== "too_many_attempts") { ACC.remaining = null; ACC.expires = null; }
         renderAccess(e.code || "invalid", e.message, typed != null); return;
       }
+      if (afterRun) { var rb = $("runbtn"); if (rb) rb.disabled = ACC.remaining === 0; return; }   // the check itself failed after a run: keep what the page last knew
       ACC.required = false;          // the check itself failed: do not hide the search behind it; the search will say what is wrong
       var h2 = $("access"); if (h2) { h2.hidden = true; clear(h2); }
       if ($("runbtn")) $("runbtn").disabled = false;

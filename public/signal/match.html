@@ -3,26 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Match | FORGE SIGNAL</title>
-<meta name="description" content="Start a SIGNAL run: describe the researcher, confirm their research areas, and screen current funding announcements.">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<title>Find funding | FORGE SIGNAL</title>
+<meta name="description" content="Start a SIGNAL search: describe the researcher, confirm their research areas, and check current funding opportunities.">
+<link rel="icon" href="assets/forge-signal-icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="app.css">
 </head>
 <body data-page="match">
 <a class="skip" href="#main">Skip to main content</a>
-<p class="mock-banner">Interface preview &middot; every figure below is fictional sample data</p>
+<p class="mock-banner" role="region" aria-label="Preview notice"><strong>Preview.</strong> Every figure on these pages is fictional sample data.</p>
 <header class="nav"><div class="wrap">
- <a class="brand" href="index.html">FORGE<small>SIGNAL</small></a>
- <nav aria-label="Main"><ul><li><a href="index.html">Home</a></li><li><a href="match.html" aria-current="page">Match</a></li><li><a href="results.html">Results</a></li><li><a href="calendar.html">Calendar</a></li><li><a href="review.html">Review</a></li><li><a href="about.html">About</a></li><li><a href="settings.html">Settings<span class="admin-tag">admin</span></a></li></ul></nav>
+ <a class="brand" href="index.html" aria-label="FORGE SIGNAL home"><img src="assets/forge-signal-logo.svg" alt="" width="189" height="46"></a>
+ <nav aria-label="Main"><ul><li><a href="index.html">Home</a></li><li><a href="match.html" aria-current="page">Find funding</a></li><li><a href="about.html">About</a></li><li><a class="iconlink" href="settings.html" aria-label="Settings (admin preview)" title="Settings (admin preview)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></a></li></ul></nav>
 </div></header>
 <main id="main">
-<section class="hero"><div class="wrap">
- <p class="eyebrow">Step 1 of 3</p>
- <h1>Start a match</h1>
- <p class="lead">SIGNAL screens only against the research areas you confirm below. It will not infer a new research identity from an announcement's keywords.</p>
+<div class="subbar"><div class="wrap"><nav aria-label="Find funding steps"><ol class="steps4" aria-label="Steps in a run"><li class=""><a href="match.html" aria-current="step"><span class="num" aria-hidden="true">1</span>Find funding</a></li><li class=""><a href="results.html"><span class="num" aria-hidden="true">2</span>Results</a></li><li class=""><a href="calendar.html"><span class="num" aria-hidden="true">3</span>Calendar</a></li><li class="you"><a href="review.html"><span class="num" aria-hidden="true">4</span>Review: you decide</a></li></ol></nav></div></div>
+<section class="pagehead"><div class="wrap">
+<h1>Find funding for a researcher</h1>
+ <p class="lead">SIGNAL checks only against the research areas you confirm below. It will not infer a new research identity from an announcement's keywords.</p>
 </div></section>
-<div class="wrap" style="padding-top:28px">
+<div class="wrap pt-main">
 <form id="runform">
 <div class="sidebar-layout">
  <div>
@@ -34,81 +33,79 @@
     <span><strong>A project description</strong><span class="hint">Paste an abstract or summary; SIGNAL pulls the key terms.</span></span></label>
    <label class="choice"><input type="radio" name="mode" value="keywords" data-panel="p-keywords">
     <span><strong>Keywords</strong><span class="hint">A straightforward topic search.</span></span></label>
-   <label class="choice"><input type="radio" name="mode" value="unit" data-panel="p-unit">
-    <span><strong>An opportunity and a department</strong><span class="hint">Work the other way: rank who in a unit might fit a specific announcement.</span></span></label>
   </fieldset>
 
   <div class="card input-panel" id="p-pi">
-   <h3>Researcher</h3>
-   <div class="field" style="margin-top:12px"><label for="pi-name">Name</label>
-    <input type="text" id="pi-name" value="Dr. R. Alvarez (fictional)">
-    <p class="hint">SIGNAL reads public publication records and the public faculty page to propose research areas. You confirm them before anything is screened.</p></div>
+   <h2>Researcher</h2>
+   <div class="field mt1"><label for="pi-name">Name <span class="req" aria-hidden="true">*</span> <span class="hint inl">(required)</span></label>
+    <input type="text" id="pi-name" value="Dr. R. Alvarez (fictional)" autocomplete="off" aria-describedby="pi-name-hint">
+    <p class="hint" id="pi-name-hint">Used to label the run and the draft alert. Research areas come from the box below, in the researcher's own words.</p></div>
    <div class="field"><label for="stage">Career stage</label>
     <select id="stage"><option selected>Established investigator</option><option>Early career (within 7 years of the doctorate)</option><option>Not stated</option></select>
     <p class="hint">Programs restricted to a stage the researcher is not in are excluded, and the exclusion is shown with its quote.</p></div>
-   <div class="field"><label for="lanes">Established research areas <span class="hint" style="display:inline;font-weight:400">(one per line, in their words)</span></label>
-    <textarea id="lanes">Photochemistry and flavin chemistry
+   <div class="field"><label for="lanes">Established research areas <span class="req" aria-hidden="true">*</span> <span class="hint inl">(required, one per line, in their words)</span></label>
+    <textarea id="lanes" rows="5" aria-describedby="lanes-hint">Photochemistry and flavin chemistry
 Structural biology and protein dynamics
 Biological sensing and signal transduction
-Protein engineering and molecular tools</textarea></div>
-   <div class="field"><label for="rules">Positioning rules <span class="hint" style="display:inline;font-weight:400">(one per line, optional)</span></label>
-    <textarea id="rules" style="min-height:64px">Cancer only where a real mechanism or collaborator bridge exists
+Protein engineering and molecular tools</textarea>
+    <p class="hint" id="lanes-hint">SIGNAL checks only against these areas. Use the words the researcher uses for their own work.</p></div>
+   <div class="field"><label for="rules">Extra rules <span class="hint inl">(optional, one per line)</span></label>
+    <textarea id="rules" rows="3">Cancer only where a real mechanism or collaborator bridge exists
 Defense only where sensing or biophysics is central</textarea>
-    <p class="hint">A rule that is not met caps the rating, and the cap is shown in the result.</p></div>
+    <p class="hint">For example: cancer only where a real mechanism or collaborator bridge exists. A rule that is not met caps the rating, and the cap is shown in the result.</p></div>
 </div>
 
 
-  <div class="card input-panel" id="p-project" hidden><h3>Project description</h3>
-   <div class="field" style="margin-top:12px"><label for="abstract">Abstract or summary</label><textarea id="abstract" placeholder="Paste the project description."></textarea></div></div>
-  <div class="card input-panel" id="p-keywords" hidden><h3>Keywords</h3>
-   <div class="field" style="margin-top:12px"><label for="kw">Topics</label><input type="text" id="kw" placeholder="e.g. protein dynamics, biological sensing"></div></div>
-  <div class="card input-panel" id="p-unit" hidden><h3>Opportunity and department</h3>
-   <div class="field" style="margin-top:12px"><label for="opp">Announcement link</label><input type="text" id="opp" placeholder="https://"></div>
-   <div class="field"><label for="unit">Department</label><input type="text" id="unit" placeholder="e.g. Biological Sciences"></div>
-   <p class="hint">SIGNAL reads that department's public faculty listing at run time, up to the per-run limit set in Settings.</p></div>
+  <div class="card input-panel" id="p-project" hidden><h2>Project description</h2>
+   <div class="field mt1"><label for="abstract">Abstract or summary</label><textarea id="abstract" placeholder="Paste the project description."></textarea></div></div>
+  <div class="card input-panel" id="p-keywords" hidden><h2>Keywords</h2>
+   <div class="field mt1"><label for="kw">Topics</label><input type="text" id="kw" placeholder="e.g. protein dynamics, biological sensing"></div></div>
  </div>
 
  <aside>
   <div class="card">
-   <h3>This run</h3>
-   <div class="field" style="margin-top:12px"><label for="horizon">Deadline window</label>
+   <h2>Search</h2>
+   <details class="evidence opts"><summary>Options (the defaults suit most searches)</summary><div class="body">
+   <div class="field mt1"><label for="horizon">Deadline window</label>
     <select id="horizon"><option selected>Next 3 months</option><option>Next 6 months</option><option>Next 12 months</option></select></div>
-   <div class="field"><label for="lead">Internal lead time</label>
+   <div class="field"><label for="lead">Internal deadline</label>
     <select id="lead"><option selected>14 days before deadline</option><option>30 days</option><option>45 days</option></select></div>
    <div class="field"><label for="funders">Funder types</label>
     <select id="funders"><option selected>Federal only</option><option>Federal and state</option><option>All available sources</option></select>
     <p class="hint">The pilot reads federal announcements live. Other sources appear as links to check by hand.</p></div>
-   <div class="field"><label for="minfit">Show ratings down to</label>
-    <select id="minfit"><option>High only</option><option>Medium and above</option><option selected>Low and above</option></select></div>
-   <button class="btn" type="submit" style="width:100%;justify-content:center">Screen opportunities</button>
-   <p class="hint" id="runhint" style="margin-top:10px">A typical run reads several hundred announcements and takes under 30 seconds.</p>
+   <div class="field"><label for="minfit">Show results rated</label>
+    <select id="minfit"><option>High only</option><option>Medium and above</option><option selected>All</option></select></div>
+   </div></details>
+   <button class="btn full" type="submit" id="runbtn">Find opportunities</button>
+   <p class="hint mt1" id="runhint">A search reads current announcements and checks the best candidates. In two tests with 25 candidates and nobody else using the service, a search took 22 and 44 seconds; times vary, and it can take longer when several people search at once. Nothing is sent or submitted.</p>
+   <div id="runstatus" class="mt2">
+    <div class="status err" id="runerror" role="alert" tabindex="-1" hidden></div>
+    <div class="status wait" id="progress" hidden>
+     <h3>Search in progress</h3>
+     <p id="runtimer" aria-hidden="true"></p>
+     <p>It can take longer when several people search at once. Keep this tab open. SIGNAL cannot show step-by-step progress yet.</p>
+     <div class="btn-row"><button class="btn ghost s" type="button" id="stopwait">Stop waiting</button></div>
+    </div>
+    <p class="sr" id="runsay" role="status"></p>
+    <div class="status" id="done" tabindex="-1" hidden>
+     <h3 id="donehead">Search finished</h3>
+     <p><span id="donecount">7</span> opportunities rated.<span id="donenote"></span></p>
+     <div class="btn-row"><a class="btn" href="results.html">See the results</a></div>
+    </div>
+   </div>
+   <details class="evidence mt2"><summary>What happens during a search</summary><div class="body"><ol class="rule-list">
+    <li>Current announcements are read from the sponsor API.</li><li>They are filtered to your deadline window, in code.</li>
+    <li>The full text of each candidate is read.</li><li>Each is checked against the research areas you entered.</li>
+    <li>Every quote is checked against its source; unsupported quotes are discarded.</li><li>Ratings are calculated from the published rubric.</li></ol></div></details>
   </div>
-  <div style="margin-top:14px"><div class="notice"><strong>Runs are logged.</strong> Runs, inputs and calendars are logged for the preview report, kept for 90 days, then archived. Only the administrator can see them.</div><div class="notice warn" style="margin-top:10px"><strong>Public and private data only.</strong> Do not enter student records, health information, financial account details or anything else your institution classifies as restricted.</div></div>
+  <div class="mt2"><div class="notice"><strong>Runs are logged.</strong> Runs, inputs and calendars are logged for the preview report, kept for 90 days, then archived. Only the administrator can see them.</div><div class="notice warn mt1"><strong>Public and private data only.</strong> Do not enter student records, health information, financial account details or anything else your institution classifies as restricted.</div></div>
  </aside>
 </div>
 </form>
 
-<div class="card" id="progress" hidden style="margin-top:18px">
- <h3>Running</h3>
- <div class="notice warn" id="runerror" role="alert" hidden style="margin-bottom:12px"></div>
- <p class="hint" id="runtimer" hidden style="margin-bottom:8px"></p>
- <ul class="steps">
-  <li class="todo"><span class="mark" aria-hidden="true">1</span><span>Reading current announcements from the sponsor API</span></li>
-  <li class="todo"><span class="mark" aria-hidden="true">2</span><span>Filtering to the deadline window</span></li>
-  <li class="todo"><span class="mark" aria-hidden="true">3</span><span>Reading the full text of each candidate</span></li>
-  <li class="todo"><span class="mark" aria-hidden="true">4</span><span>Screening against the confirmed research areas</span></li>
-  <li class="todo"><span class="mark" aria-hidden="true">5</span><span>Checking every quote against its source</span></li>
-  <li class="todo"><span class="mark" aria-hidden="true">6</span><span>Calculating ratings from the published rubric</span></li>
- </ul>
- <div id="done" hidden tabindex="-1" style="margin-top:14px">
-  <div class="notice"><strong>Screening finished.</strong> <span id="donecount">7</span> opportunities to review.<span id="donenote"></span></div>
-  <div class="btn-row"><a class="btn" href="results.html">See the results</a></div>
- </div>
-</div>
-
 </div>
 </main>
-<footer><div class="wrap"><p>FORGE SIGNAL &middot; capstone project, SMU Cox MS in AI in Business. Preview with sample data only; not an approved or endorsed university service. <a href="about.html">What this is and is not</a></p></div></footer>
+<footer><div class="wrap"><p>FORGE SIGNAL &middot; capstone project, SMU Cox MS in AI in Business. Not an approved or endorsed university service, and not a replacement for university systems. <a href="about.html">About</a></p></div></footer>
 <script src="config.js"></script>
 <script src="mock-data.js"></script>
 <script src="app.js"></script>

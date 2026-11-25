@@ -5,76 +5,73 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Settings | FORGE SIGNAL</title>
 <meta name="description" content="Administrator settings: scope, model, limits, email mode, run log and fit criteria.">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" href="assets/forge-signal-icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="app.css">
 </head>
 <body data-page="settings">
 <a class="skip" href="#main">Skip to main content</a>
-<p class="mock-banner">Interface preview &middot; every figure below is fictional sample data</p>
+<p class="mock-banner" role="region" aria-label="Preview notice"><strong>Preview.</strong> Every figure on these pages is fictional sample data.</p>
 <header class="nav"><div class="wrap">
- <a class="brand" href="index.html">FORGE<small>SIGNAL</small></a>
- <nav aria-label="Main"><ul><li><a href="index.html">Home</a></li><li><a href="match.html">Match</a></li><li><a href="results.html">Results</a></li><li><a href="calendar.html">Calendar</a></li><li><a href="review.html">Review</a></li><li><a href="about.html">About</a></li><li><a href="settings.html" aria-current="page">Settings<span class="admin-tag">admin</span></a></li></ul></nav>
+ <a class="brand" href="index.html" aria-label="FORGE SIGNAL home"><img src="assets/forge-signal-logo.svg" alt="" width="189" height="46"></a>
+ <nav aria-label="Main"><ul><li><a href="index.html">Home</a></li><li><a href="match.html">Find funding</a></li><li><a href="about.html">About</a></li><li><a class="iconlink" href="settings.html" aria-current="page" aria-label="Settings (admin preview)" title="Settings (admin preview)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></a></li></ul></nav>
 </div></header>
 <main id="main">
-<section class="hero"><div class="wrap">
- <p class="eyebrow">Administrator only</p>
- <h1>Settings</h1>
+<section class="pagehead"><div class="wrap">
+<h1>Settings</h1>
  <p class="lead">These settings apply to every run. Changes are recorded with who made them and when.</p>
-</div>
+</div></section>
 
-<div class="grid g2">
+<div class="wrap pt-main">
+<section class="tool">
+<div class="grid g2 mb2">
  <div class="card">
   <h2>Scope</h2>
-  <div class="field" style="margin-top:12px"><label for="scope">Default scope</label>
+  <div class="field mt2"><label for="scope">Default scope</label>
    <select id="scope"><option selected>A named organization</option><option>A college or school</option><option>A whole institution</option><option>A state</option></select>
    <p class="hint">What a run covers when the visitor does not narrow it.</p></div>
   <div class="field"><label for="units">Units in scope</label><input type="text" id="units" placeholder="e.g. Biological Sciences; Chemistry; Physics"></div>
   <div class="field"><label for="ftypes">Funder types</label>
    <select id="ftypes"><option selected>Federal only</option><option>Federal and state</option><option>All available</option></select></div>
-</div></section>
-
-<div class="wrap">
-<section>
+</div>
 
  <div class="card">
   <h2>Model</h2>
-  <div class="field" style="margin-top:12px"><label for="model">Active model</label>
+  <div class="field mt2"><label for="model">Active model</label>
    <select id="model"><option selected>Claude (pilot key)</option><option>Institution-approved platform</option><option>Mock (no model calls)</option></select>
    <p class="hint">Switching here takes effect on the next run, with no redeploy. The change is written to the audit trail.</p></div>
-  <div class="notice" style="margin-bottom:12px"><strong>Moving to an approved platform.</strong> When OIT names a platform,
-  select it here. Screening, quote checking and the calendar are unchanged by the switch.</div>
+  <div class="notice mb2"><strong>Moving to an approved platform.</strong> When OIT names a platform,
+  select it here. Checking, quote checking and the calendar are unchanged by the switch.</div>
   <div class="field"><label for="key">API key</label>
    <input type="text" id="key" value="•••••••• stored on the server" readonly>
    <p class="hint">Keys are stored on the server only. They are never shown on this page, returned by the API, or written to the log.</p></div>
  </div>
 </div>
 
-<div class="card" style="margin-top:16px">
+<div class="card mt2">
  <h2>Limits and costs</h2>
- <div class="grid g4" style="margin-top:12px">
+ <div class="grid g4 mt2">
   <div class="field"><label for="l1">Runs per visitor, per hour</label><input type="number" id="l1" value="20"></div>
   <div class="field"><label for="l2">Runs per day, all visitors</label><input type="number" id="l2" value="200"></div>
   <div class="field"><label for="l3">Announcements read per run</label><input type="number" id="l3" value="250"></div>
-  <div class="field"><label for="l4">Screened per run</label><input type="number" id="l4" value="25"></div>
+  <div class="field"><label for="l4">Checked per run</label><input type="number" id="l4" value="25"></div>
  </div>
- <p class="hint">The last two bound what a run costs. Anything beyond the screening limit is reported as &ldquo;not screened&rdquo; rather than quietly dropped.</p>
+ <p class="hint">The last two bound what a run costs. Anything beyond the limit is reported as &ldquo;not checked&rdquo; rather than quietly dropped.</p>
 </div>
 
-<div class="card" style="margin-top:16px">
+<div class="card mt2">
  <h2>Email</h2>
- <div class="inline" style="margin-top:12px">
+ <div class="inline mt2">
   <div class="field"><label for="emode">Mode</label>
-   <select id="emode"><option selected>Dummy &mdash; log only, nothing sent</option><option>Test mailbox</option></select></div>
+   <select id="emode"><option selected>Test mode: log only, nothing sent</option><option>Test mailbox</option></select></div>
   <div class="field"><label for="tbox">Test mailbox</label><input type="text" id="tbox" placeholder="name@example.edu"></div>
   <div class="field"><label for="sender">Sender label</label><input type="text" id="sender" value="Forge Signal (pilot)"></div>
  </div>
  <p class="hint">A person must tick the confirmation on the review screen before any alert can be sent, in every mode.</p>
 </div>
 
-<div class="card" style="margin-top:16px">
+<div class="card mt2">
  <h2>Fit criteria</h2>
- <p class="hint" style="margin:6px 0 12px">The rubric that turns observations into ratings. Download it as a spreadsheet, edit it, upload it, and review the differences before anything goes live.</p>
+ <p class="hint mt1 mb2">The rubric that turns observations into ratings. Download it as a spreadsheet, edit it, upload it, and review the differences before anything goes live.</p>
  <div class="inline">
   <div><p><strong>Published version</strong></p><p class="mono">7c79b23a41d0 &middot; published 23 Nov 2026</p></div>
   <div><p><strong>Checks</strong></p><p>Every combination of observations produces a rating, and all 6 worked examples pass.</p></div>
@@ -84,15 +81,15 @@
   <button class="btn ghost" type="button">Upload a revision</button>
   <button class="btn" type="button">Publish</button>
  </div>
- <p class="hint" style="margin-top:9px">A revision cannot be published unless every worked example still passes. Each run records the version it used.</p>
+ <p class="hint mt1">A revision cannot be published unless every worked example still passes. Each run records the version it used.</p>
 </div>
 
-<div class="card" style="margin-top:16px">
+<div class="card mt2">
  <h2>Run log</h2>
- <p class="hint" style="margin:6px 0 12px">Every run, its inputs, sources, quotes, calendar and any alert sent. Kept 90 days, then archived.</p>
- <div class="table-scroll"><table>
+ <p class="hint mt1 mb2">Every run, its inputs, sources, quotes, calendar and any alert sent. Kept 90 days, then archived.</p>
+ <div class="table-scroll" tabindex="0" role="region" aria-label="Table, scrolls sideways on small screens"><table>
   <caption class="sr">Recent runs</caption>
-  <thead><tr><th scope="col">Run</th><th scope="col">When</th><th scope="col">Input</th><th scope="col">Screened</th><th scope="col">Outcome</th><th scope="col"></th></tr></thead>
+  <thead><tr><th scope="col">Run</th><th scope="col">When</th><th scope="col">Input</th><th scope="col">Checked</th><th scope="col">Outcome</th><th scope="col"><span class="sr">Actions</span></th></tr></thead>
   <tbody>
    <tr><td data-label="Run" class="mono">a41d0c7b</td><td data-label="When">24 Nov, 2:05 pm</td><td data-label="Input">Researcher &middot; Dr. R. Alvarez (fictional)</td><td data-label="Screened">25 of 251</td><td data-label="Outcome">7 results, 2 sources failed</td><td data-label=""><a href="#">Open</a></td></tr>
    <tr><td data-label="Run" class="mono">90f2e118</td><td data-label="When">24 Nov, 11:40 am</td><td data-label="Input">Keywords &middot; protein dynamics</td><td data-label="Screened">25 of 198</td><td data-label="Outcome">4 results</td><td data-label=""><a href="#">Open</a></td></tr>
@@ -102,13 +99,13 @@
  <div class="btn-row"><button class="btn ghost" type="button">Export log (.csv)</button><button class="btn ghost" type="button">Archive runs older than 90 days</button></div>
 </div>
 
-<div class="notice warn" style="margin-top:16px"><strong>Preview only.</strong> Nothing on this page is connected yet, and
+<div class="notice warn mt2"><strong>Preview only.</strong> Nothing on this page is connected yet, and
 sign-in is not built. The pilot uses a single administrator password; SSO would come later.</div>
 
-</div></section>
+</section>
 </div>
 </main>
-<footer><div class="wrap"><p>FORGE SIGNAL &middot; capstone project, SMU Cox MS in AI in Business. Preview with sample data only; not an approved or endorsed university service. <a href="about.html">What this is and is not</a></p></div></footer>
+<footer><div class="wrap"><p>FORGE SIGNAL &middot; capstone project, SMU Cox MS in AI in Business. Not an approved or endorsed university service, and not a replacement for university systems. <a href="about.html">About</a></p></div></footer>
 <script src="config.js"></script>
 <script src="mock-data.js"></script>
 <script src="app.js"></script>

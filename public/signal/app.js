@@ -17,7 +17,7 @@
     opts = opts || {};
     return fetch((CFG.api || "") + path, {
       method: opts.method || "GET",
-      headers: opts.body ? { "Content-Type": "application/json" } : {},
+      headers: Object.assign(opts.body ? { "Content-Type": "application/json" } : {}, opts.headers || {}),
       body: opts.body ? JSON.stringify(opts.body) : undefined,
       signal: opts.signal
     }).then(function (r) {
@@ -30,6 +30,7 @@
           if (!d && (r.status === 413 || r.status === 411)) d = "That request is too large. Shorten the research areas or the project description and try again.";
           var er = new Error(d || ("The server answered " + r.status + ".")); er.status = r.status;
           if (j && j.detail && typeof j.detail === "object" && !Array.isArray(j.detail) && typeof j.detail.code === "string") er.code = j.detail.code;
+          if (j && j.detail && typeof j.detail === "object" && j.detail.recorded_example === true) er.recorded = true;
           throw er;
         }
         return j;
@@ -357,16 +358,23 @@
     tick(); var iv = setInterval(tick, 1000);
     stop.onclick = function () { over = true; if (ac) ac.abort(); };
 
-    api("/api/runs", { method: "POST", body: body, signal: ac ? ac.signal : undefined }).then(function (resp) {
+    api("/api/runs", { method: "POST", body: body, headers: codeHeaders(), signal: ac ? ac.signal : undefined }).then(function (resp) {
       saveRun({ input: input, response: resp, savedAt: new Date().toISOString() });
       var keep = RANKS[input.minfit] || RANKS["All"];
       var n = resp.results.filter(function (r) { return keep.indexOf(r.fit) >= 0; }).length;
       var note = n === 0 ? " Nothing was rated at or above your setting; the results page explains why." : "";
       if (input.funders !== "Federal only") note += " State, foundation and other sources are not read in this version; this run used federal opportunities from Grants.gov only.";
+      if (resp.access && typeof resp.access.remaining === "number") {
+        ACC.remaining = resp.access.remaining;
+        note += " You have " + ACC.remaining + " live run" + (ACC.remaining === 1 ? "" : "s") + " left on this code.";
+        if (ACC.required || ACC.open) renderAccess("accepted", null, false);
+      }
       showDone(n, note);
     }, function (e) {
       if (over || (e && e.name === "AbortError")) {
         showError("You stopped waiting", "The run may still finish on the server and appear in the run log. Your entries are still here.");
+      } else if (accessRunError(e) || publicLimitError(e)) {
+        /* shown by accessRunError or publicLimitError */
       } else if (e.status === 413) {
         showError("Request too large", e.message);
       } else if (e.status === 429) {
@@ -379,9 +387,181 @@
       } else {
         showError("Search did not finish", e.message);
       }
-    }).then(function () { clearInterval(iv); btn.disabled = false; });
+    }).then(function () {
+      clearInterval(iv);
+      if (!ACC.required && !(ACC.open && getCode())) { btn.disabled = false; return; }
+      btn.disabled = true;                                   // held until the server says what the code can still do
+      return checkAccess(null, true, true);                  // after a success or any error: the server's count is the truth
+    });
   }
 
+
+
+  /* ---------------------------------------------------------------- tester access code
+     Live runs need a code the owner gave out. It is kept in this tab only (sessionStorage, else memory), sent only in the
+     X-Access-Code header on POST /api/runs, never put in a URL, never shown back, never written to the page or console. */
+  var CODE_KEY = "signal.code", memCode = "", ACC = { required: false, state: "unknown", remaining: null, expires: null };
+  function getCode() { try { var v = sessionStorage.getItem(CODE_KEY); if (v) return v; } catch (e) { /* use memory */ } return memCode; }
+  function setCode(v) { memCode = v || ""; try { if (v) sessionStorage.setItem(CODE_KEY, v); else sessionStorage.removeItem(CODE_KEY); } catch (e) { /* memory only */ } }
+  function codeHeaders() { var c = getCode(); return c ? { "X-Access-Code": c } : {}; }
+
+  var ACCESS_HEAD = {
+    missing: "Access code needed",
+    invalid: "Access code problem",
+    expired: "Access code problem",
+    revoked: "Access code problem",
+    allowance_used: "No live runs left",
+    too_many_attempts: "Search not started",
+    run_in_progress: "Search not started"
+  };
+
+  var NEED_FIX = "Fix the access code, or choose Search without a code.";
+
+  /* Two modes. Codes required: the card is always shown and the search waits for an accepted code.
+     Open demo window (server says required:false): the search works without a code; the card is a small "I have an access code" link.
+     A code that is sent is always honoured by the server, so in the open window a wrong code is shown as a problem and the page
+     never quietly falls back to a public search: the person chooses "Search without a code" themselves. */
+  function renderAccess(kind, msg, focus) {
+    var host = $("access"); if (!host) return;
+    clear(host); host.hidden = false;
+    var runBtn = $("runbtn"), need = $("runneed");
+    function setRun(enabled, why) { if (runBtn) runBtn.disabled = !enabled; if (need) { need.hidden = !why; need.textContent = why || ""; } }
+    host.className = "card mb2";
+    if (kind === "collapsed") {
+      host.className = "mb2 access-collapsed";
+      var h0 = el("h2", { id: "access-head", class: "sr", tabindex: "-1" }, ["Access code"]);
+      var open = el("button", { class: "linkbtn", type: "button", "aria-expanded": "false", "aria-controls": "access" }, ["I have an access code"]);
+      open.addEventListener("click", function () { renderAccess("entry", null, true); });
+      host.appendChild(h0); host.appendChild(el("p", {}, [open, document.createTextNode(" Searching without a code also works; searches without a code are limited each day.")]));
+      setRun(true); return;
+    }
+    var ok = kind === "accepted";
+    var title = ok ? "Access code accepted" : kind === "entry" ? "Access code" : (ACCESS_HEAD[kind] || "Access code");
+    var head = el("h2", { id: "access-head", tabindex: "-1" }, [title]);
+    host.appendChild(head);
+    if (ok) {
+      var parts = [];
+      if (ACC.remaining != null) parts.push(ACC.remaining + " live run" + (ACC.remaining === 1 ? "" : "s") + " left");
+      if (ACC.expires) parts.push("valid until " + dateLong(String(ACC.expires).slice(0, 10)));
+      host.appendChild(el("p", {}, ["Code fsa_•••••••• is saved for this tab only." + (parts.length ? " " + parts.join(", ") + "." : "")]));
+      var forget = el("button", { class: "btn ghost s", type: "button" }, ["Forget code"]);
+      forget.addEventListener("click", function () { setCode(""); ACC.remaining = null; ACC.expires = null; renderAccess(ACC.open ? "collapsed" : "missing", null, true); });
+      host.appendChild(el("div", { class: "btn-row" }, [forget]));
+      setRun(ACC.remaining !== 0, ACC.remaining === 0 ? "This code has no live runs left." : "");
+    } else {
+      var text = kind === "entry" ? "Enter your access code to use its live runs. Searches without a code are limited each day."
+                                  : (msg || "Live searches are for approved testers. Enter your access code, or look at the recorded example.");
+      host.appendChild(el("p", {}, [text]));
+      if (kind !== "too_many_attempts" && kind !== "run_in_progress") {
+        var f = el("div", { class: "field" });
+        var inp = el("input", { type: "password", id: "access-code", name: "access-code", autocomplete: "off", spellcheck: "false", autocapitalize: "off" });
+        f.appendChild(el("label", { for: "access-code" }, ["Access code"]));
+        f.appendChild(inp);
+        f.appendChild(el("p", { class: "hint", id: "access-hint" }, ["Looks like fsa_ followed by letters and numbers. It is kept in this tab only."]));
+        inp.setAttribute("aria-describedby", "access-hint");
+        if (kind === "invalid") inp.setAttribute("aria-invalid", "true");
+        host.appendChild(f);
+        var show = el("button", { class: "btn ghost s", type: "button", "aria-pressed": "false" }, ["Show code"]);
+        show.addEventListener("click", function () {
+          var on = inp.type === "password"; inp.type = on ? "text" : "password";
+          show.setAttribute("aria-pressed", on ? "true" : "false");      // the label stays "Show code"; aria-pressed carries the state
+        });
+        var use = el("button", { class: "btn s", type: "button" }, ["Use this code"]);
+        function go() { var v = inp.value.trim(); if (!v) { renderAccess(ACC.open ? "entry" : "missing", "Enter your access code first.", true); return; } checkAccess(v); }
+        use.addEventListener("click", go);
+        inp.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); go(); } });
+        host.appendChild(el("div", { class: "btn-row" }, [use, show]));
+      }
+      var row = el("div", { class: "btn-row" });
+      var rec = el("button", { class: "btn ghost s", type: "button" }, ["See the recorded example"]);
+      rec.addEventListener("click", chooseRecorded);
+      row.appendChild(rec);
+      if (ACC.open) {
+        var pub = el("button", { class: "btn ghost s", type: "button" }, [kind === "entry" ? "I don’t have a code" : "Search without a code"]);
+        pub.addEventListener("click", function () { setCode(""); ACC.remaining = null; ACC.expires = null; renderAccess("collapsed", null, true); });
+        row.appendChild(pub);
+      }
+      host.appendChild(row);
+      if (ACC.open) setRun(kind === "entry", kind === "entry" ? "" : NEED_FIX);
+      else setRun(false, "Enter an access code first.");
+    }
+    if (focus) head.focus();
+  }
+
+  function openIdle() {            // open window, no code in use
+    ACC.open = true; ACC.required = false; ACC.remaining = null; ACC.expires = null;
+    renderAccess("collapsed", null, false); offerRecorded();
+  }
+
+  /* Access card on Find funding: always shown when codes are required, a small link when the demo window is open */
+  function checkAccess(typed, quiet, afterRun) {
+    var code = typed != null ? typed : getCode();
+    var say = $("accessay"); if (say && !quiet) say.textContent = "Checking the code.";
+    return api("/api/access/check", { headers: code ? { "X-Access-Code": code } : {} }).then(function (r) {
+      if (say) say.textContent = "";
+      if (r && r.required === false && r.remaining == null) {          // open window and no code sent
+        if (afterRun && ACC.open) { var rb0 = $("runbtn"); if (rb0) rb0.disabled = false; return; }
+        openIdle(); return;
+      }
+      ACC.open = r.required === false; ACC.required = !ACC.open;
+      setCode(code); ACC.remaining = r.remaining; ACC.expires = r.expires_at; renderAccess("accepted", null, typed != null);
+    }, function (e) {
+      if (say) say.textContent = "";
+      if (e.status === 403 || e.status === 429) {
+        if (!ACC.open) ACC.required = true;
+        if (typed == null && e.code === "missing") { renderAccess("missing", e.message, false); return; }   // first look at the page: the plain "no code yet" state
+        var hadSaved = typed == null && !!getCode();
+        if (e.code === "expired" || e.code === "revoked" || e.code === "allowance_used") setCode("");   // a saved code that cannot be used is not kept
+        else if (e.code === "invalid" && typed == null) setCode("");
+        if (e.code !== "too_many_attempts") { ACC.remaining = null; ACC.expires = null; }
+        renderAccess(e.code || "invalid", e.message, typed != null);
+        if (hadSaved && !ACC.open) {      // a saved code failed on load: learn whether the demo window is open (the check without a code says so)
+          api("/api/access/check").then(function (r2) { if (r2 && r2.required === false) { ACC.open = true; ACC.required = false; renderAccess(e.code || "invalid", e.message, false); } }, function () { /* stay in the stricter state */ });
+        }
+        return;
+      }
+      if (afterRun) { var rb = $("runbtn"); if (rb) rb.disabled = ACC.remaining === 0; return; }   // the check itself failed after a run: keep what the page last knew
+      ACC.required = false; ACC.open = false;       // the check itself failed: do not hide the search behind it; the search will say what is wrong
+      var h2 = $("access"); if (h2) { h2.hidden = true; clear(h2); }
+      if ($("runbtn")) $("runbtn").disabled = false;
+      offerRecorded();
+    });
+  }
+
+  function setupAccess() {
+    var form = $("runform"); if (!form || $("access")) return;
+    var host = el("div", { class: "card mb2", id: "access", role: "region", "aria-labelledby": "access-head", hidden: "" });
+    form.parentNode.insertBefore(host, form);
+    host.parentNode.insertBefore(el("p", { class: "sr", id: "accessay", role: "status", "aria-live": "polite" }), host);
+    var hint = $("runhint");
+    if (hint) hint.parentNode.insertBefore(el("p", { class: "hint", id: "runneed", hidden: "" }, [""]), hint);
+    if ($("runbtn")) $("runbtn").disabled = true;      // until the server says whether a code is needed
+    checkAccess(null, true);
+  }
+
+  /* errors from POST /api/runs that carry an access code */
+  function accessRunError(e) {
+    if (!e.code || !ACCESS_HEAD[e.code]) return false;
+    showError(ACCESS_HEAD[e.code], e.message); offerInError();
+    if (e.code === "expired" || e.code === "revoked") setCode("");
+    if (e.code !== "run_in_progress" && e.code !== "too_many_attempts" && (ACC.required || ACC.open)) renderAccess(e.code, e.message, false);
+    reveal($("runerror"));
+    return true;
+  }
+
+  /* open window: searches without a code have their own daily cap, and the reserved budget is kept for testers */
+  function publicLimitError(e) {
+    var reserved = e.code === "budget_reached" && e.recorded && /reserved/i.test(e.message || "");
+    if (!(e.code === "public_cap_reached" || reserved)) return false;
+    showError("Search not started", e.message); offerInError();
+    if (ACC.open) {
+      var b = el("button", { class: "btn ghost", type: "button" }, ["I have an access code"]);
+      b.addEventListener("click", function () { renderAccess("entry", null, true); var h = $("access"); if (h && h.scrollIntoView) h.scrollIntoView({ block: "center" }); });
+      var row = $("runerror").querySelector(".btn-row"); if (row) row.appendChild(b);
+    }
+    reveal($("runerror"));
+    return true;
+  }
 
   /* ---------------------------------------------------------------- recorded run
      One real run (fictional researcher, public Grants.gov copy) shown as text. It is the default data on a deploy
@@ -530,10 +710,10 @@
 
   function chooseRecorded() { setMode("recorded"); window.location.href = "results.html"; }
   function offerRecorded() {
-    var after = $("runhint"); if (!after) return;
+    var after = $("runhint"); if (!after || $("rec-offer")) return;
     var b = el("button", { class: "btn ghost s", type: "button" }, ["See the recorded example"]);
     b.addEventListener("click", chooseRecorded);
-    after.parentNode.insertBefore(el("div", { class: "mt1" }, [
+    after.parentNode.insertBefore(el("div", { class: "mt1", id: "rec-offer" }, [
       el("p", { class: "hint" }, ["Live searches are limited in this pilot. If one is not available, you can look at a recorded example instead."]), b]), after.nextSibling);
   }
   function offerInError() {
@@ -789,7 +969,7 @@
     match: function () {
       var form = $("runform");
       if (RMODE) { recordedInputPanel(form); return; }
-      if (isLive()) offerRecorded();
+      if (isLive()) setupAccess();
       if (LIVE) {
         /* real runs start from an empty form: the pre-filled researcher is fictional sample content */
         ["pi-name", "lanes", "rules"].forEach(function (id) { var f = $(id); if (f) f.value = ""; });

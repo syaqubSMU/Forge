@@ -4,10 +4,10 @@ from .migrations import MIGRATIONS
 from datetime import datetime, timedelta, timezone
 
 
-# Pilot-safe defaults for a hosted service (budget: $20 for the whole pilot; a 15-judgment run costs about $0.44).
+# Pilot-safe defaults for a hosted service (budget: $20 for the whole pilot; a 15-judgment run costs about $0.45).
 # The earlier defaults (200 runs a day, 20 an hour per visitor, 25 judgments) could spend about $88 in a day if a
 # public link were shared. The provider's spending limit remains the real guard; these only lower the risk.
-PILOT_DEFAULTS = {"daily_cap": 3, "rate_limit_per_hour": 3, "max_judgments": 15}
+PILOT_DEFAULTS = {"daily_cap": 12, "public_daily_cap": 4, "rate_limit_per_hour": 3, "max_judgments": 15}
 
 # Prices are ESTIMATES: list prices for claude-opus-5-5 in USD per million tokens (cached 2026-11-03). The owner confirms them
 # in the provider console and can change them. They are non-zero by default so the application budget stop is active out of
@@ -17,8 +17,9 @@ DEFAULT_SETTINGS = {
     "horizon_months": 3, "lead_time_days": 14, "min_fit": "Low", "faculty_per_run": 25,
     "max_detail_fetches": 250, "max_judgments": PILOT_DEFAULTS["max_judgments"], "judge_concurrency": 8, "judge_deadline_s": 90, "source_timeout_s": 30, "source_concurrency": 8,
     "cache_ttl_minutes": 15, "include_undated_deadlines": False,
+    "require_access_code": True, "access_code_default_expiry": "2026-12-08", "access_failures_per_hour": 20, "estimated_cost_per_judgment_usd": 0.03,
     "price_per_mtok_input": 4.0, "price_per_mtok_output": 20.0, "pilot_budget_usd": 9.0,
-    "rate_limit_per_hour": PILOT_DEFAULTS["rate_limit_per_hour"], "pi_lookups_per_hour": 60, "pi_lookups_per_day": 1000, "daily_cap": PILOT_DEFAULTS["daily_cap"], "retention_days": 90,
+    "rate_limit_per_hour": PILOT_DEFAULTS["rate_limit_per_hour"], "pi_lookups_per_hour": 20, "pi_lookups_per_day": 200, "daily_cap": PILOT_DEFAULTS["daily_cap"], "public_daily_cap": PILOT_DEFAULTS["public_daily_cap"], "retention_days": 90,
     "email_mode": "dummy", "test_mailbox": "", "sender_label": "Forge Signal (pilot)", "active_model": "mock",
 }
 NOTICE = ("Runs, inputs and calendars are logged for the pilot report, kept for 90 days, then archived. "
@@ -109,6 +110,23 @@ class Database:
             self.conn = sqlite3.connect(self.target, check_same_thread=False)
             self.conn.row_factory = sqlite3.Row
 
+    def execute_count(self, sql, args=()) -> int:
+        """Run one write and return how many rows it changed (used for atomic claims such as an access-code allowance)."""
+        with self.lock:
+            for attempt in (1, 2):
+                try:
+                    cur = self._run(sql, args)
+                    n = cur.rowcount
+                    self.conn.commit()
+                    return n
+                except Exception as e:
+                    if not self.pg: raise
+                    try: self.conn.rollback()
+                    except Exception: pass
+                    if attempt == 1 and isinstance(e, self._psycopg.OperationalError):
+                        self._connect(); continue
+                    raise
+
     def _run(self, sql, args):
         if self.pg:
             return self.conn.execute(sql.replace("?", "%s"), tuple(_clean(a) for a in args))
@@ -195,15 +213,18 @@ class Database:
 
     def list_runs(self, limit=50, offset=0, q=None, include_archived=False):
         sql, args = ("SELECT id,created_at,input_type,input_text,model,status,latency_ms,rubric_version,archived,"
-                     "input_tokens,output_tokens,opportunities_listed,details_fetched,cost_usd FROM runs WHERE 1=1"), []
+                     "input_tokens,output_tokens,opportunities_listed,details_fetched,cost_usd,access_code_id FROM runs WHERE 1=1"), []
         if not include_archived: sql += " AND archived=0"
         if q: sql += " AND LOWER(input_text) LIKE LOWER(?)"; args.append(f"%{q}%")
         sql += " ORDER BY created_at DESC, id LIMIT ? OFFSET ?"; args += [limit, offset]
         return [dict(r) for r in self.q(sql, args)]
 
-    def count_runs_since(self, visitor_hash, since_iso):
+    def count_runs_since(self, visitor_hash, since_iso, public_only=False, coded_only=False):
+        """Runs created since a time. public_only counts only runs made WITHOUT an access code; coded_only only those with one."""
         sql, args = "SELECT COUNT(*) c FROM runs WHERE created_at>=?", [since_iso]
         if visitor_hash: sql += " AND visitor_hash=?"; args.append(visitor_hash)
+        if public_only: sql += " AND access_code_id IS NULL"
+        if coded_only: sql += " AND access_code_id IS NOT NULL"
         return self.q(sql, args, one=True)["c"]
 
     def spent_usd(self) -> float:

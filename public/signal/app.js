@@ -430,7 +430,7 @@
     if (kind === "collapsed") {
       host.className = "mb2 access-collapsed";
       var h0 = el("h2", { id: "access-head", class: "sr", tabindex: "-1" }, ["Access code"]);
-      var open = el("button", { class: "linkbtn", type: "button", "aria-expanded": "false", "aria-controls": "access" }, ["I have an access code"]);
+      var open = el("button", { class: "linkbtn", type: "button" }, ["I have an access code"]);
       open.addEventListener("click", function () { renderAccess("entry", null, true); });
       host.appendChild(h0); host.appendChild(el("p", {}, [open, document.createTextNode(" Searching without a code also works; searches without a code are limited each day.")]));
       setRun(true); return;

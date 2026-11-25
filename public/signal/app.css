@@ -61,7 +61,7 @@ main{padding:28px 0 56px}
 /* forms ------------------------------------------------------------- */
 label{display:block;font-weight:600;font-size:14px;margin-bottom:5px;color:var(--blue)}
 .hint{font-size:14px;color:var(--muted);font-weight:400;margin-top:3px}
-input[type=text],input[type=email],input[type=number],input[type=search],select,textarea{
+input[type=text],input[type=password],input[type=email],input[type=number],input[type=search],select,textarea{
   width:100%;padding:9px 11px;border:1px solid var(--field);border-radius:var(--r-sm);font:inherit;font-size:15px;background:#fff;color:var(--slate)}
 textarea{min-height:92px;resize:vertical}
 .field{margin-bottom:16px}
@@ -512,7 +512,7 @@ header.nav nav a.iconlink[aria-current=page]::after{display:none}
 .cards .card{border-radius:10px}
 
 /* forms */
-input[type=text],input[type=email],input[type=number],input[type=search],select,textarea{border-radius:var(--r-sm);padding:11px 12px;background:#fff;transition:border-color .15s,box-shadow .15s}
+input[type=text],input[type=password],input[type=email],input[type=number],input[type=search],select,textarea{border-radius:var(--r-sm);padding:11px 12px;background:#fff;transition:border-color .15s,box-shadow .15s}
 input:hover,select:hover,textarea:hover{border-color:var(--ink)}
 input:focus-visible,select:focus-visible,textarea:focus-visible{border-color:var(--ink)}
 label{color:var(--ink);font-weight:600}
@@ -833,3 +833,10 @@ header.nav{padding:8px 0}
 .rec-bar a:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .passed{font-weight:600}
 [hidden]{display:none!important}
+
+/* Access code card (live pages) */
+#access h2{margin:0 0 8px;font-size:20px}
+#access:focus-within{outline:0}
+#access .field{margin:12px 0}
+#access input{max-width:28em;width:100%}
+#access .btn-row{margin-top:12px}

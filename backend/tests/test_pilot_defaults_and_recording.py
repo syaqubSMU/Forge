@@ -13,9 +13,9 @@ from tests.test_pipeline import CORPUS, factors_json
 
 @pytest.mark.real_defaults
 def test_production_defaults_are_sized_to_the_budget():
-    assert PILOT_DEFAULTS == {"daily_cap": 5, "rate_limit_per_hour": 3, "max_judgments": 15}
+    assert PILOT_DEFAULTS == {"daily_cap": 3, "rate_limit_per_hour": 3, "max_judgments": 15}
     s = Database(":memory:").settings()
-    assert (s["daily_cap"], s["rate_limit_per_hour"], s["max_judgments"]) == (5, 3, 15)
+    assert (s["daily_cap"], s["rate_limit_per_hour"], s["max_judgments"]) == (3, 3, 15)
 
 
 @pytest.mark.real_defaults
@@ -143,7 +143,7 @@ def test_every_spending_script_prints_a_plan_and_refuses_without_the_flag(args, 
     env = {k: v for k, v in os.environ.items() if k not in ("FORGE_API_KEY", "FORGE_MODEL_KEY", "SIGNAL_MODEL_KEY", "ANTHROPIC_API_KEY")}
     r = subprocess.run([sys.executable, "scripts/" + args[0]] + args[1:], capture_output=True, text=True, cwd=".", env=env)
     out = r.stdout + r.stderr
-    assert r.returncode != 0 and "planned live model calls" in out and "estimated cost" in out and "nothing was spent" in out
+    assert r.returncode != 0 and "live model calls" in out and "cost" in out and "nothing was spent" in out
 
 
 def test_model_check_dry_runs_still_need_no_flag():
@@ -163,3 +163,25 @@ def test_recorded_run_meets_the_integrity_rules_and_detects_edits():
     edited = json.loads(json.dumps(rec)); edited["results"][0]["rationale"] = "edited by hand"
     assert not all(ok for _, ok in recording.integrity_checks(edited))
     assert not all(ok for _, ok in recording.verify_file(recording.to_js(edited)))
+
+
+def test_recording_carries_real_provenance_and_an_exported_run_detail():
+    db = make_db_with_store(); sink = []
+    rec = recording.record(db, MockAdapter([factors_json()]), db.settings(), profile=profile_for_test(), detail_sink=sink)
+    r = rec["recorded_run"]
+    assert r["rubric_version"] not in ("", "recorded", None) and r["deadline_flags_as_of"] == r["as_of_date"] and r["code_commit"]
+    row = db.q("SELECT rubric_version FROM runs WHERE id=?", (r["run_id"],), one=True)
+    assert row["rubric_version"] == r["rubric_version"]                    # the run row carries the real hash too
+    import hashlib
+    assert len(sink) == 1 and hashlib.sha256(sink[0].encode()).hexdigest() == r["run_detail"]["sha256"]
+    ok = recording.verify_file(recording.to_js(rec), sink[0]); assert all(v for _, v in ok)
+    bad = recording.verify_file(recording.to_js(rec), sink[0] + " ")
+    assert not all(v for _, v in bad) and bad[-1][0].startswith("exported run detail")
+
+
+def test_record_run_needs_prices_so_cost_is_never_blank():
+    import subprocess, sys, os
+    env = {k: v for k, v in os.environ.items() if k not in ("FORGE_API_KEY", "FORGE_MODEL_KEY", "SIGNAL_MODEL_KEY", "ANTHROPIC_API_KEY")}
+    r = subprocess.run([sys.executable, "scripts/record_run.py", "--db", "x.db", "--out", "o.js", "--yes-spend-money"],
+                       capture_output=True, text=True, env=env)
+    assert r.returncode != 0 and "--price-in" in (r.stdout + r.stderr) and "at most about 30" in r.stdout

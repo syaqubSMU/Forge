@@ -7,7 +7,10 @@ import sys
 PER_CALL_USD = 0.03
 
 
-def guard(flag_given: bool, planned_calls: int, what: str):
-    print(f"{what}: planned live model calls about {planned_calls} (retries may add a few); estimated cost about ${planned_calls * PER_CALL_USD:.2f}")
+def guard(flag_given: bool, planned_calls: int, what: str, max_calls: int = None):
+    if max_calls:
+        print(f"{what}: typically {planned_calls} to {planned_calls + 2} live model calls, at most about {max_calls} (about ${max_calls * PER_CALL_USD:.1f}); typical cost about ${planned_calls * PER_CALL_USD:.2f}")
+    else:
+        print(f"{what}: planned live model calls about {planned_calls} (retries may add a few); estimated cost about ${planned_calls * PER_CALL_USD:.2f}")
     if not flag_given:
         sys.exit("not run: nothing was spent. Add --yes-spend-money to call the live model (after the project's approvals).")

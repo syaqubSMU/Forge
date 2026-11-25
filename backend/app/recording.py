@@ -5,12 +5,14 @@ pipeline produced for a FICTIONAL researcher against the stored public Grants.go
 pages can show real behaviour without any visitor spending model money.
 
 Nothing here invents content: results, counters, tokens and timings come from `run_match`. Before anything is written,
-every quote is checked again, independently of the pipeline, against the stored source text it claims to come from.
+every quote is re-checked against the stored source text it claims to come from (this reuses the pipeline's own matching
+function, so it catches a source mismatch, not a defect in that function).
 Public Grants.gov data only; the researcher is fictional.
 """
 import hashlib
 import json
 import os
+import subprocess
 import time
 from datetime import date
 
@@ -34,6 +36,14 @@ FICTIONAL_PROFILE = {
 }
 LABEL = "Recorded run: real model output on a fictional researcher, from the stored public Grants.gov copy."
 QUESTION = "Does this opportunity fit this researcher?"
+
+
+def code_commit() -> str:
+    try:
+        return subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, timeout=10,
+                              cwd=os.path.dirname(os.path.abspath(__file__))).stdout.strip() or "unknown"
+    except Exception:
+        return "unknown"
 
 
 def source_text_for(db, url: str) -> str:
@@ -60,8 +70,9 @@ def check_quotes(db, results, profile) -> dict:
     return {"quotes_checked": checked, "quotes_supported": checked - bad, "quotes_failed": bad, "failures": failures}
 
 
-def record(db, adapter, settings, profile=None, max_judgments=15, effort=None, prices=None, lister=None, detailer=None):
-    """Run once and return the dict to be written. Raises if any quote fails the independent check."""
+def record(db, adapter, settings, profile=None, max_judgments=15, effort=None, prices=None, lister=None, detailer=None, detail_sink=None):
+    """Run once and return the dict to be written. Raises if any quote is not found in its stored source text.
+    `detail_sink` (a list) receives the exported run detail JSON text, whose sha256 is recorded in the file."""
     profile = dict(profile or FICTIONAL_PROFILE)
     s = dict(settings)
     s.update(max_judgments=max_judgments)
@@ -91,6 +102,9 @@ def record(db, adapter, settings, profile=None, max_judgments=15, effort=None, p
                              "reasons": m["how_calculated"]["reasons"]})
     failures = [dict(x) for x in db.q("SELECT source_id, error FROM run_source_failures WHERE run_id=?", (rid,))]
     c = dict(c, cost_usd=cost)
+    detail_text = json.dumps(db.get_run(rid), sort_keys=True, indent=1, default=str)
+    if detail_sink is not None:
+        detail_sink.append(detail_text)
     sent = {k: profile[k] for k in ("career_stage", "lanes", "positioning_rules")}
     as_of = date.today().isoformat()
     rec = {
@@ -100,7 +114,9 @@ def record(db, adapter, settings, profile=None, max_judgments=15, effort=None, p
                      "max_judgments": max_judgments},
         "retrieved_at": store.as_of(db),
         "counters": c, "results": out["results"], "excluded": excluded, "source_failures": failures,
-        "recorded_run": {"label": LABEL, "run_id": rid, "recorded_at": now(), "as_of_date": as_of,
+        "recorded_run": {"label": LABEL, "run_id": rid, "recorded_at": now(), "as_of_date": as_of, "deadline_flags_as_of": as_of, "code_commit": code_commit(),
+                         "run_detail": {"sha256": hashlib.sha256(detail_text.encode()).hexdigest(),
+                                        "note": "sha256 of the run's full logged detail (sources hashes, matches, citations, failures), exported next to this file"},
                          "model": getattr(adapter, "model", adapter.name), "effort": effort, "rubric_version": rubric_version,
                          "researcher_is_fictional": True, "source": store.provenance(db),
                          "quote_check": {k: check[k] for k in ("quotes_checked", "quotes_supported", "quotes_failed")},
@@ -129,19 +145,25 @@ def integrity_checks(rec: dict) -> list:
     r = rec["recorded_run"]
     h = hashlib.sha256(json.dumps(rec["results"], sort_keys=True).encode()).hexdigest()
     return [
-        ("run id, model, rubric version, recording date present", all(r.get(k) for k in ("run_id", "model", "rubric_version", "as_of_date", "recorded_at"))),
+        ("run id, model, rubric version, code commit, recording date present", all(r.get(k) for k in ("run_id", "model", "rubric_version", "code_commit", "as_of_date", "deadline_flags_as_of", "recorded_at"))),
+        ("rubric version is the real hash, not a placeholder", r.get("rubric_version") not in (None, "", "recorded")),
+        ("run detail hash recorded", len(r.get("run_detail", {}).get("sha256", "")) == 64),
         ("opportunity retrieval date present", bool(rec.get("retrieved_at"))),
         ("counters present (listed, judged, tokens, latency)", all(k in rec["counters"] for k in ("opportunities_listed", "judged", "input_tokens", "output_tokens", "latency_ms"))),
         ("redactions stated (list present; empty means none)", isinstance(r.get("redactions"), list)),
         ("input stored with it is what produced it (profile, question, limit)", bool(r.get("input_sent", {}).get("profile")) and bool(r["input_sent"].get("question"))),
         ("profile is marked fictional", "fictional" in rec["profile"]["investigator"].lower() and "fictional" in rec["profile"]["institution"].lower()),
-        ("every quote found in its source", r["quote_check"]["quotes_failed"] == 0 and r["quote_check"]["quotes_checked"] == r["quote_check"]["quotes_supported"]),
+        ("every quote re-checked against its stored source text", r["quote_check"]["quotes_failed"] == 0 and r["quote_check"]["quotes_checked"] == r["quote_check"]["quotes_supported"]),
         ("deadline flags carry the recording date and a stale-deadline note", bool(r.get("as_of_date")) and "recorded" in r.get("deadline_note", "")),
         ("results hash matches the results (not edited)", r["integrity"]["results_sha256"] == h),
     ]
 
 
-def verify_file(text: str) -> list:
-    """Re-run the checks on a written file (to detect later edits)."""
+def verify_file(text: str, detail_text: str = None) -> list:
+    """Re-run the checks on a written file (to detect later edits); with the exported run detail, also check its hash."""
     rec = json.loads(text.split("window.MOCK = ", 1)[1].rstrip().rstrip(";"))
-    return integrity_checks(rec)
+    out = integrity_checks(rec)
+    if detail_text is not None:
+        out.append(("exported run detail matches its recorded hash",
+                    hashlib.sha256(detail_text.encode()).hexdigest() == rec["recorded_run"]["run_detail"]["sha256"]))
+    return out

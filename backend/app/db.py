@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 # Pilot-safe defaults for a hosted service (budget: $20 for the whole pilot; a 15-judgment run costs about $0.44).
 # The earlier defaults (200 runs a day, 20 an hour per visitor, 25 judgments) could spend about $88 in a day if a
 # public link were shared. The provider's spending limit remains the real guard; these only lower the risk.
-PILOT_DEFAULTS = {"daily_cap": 5, "rate_limit_per_hour": 3, "max_judgments": 15}
+PILOT_DEFAULTS = {"daily_cap": 3, "rate_limit_per_hour": 3, "max_judgments": 15}
 
 DEFAULT_SETTINGS = {
     "scope_level": "A named organization", "units": [], "funder_types": ["federal"],

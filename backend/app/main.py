@@ -19,7 +19,8 @@ from .db import DEFAULT_SETTINGS, NOTICE, Database, now, run_cost
 from .fit import DEFAULT_RUBRIC
 from .calendar import build_calendar
 from .exports import to_ics, to_xlsx
-from .pipeline import run_match
+from .adapters.claude import KEY_VARS
+from .pipeline import run_match, MODEL_MAX_CONCURRENT
 from .schemas import FIT, SchemaError
 from .sources.grants_gov import SourceError
 from .sources import openalex
@@ -308,6 +309,23 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                         headers={"Content-Disposition": f'attachment; filename="{_slug(run)}.xlsx"'})
 
     # ---------------------------------------------------------------- admin
+    @app.get("/api/admin/environment")
+    def environment(_=Depends(admin)):
+        """Which settings are in effect, WITHOUT any secret value: yes/no for secrets, the kind of database (never its
+        address), and plain values only for non-secret settings."""
+        key_var = next((n for n in KEY_VARS if (os.environ.get(n) or "").strip()), None)
+        static_dir = pathlib.Path(os.environ.get("FORGE_STATIC") or pathlib.Path(__file__).resolve().parents[2] / "public" / "signal")
+        return {"database": "postgres" if db.pg else ("memory" if db.target == ":memory:" else "sqlite file"),
+                "schema_version": db.schema_version(),
+                "admin_token_set": bool(os.environ.get("ADMIN_TOKEN")), "salt_set": bool(os.environ.get("FORGE_SALT")),
+                "model_key_variable": key_var,                      # the variable's NAME, never its value
+                "active_model": db.settings()["active_model"],
+                "model": os.environ.get("FORGE_MODEL", "claude-opus-5-5"), "effort": os.environ.get("FORGE_EFFORT") or None,
+                "trusted_proxy_hops": os.environ.get("FORGE_TRUSTED_PROXY_HOPS", "0"),
+                "cors_origins": origins, "model_max_concurrent": MODEL_MAX_CONCURRENT,
+                "judge_concurrency": db.settings()["judge_concurrency"],
+                "static_dir_found": static_dir.is_dir(), "max_body_bytes": MAX_BODY_BYTES}
+
     @app.get("/api/admin/whoami")
     def whoami(request: Request, _=Depends(admin)):
         """What address the server believes this request came from, for setting FORGE_TRUSTED_PROXY_HOPS. Admin only;
@@ -348,8 +366,8 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
     @app.get("/api/admin/runs.csv")
     def runs_csv(_=Depends(admin)):
         out = io.StringIO(); w = csv.writer(out)
-        cols = ["id", "created_at", "input_type", "input_text", "model", "status", "latency_ms", "rubric_version", "archived"]
-        w.writerow(cols)
+        cols = ["id", "created_at", "input_type", "input_text", "model", "status", "latency_ms", "rubric_version", "archived", "cost_usd"]
+        w.writerow([c + "_estimate" if c == "cost_usd" else c for c in cols])      # runs.cost_usd is an estimate from reported usage
         for r in db.list_runs(10000, 0, None, True): w.writerow([_csv_safe(r[c]) for c in cols])
         return Response(out.getvalue(), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=forge-signal-runs.csv"})
 

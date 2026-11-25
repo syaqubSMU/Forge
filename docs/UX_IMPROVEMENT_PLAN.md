@@ -25,7 +25,7 @@ Also found, small but important: the focus ring (coral on white, 2.68:1) is belo
 - `docs/ux/` screenshots (listed in section 1) and `docs/ux/wireframes.html` (section 6)
 
 ### Honest limits of this review
-One reviewer, one machine, Chromium only, no real screen reader, no real users. Fonts from Google Fonts were blocked in my sandbox, so type rendered in the fallback stack; contrast figures are computed from the CSS colours and are unaffected. Live mode used the mock model, so I did not see real model output, real quotes or real run times. The run took about 15 s with the mock (Grants.gov pull plus 25 mock judgments); that says nothing about real-model speed.
+One reviewer, one machine, Chromium only, no real screen reader, no real users. The pages now use no external fonts (system font stack; Inter is used only where installed); contrast figures are computed from the CSS colours and are unaffected. Live mode used the mock model, so I did not see real model output, real quotes or real run times. The run took about 15 s with the mock (Grants.gov pull plus 25 mock judgments); that says nothing about real-model speed.
 
 **Not tested (keep this line):** a populated live run by a person, a screen reader (NVDA, JAWS, VoiceOver), and 200 to 400 percent zoom. Automated axe-core checks found no issues, but no conformance with WCAG is claimed.
 

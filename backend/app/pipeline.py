@@ -8,6 +8,7 @@ Nothing about an opportunity is stored outside the run log.
 """
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 from . import rubric as R
 from .adapters.base import judge_fit
@@ -81,15 +82,34 @@ def run_match(db, run_id, adapter, settings, profile, question, lister=None, det
     ranked, skipped = rank_candidates(details, profile, settings["max_judgments"])
     prof_text = profile_text(profile)
     results = []
+    prepared = []
+    t_start_judging = time.time()
     for d, shared in ranked:
         opp_id = d["url"]
         sources = {opp_id: "\n\n".join(x for x in (d.get("description"), d.get("eligibility_text")) if x),
                    "researcher-profile": prof_text}
         db.add_source(run_id, opp_id, d["url"], R.version({"t": sources[opp_id]}))
+        prepared.append((d, shared, opp_id, sources))
+
+    # Model calls run in a bounded thread pool; the database is only touched from this thread, in ranked order,
+    # so the log and the result order do not depend on which call finishes first.
+    def call(item):
         try:
-            fj = judge_fit(adapter, sources, question, rubric)
+            return judge_fit(adapter, item[3], question, rubric), None
         except SchemaError as e:
-            db.add_source_failure(run_id, opp_id, f"model output invalid: {e}")
+            return None, f"model output invalid: {e}"
+        except Exception as e:                       # rate limit after retries, timeout, refusal: never a key in the text
+            return None, f"model call failed: {type(e).__name__}"
+
+    workers = max(1, min(int(settings.get("judge_concurrency") or 1), 16, len(prepared) or 1))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        outcomes = list(pool.map(call, prepared))
+    t_judged = time.time()
+    model_failures = 0
+    for (d, shared, opp_id, sources), (fj, err) in zip(prepared, outcomes):
+        if err:
+            model_failures += 1
+            db.add_source_failure(run_id, opp_id, err)
             continue
         checked = validate_factors(fj, sources, rubric)
         tier = R.evaluate(rubric, checked["factors"])
@@ -127,7 +147,8 @@ def run_match(db, run_id, adapter, settings, profile, question, lister=None, det
                                 r["days_to_deadline"] if r["days_to_deadline"] is not None else 10 ** 6))
     return {"results": results, "counters": {
         "opportunities_listed": len(listed), "in_horizon": len(short), "details_fetched": len(details),
-        "judged": len(ranked), "not_judged_due_to_cap": skipped, "source_failures": len(failures),
+        "judged": len(ranked) - model_failures, "model_failures": model_failures, "not_judged_due_to_cap": skipped, "source_failures": len(failures),
         "latency_ms": int((time.time() - t0) * 1000),
+        "judging_ms": int((t_judged - t_start_judging) * 1000), "judge_concurrency": workers,
         "input_tokens": adapter.total_usage.get("input_tokens", 0),
         "output_tokens": adapter.total_usage.get("output_tokens", 0)}}

@@ -32,6 +32,7 @@ To use the real model, set a key (below), then switch the active model: `PUT /ap
 | Script | Purpose |
 |---|---|
 | `scripts/model_check.py` | Scores the model on `evals/gold_set.json`. `--mock` for a dry run. Uses the key and costs a few cents live. |
+| `scripts/bench_judging.py` | Times the judging step with the live model on the stored corpus (costs money; use `--n 3` to `5`). |
 | `scripts/grants_check.py` | Live Grants.gov check (no model, no key, no cost). |
 | `scripts/calibrate.py`, `scripts/template_cli.py` | Rubric calibration and the Excel template for editing criteria. |
 
@@ -43,7 +44,7 @@ To use the real model, set a key (below), then switch the active model: `PUT /ap
 | `FORGE_SALT` | Salt for the visitor hash used by rate limiting. |
 | `FORGE_MODEL_KEY`, `FORGE_API_KEY`, `SIGNAL_MODEL_KEY`, `ANTHROPIC_API_KEY` | Model key. Any one works; the first set wins in that order. Never returned by the API or logged. |
 | `FORGE_MODEL` | Model id for the Claude adapter (default `claude-opus-5-5`). |
-| `FORGE_EFFORT` | Optional model effort level, to cut cost and time on bulk screening. |
+| `FORGE_EFFORT` | Model effort level (`low`, `medium`, `high`). `low` is recommended for bulk screening: about 35% fewer output tokens and 25% less time in the measured sample. |
 | `FORGE_STATIC` | Folder of web pages to serve (default: `public/signal` in this repository). |
 | `FORGE_CORS_ORIGINS` | Comma-separated page addresses allowed to call the API from another host. Empty by default (same-address only). |
 | `FORGE_API_BASE` | Optional override of the model API address (default `https://api.anthropic.com`). |
@@ -57,7 +58,7 @@ Safeguards: per-visitor hourly rate limit, a daily run cap, no raw source text r
 `POST /api/admin/ingest` lists every posted and forecasted opportunity, reads full text for records that have none or close within 12 months, and logs every Grants.gov request in `api_calls`. Runs then read the stored copy and report when it was retrieved; until the first ingest they pull live. Measured on 2026-11-24: 1,372 records with full text in 72 s, 0 failures. Researcher profiles and judgments are never stored in this table.
 
 ## Known gaps (as of 2026-11-24)
-- **Speed:** judgments run one after another. 5 judgments took 81 s; the default of 25 would take minutes. Needs parallel judging and a lower-effort setting.
+- **Speed (addressed 2026-11-25):** judgments now run in a bounded thread pool (`judge_concurrency` setting, default 8, hard cap 16); the SDK retries 429/overload with backoff (`FORGE_MODEL_RETRIES`, default 6). Measured live on claude-opus-5-5, same profile and shortlist, stored corpus: 5 judgments sequential 46.2 s (about 9 s per call; the earlier 81 s figure was a slower moment); 5 judgments on 5 workers 11.7 s; with `FORGE_EFFORT=low` 8.6 s and 35% fewer output tokens (3,823 vs 5,791). 25 judgments, effort low: 25.7 s on 8 workers, 14.9 s on 16 workers, no rate-limit errors; sequential would be about 230 s. The 30 s promise is met only with effort low. Effort low agreed with default effort on all 10 items of one 10-item sample (it is a single sample, not an accuracy result); effort medium produced one invalid-output retry in 5 calls. Run `scripts/bench_judging.py` to repeat (it costs money).
 - **Retrieval:** ranking is word overlap only. Its quality has not been measured against labelled answers.
 - **PI lookup:** no OpenAlex code yet, so a researcher cannot be searched by name.
 - **Front end:** Match, Results, Calendar and Review are connected (checked end to end with a real run). The Settings (admin) page is still sample data, and the opportunity-and-department path is disabled in live mode.

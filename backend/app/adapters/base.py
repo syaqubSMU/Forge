@@ -1,5 +1,6 @@
 """Model adapter interface (hard rule 5): the model can be swapped without touching matching logic."""
 import json
+import threading
 from abc import ABC, abstractmethod
 
 from ..schemas import Judgment, SchemaError, parse_judgment, parse_factor_judgment
@@ -24,11 +25,15 @@ class ModelAdapter(ABC):
 
     def __init__(self):
         self.total_usage = {"input_tokens": 0, "output_tokens": 0}
+        self.call_log = []                    # one entry per model call: seconds, tokens, stop reason
+        self._lock = threading.Lock()         # judgments run in parallel threads and share these counters
 
     def _record(self, usage: dict):
-        self.last_usage = usage
-        for k in ("input_tokens", "output_tokens"):
-            self.total_usage[k] = self.total_usage.get(k, 0) + int(usage.get(k, 0) or 0)
+        with self._lock:
+            self.last_usage = usage
+            for k in ("input_tokens", "output_tokens"):
+                self.total_usage[k] = self.total_usage.get(k, 0) + int(usage.get(k, 0) or 0)
+            self.call_log.append(dict(usage))
 
     @abstractmethod
     def complete(self, system: str, prompt: str) -> str:

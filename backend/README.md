@@ -45,7 +45,7 @@ To use the real model, set a key (below), then switch the active model: `PUT /ap
 |---|---|
 | `ADMIN_TOKEN` | Admin API sign-in. Required for every `/api/admin/*` call. |
 | `FORGE_DB` | Run log and stored opportunities: a SQLite file path (default `forge.db`, `:memory:` for a throwaway run) or a `postgresql://` URL (Neon, Render, Supabase or any Postgres 14+). Schema migrations are applied on start. |
-| `FORGE_SALT` | Salt for the visitor hash used by rate limiting. |
+| `FORGE_SALT` | Salt for the visitor hash used by rate limiting. **Set it in every hosted environment**; the server logs a warning at start if a hosted database is used without it. |
 | `FORGE_MODEL_KEY`, `FORGE_API_KEY`, `SIGNAL_MODEL_KEY`, `ANTHROPIC_API_KEY` | Model key. Any one works; the first set wins in that order. Never returned by the API or logged. |
 | `FORGE_MODEL` | Model id for the Claude adapter (default `claude-opus-5-5`). |
 | `FORGE_EFFORT` | Model effort level (unset = model default; production value not yet decided: low is fastest but was not more repeatable and its accuracy has not been measured against labelled answers, since the gold labels are blank) (`low`, `medium`, `high`). `low` is recommended for bulk screening: about 35% fewer output tokens and 25% less time in the measured sample. |

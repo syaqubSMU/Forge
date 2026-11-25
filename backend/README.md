@@ -34,6 +34,7 @@ To use the real model, set a key (below), then switch the active model: `PUT /ap
 | `scripts/model_check.py` | Scores the model on `evals/gold_set.json`. `--mock` for a dry run. Uses the key and costs a few cents live. |
 | `scripts/bench_judging.py` | Times the judging step with the live model on the stored corpus (costs money; use `--n 3` to `5`; it writes a run into the database it is given, so use a local or dev database, never production). |
 | `scripts/ingest.py` | Fills or refreshes the stored Grants.gov copy from a command line or scheduled job (`--db`, defaults to `FORGE_DB`). One JSON line; exit 0 all stored, 1 some details failed, 2 could not run. Measured on a local Postgres 16: 1,376 records, 68 s, 0 failures. |
+| `scripts/db_smoke.py` | Smoke test of a hosted database: connects via `FORGE_DB` (never printed), migrates, writes and reads a throwaway run, measures round-trip latency, times the batched read of stored records and checks recovery after a dropped connection. Run before the first real deploy. Verified only against a local Postgres 16; not yet run on Neon. |
 | `scripts/migrate.py` | Shows or applies schema migrations (servers also apply them on start). |
 | `scripts/retrieval_check.py` | Ranking comparison on the frozen labelled snapshot (no model, no cost). |
 | `scripts/grants_check.py` | Live Grants.gov check (no model, no key, no cost). |

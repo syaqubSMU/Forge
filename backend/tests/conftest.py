@@ -14,7 +14,9 @@ def _generous_limits_for_tests(request, monkeypatch):
     if request.node.get_closest_marker("real_defaults"):
         yield; return
     import app.db as dbmod
-    for k, v in {"daily_cap": 200, "rate_limit_per_hour": 20, "max_judgments": 25}.items():
+    import app.main as mainmod
+    monkeypatch.setattr(mainmod, "MIN_HOSTED_ADMIN_TOKEN", 0)          # tests use short admin tokens, also against Postgres
+    for k, v in {"daily_cap": 200, "rate_limit_per_hour": 20, "max_judgments": 25, "require_access_code": False}.items():
         monkeypatch.setitem(dbmod.DEFAULT_SETTINGS, k, v)
     yield
 
@@ -27,6 +29,7 @@ def _postgres_for_memory_tests(monkeypatch):
     import app.main as main
     import app.db as dbmod
     real = dbmod.Database
+    opened = []
 
     class PgDatabase(real):
         def __init__(self, path=":memory:"):
@@ -36,9 +39,13 @@ def _postgres_for_memory_tests(monkeypatch):
                     c.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
                 path = url
             super().__init__(path)
+            opened.append(self)                     # closed after the test: the suite makes more databases than the server allows connections
 
     import sys
     for mod in list(sys.modules.values()):          # every module that imported Database by name (tests included)
         if getattr(mod, "Database", None) is real:
             monkeypatch.setattr(mod, "Database", PgDatabase)
     yield
+    for d in opened:
+        try: d.conn.close()
+        except Exception: pass

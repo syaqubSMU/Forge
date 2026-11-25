@@ -98,7 +98,7 @@ def test_environment_report_shows_no_secret_values(c, monkeypatch):
 def test_runs_csv_labels_cost_as_an_estimate(c, monkeypatch):
     monkeypatch.setenv("ADMIN_TOKEN", "t")
     head = c.get("/api/admin/runs.csv", headers={"X-Admin-Token": "t"}).text.splitlines()[0]
-    assert head.endswith("cost_usd_estimate")
+    assert "cost_usd_estimate" in head and head.endswith("access_code_id")
 
 
 @pytest.mark.parametrize("value,shown", [("claude-opus-5-5", "claude-opus-5-5"), ("low", "low"),

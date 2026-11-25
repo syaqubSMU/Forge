@@ -6,44 +6,45 @@
 <title>Calendar | FORGE SIGNAL</title>
 <meta name="description" content="Deadline calendar with internal deadlines, grouped by fixed, rolling and watch, with spreadsheet and calendar export.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" href="assets/forge-signal-icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="app.css">
 </head>
 <body data-page="calendar">
 <a class="skip" href="#main">Skip to main content</a>
-<p class="mock-banner">Interface preview &middot; every figure below is fictional sample data</p>
+<p class="mock-banner" role="region" aria-label="Preview notice"><strong>Preview.</strong> Every figure on these pages is fictional sample data.</p>
 <header class="nav"><div class="wrap">
- <a class="brand" href="index.html">FORGE<small>SIGNAL</small></a>
- <nav aria-label="Main"><ul><li><a href="index.html">Home</a></li><li><a href="match.html">Match</a></li><li><a href="results.html">Results</a></li><li><a href="calendar.html" aria-current="page">Calendar</a></li><li><a href="review.html">Review</a></li><li><a href="about.html">About</a></li><li><a href="settings.html">Settings<span class="admin-tag">admin</span></a></li></ul></nav>
+ <a class="brand" href="index.html" aria-label="FORGE SIGNAL home"><img src="assets/forge-signal-logo.svg" alt="" width="189" height="46"></a>
+ <nav aria-label="Main"><ul><li><a href="index.html">Home</a></li><li><a href="match.html" aria-current="true">Find funding</a></li><li><a href="about.html">About</a></li><li><a class="iconlink" href="settings.html" aria-label="Settings (admin preview)" title="Settings (admin preview)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></a></li></ul></nav>
 </div></header>
 <main id="main">
-<section class="hero"><div class="wrap">
- <p class="eyebrow">Step 3 of 3</p>
- <h1>Deadline calendar</h1>
- <p class="lead">Internal deadlines are the sponsor deadline minus the lead time set for this run (14 days). Dates are computed in code, never written by a model. A sponsor date that does not exist stays blank rather than being invented.</p>
+<div class="subbar"><div class="wrap"><nav aria-label="Find funding steps"><ol class="steps4" aria-label="Steps in a run"><li class=""><a href="match.html"><span class="num" aria-hidden="true">1</span>Find funding</a></li><li class=""><a href="results.html"><span class="num" aria-hidden="true">2</span>Results</a></li><li class=""><a href="calendar.html" aria-current="step"><span class="num" aria-hidden="true">3</span>Calendar</a></li><li class="you"><a href="review.html"><span class="num" aria-hidden="true">4</span>Review: you decide</a></li></ol></nav></div></div>
+<section class="pagehead"><div class="wrap">
+<h1>Deadline calendar</h1>
+ <p class="lead">Internal deadlines fall a set number of days before each sponsor deadline (14 days for this search). Deadlines are calculated, not guessed. If a sponsor gives no date, it stays blank.</p>
  <div class="btn-row">
-  <button class="btn accent" type="button" id="dl-xlsx">Download spreadsheet (.xlsx)</button>
-  <button class="btn ghost" type="button" id="dl-ics">Download calendar (.ics)</button>
+  <button class="btn accent" type="button" id="dl-xlsx" disabled>Download spreadsheet (.xlsx)</button>
+  <button class="btn ghost" type="button" id="dl-ics" disabled>Download calendar (.ics)</button>
   <a class="btn ghost" href="review.html">Draft an alert</a>
  </div>
- <p class="hint" id="dl-hint" style="margin-top:9px">Export buttons are inactive in this preview.</p>
+ <p class="hint" id="dl-hint">Export is switched off in the sample preview. It works on a live run.</p>
 </div></section>
-<div class="wrap" style="padding-top:28px">
+<div class="wrap pt-main">
 <div class="decide" id="decide" hidden>
- <h3>Decide now</h3>
- <p class="hint" style="margin-top:5px">Rated High or Medium, and already inside the internal lead time. Nothing has been filtered out because of this; these also appear in the lists and tables below.</p>
+ <h2>Needs a decision now</h2>
+ <p class="hint mt1">Rated High or Medium, and already closer than your internal deadline. Nothing has been filtered out because of this; these also appear in the lists and tables below.</p>
  <ul id="decidelist"></ul>
 </div>
 
-<div class="grid g3" style="margin-bottom:20px">
- <div class="card"><h3>Needs action within 45 days</h3><ul class="rule-list" id="soon" style="margin-top:9px"></ul></div>
- <div class="card"><h3>Top 5 for this window</h3><ul class="rule-list" id="top5" style="margin-top:9px"></ul></div>
- <div class="card"><h3>Watch list</h3><p class="hint">No announced date yet. Never shown as a deadline.</p><ul class="rule-list" id="watchlist" style="margin-top:9px"></ul></div>
+<div class="grid g3 mb3">
+ <div class="card"><h2>Needs action within 45 days</h2><ul class="rule-list mt1" id="soon"></ul></div>
+ <div class="card"><h2>Top 5 for this window</h2><ul class="rule-list mt1" id="top5"></ul></div>
+ <div class="card"><h2>Watch list</h2><p class="hint">No announced date yet. Never shown as a deadline.</p><ul class="rule-list mt1" id="watchlist"></ul></div>
 </div>
 
 
-<p id="provenance" class="hint" style="margin-bottom:6px"></p>
-<p class="hint" style="margin-bottom:8px">Each table has more columns than fit on screen. Scroll sideways inside a table to see them all.</p>
+<p id="provenance" class="hint mb1"></p>
+<p class="scrollhint" id="scrollhint">Wide tables: scroll sideways to see every column. The first column stays in view.</p>
 <div id="tables"></div>
 
 <div class="notice"><strong>Verify before you diary anything.</strong> Sponsors change dates. Internal deadlines here are a
@@ -51,7 +52,7 @@ planning aid and do not replace your office's own submission policy.</div>
 
 </div>
 </main>
-<footer><div class="wrap"><p>FORGE SIGNAL &middot; capstone project, SMU Cox MS in AI in Business. Preview with sample data only; not an approved or endorsed university service. <a href="about.html">What this is and is not</a></p></div></footer>
+<footer><div class="wrap"><p>FORGE SIGNAL &middot; capstone project, SMU Cox MS in AI in Business. Not an approved or endorsed university service, and not a replacement for university systems. <a href="about.html">About</a></p></div></footer>
 <script src="config.js"></script>
 <script src="mock-data.js"></script>
 <script src="app.js"></script>

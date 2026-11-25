@@ -13,18 +13,24 @@
     return fetch((CFG.api || "") + path, {
       method: opts.method || "GET",
       headers: opts.body ? { "Content-Type": "application/json" } : {},
-      body: opts.body ? JSON.stringify(opts.body) : undefined
+      body: opts.body ? JSON.stringify(opts.body) : undefined,
+      signal: opts.signal
     }).then(function (r) {
       return r.text().then(function (t) {
         var j = null; try { j = t ? JSON.parse(t) : null; } catch (e) { j = null; }
         if (!r.ok) {
           var d = j && j.detail;
           if (Array.isArray(d)) d = d.map(function (x) { return x.msg; }).join("; ");
-          throw new Error(d || ("The server answered " + r.status + "."));
+          else if (d && typeof d === "object") d = d.message || d.code || null;
+          if (!d && (r.status === 413 || r.status === 411)) d = "That request is too large. Shorten the research areas or the project description and try again.";
+          var er = new Error(d || ("The server answered " + r.status + ".")); er.status = r.status; throw er;
         }
         return j;
       });
-    }, function () { throw new Error("Could not reach the server. Check your connection and try again."); });
+    }, function (e) {
+      if (e && e.name === "AbortError") throw e;
+      throw new Error("We could not reach the server. Your entries are still here. Check your connection and select Find opportunities again.");
+    });
   }
   function readRun() { try { return JSON.parse(sessionStorage.getItem(RUN_KEY) || "null"); } catch (e) { return null; } }
   function saveRun(o) { try { sessionStorage.setItem(RUN_KEY, JSON.stringify(o)); } catch (e) { /* private mode: the run just is not remembered */ } }
@@ -57,11 +63,11 @@
     return el("span", { class: "badge " + c }, ["Eligibility: " + e]);
   }
 
-  function citationBlock(c) {
+  function citationBlock(c, r) {
     var src = c.source_id === "researcher-profile"
       ? el("span", {}, ["Researcher profile, supplied for this run"])
-      : el("a", { href: c.source_id, rel: "noopener noreferrer", target: "_blank" }, ["Official source"]);
-    return el("div", { class: "quote" }, [
+      : el("a", { href: c.source_id, rel: "noopener noreferrer", target: "_blank", "aria-label": "Official source for " + (r && r.number ? r.number : "this opportunity") + " (opens in a new tab)" }, ["Official source"]);
+    return el("div", { class: "quote", role: "group", "aria-label": String(c["for"]).replace(/_/g, " ") + " evidence" }, [
       el("span", { class: "for-tag" }, [String(c["for"]).replace(/_/g, " ")]),
       el("q", {}, [c.quote]),
       el("span", { class: "src" }, [src, document.createTextNode(" · retrieved " + (dateLong((M.retrieved_at || "").slice(0, 10)) || "today"))])
@@ -91,52 +97,74 @@
     }
     if ((r.prefilter_shared_terms || []).length) {
       body.appendChild(el("p", { class: "hint", style: "margin-top:9px" },
-        ["Chosen for screening because these terms appear in both the profile and the announcement: " +
+        ["Chosen to be checked because these terms appear in both the research areas and the announcement: " +
          r.prefilter_shared_terms.join(", ") + ". That ranking only controls cost; it is not the fit judgment."]));
     }
     d.appendChild(body);
     return d;
   }
 
+  var cardSeq = 0;
+  /* fixed wording keyed to the eligibility value and flags; never written by the model */
+  function yourCheck(r) {
+    var t = r.eligibility === "Eligible"
+      ? "Confirm the deadline and the eligibility wording on the sponsor page before any outreach."
+      : r.eligibility === "Not eligible"
+        ? "A stated restriction may exclude this researcher. Read the quoted sentence and the sponsor page before ruling it out."
+        : "The announcement does not clearly say who may apply. Read the eligibility section on the sponsor page, or ask the program officer.";
+    var fl = (r.flags || []).join(" ").toLowerCase();
+    if (fl.indexOf("limited") >= 0) t += " Limited submission: ask your research office about the internal selection.";
+    if (fl.indexOf("invitation") >= 0) t += " Invitation only: contact the program officer.";
+    if (r.status === "Rolling") t += " Rolling program: confirm the topic with the program officer.";
+    return t;
+  }
+
   function resultCard(r) {
-    var card = el("article", { class: "result r-" + (r.fit || "Excluded") });
-    card.appendChild(el("h3", {}, [el("a", { href: r.url, rel: "noopener noreferrer", target: "_blank" }, [r.title])]));
-    var meta = el("div", { class: "meta" }, [r.sponsor, el("span", { class: "sep" }, ["|"]),
-      el("span", { class: "mono" }, [r.number]), el("span", { class: "sep" }, ["|"])]);
-    meta.appendChild(document.createTextNode("Sponsor deadline: "));
-    meta.appendChild(orNot(dateLong(r.close_date), "Not stated"));
-    if (r.days_to_deadline != null) meta.appendChild(document.createTextNode(" (" + r.days_to_deadline + " days)"));
-    card.appendChild(meta);
+    var tid = "res-" + (++cardSeq);
+    var card = el("article", { class: "result r-" + (r.fit || "Excluded"), "aria-labelledby": tid });
+    var h = el("h3", { id: tid }, [el("a", { href: r.url, rel: "noopener noreferrer", target: "_blank" }, [r.title])]);
+    card.appendChild(h);
+    var dl = el("li", {}, ["Sponsor deadline: "]);
+    dl.appendChild(orNot(dateLong(r.close_date), "Not stated"));
+    if (r.days_to_deadline != null) dl.appendChild(document.createTextNode(" (" + r.days_to_deadline + " days)"));
+    card.appendChild(el("ul", { class: "meta-list" }, [el("li", {}, [r.sponsor]), el("li", {}, [el("span", { class: "mono" }, [r.number])]), dl]));
 
     var badges = el("div", { class: "badges" }, [fitBadge(r), eligBadge(r.eligibility)]);
     if (r.status) badges.appendChild(el("span", { class: "flag info" }, ["Status: " + r.status]));
     (r.flags || []).forEach(function (f) { badges.appendChild(el("span", { class: "flag info" }, [f])); });
-    (r.currency_flags || []).forEach(function (f) { badges.appendChild(el("span", { class: "flag" }, ["⚠ " + f])); });
+    (r.currency_flags || []).forEach(function (f) { badges.appendChild(el("span", { class: "flag" }, ["\u26A0 " + f])); });
     card.appendChild(badges);
 
     card.appendChild(el("p", {}, [r.rationale]));
-    (r.citations || []).forEach(function (c) { card.appendChild(citationBlock(c)); });
-    if (!(r.citations || []).length) {
-      card.appendChild(el("div", { class: "quote" }, [el("q", {}, ["No explicit support found in the provided sources."])]));
-    }
-    card.appendChild(howCalculated(r));
+    card.appendChild(el("div", { class: "yourcheck" }, [el("strong", {}, ["Your check: "]), document.createTextNode(yourCheck(r))]));
+
+    var cites = r.citations || [], n = cites.length, bad = r.failed_citation_count || 0;
+    var label = n ? "Evidence: " + n + " quote" + (n === 1 ? "" : "s") + " found in the sources"
+                  : "Evidence: no explicit support found in the provided sources";
+    if (bad) label += " \u00b7 " + bad + " discarded (not found in the source)";
+    var ev = el("details", { class: "evidence" }, [el("summary", {}, [label])]);
+    var body = el("div", { class: "body" });
+    cites.forEach(function (c) { body.appendChild(citationBlock(c, r)); });
+    if (!n) body.appendChild(el("div", { class: "quote" }, [el("q", {}, ["No explicit support found in the provided sources."])]));
+    body.appendChild(howCalculated(r));
+    ev.appendChild(body);
+    card.appendChild(ev);
     return card;
   }
 
   function counters(c) {
-    var wrap = el("div", { class: "counters" });
-    [["Listed", c.opportunities_listed], ["In deadline window", c.in_horizon], ["Full text read", c.details_fetched],
-     ["Screened", c.judged], ["Not screened (cap)", c.not_judged_due_to_cap], ["Source failures", c.source_failures]
-    ].forEach(function (p) {
-      wrap.appendChild(el("div", {}, [el("span", { class: "n" }, [String(p[1])]), el("span", { class: "l" }, [p[0]])]));
-    });
-    return wrap;
+    var t = "Read " + c.opportunities_listed + " announcements. " + c.in_horizon + " fit your deadline window. " +
+      c.judged + " checked" + (c.not_judged_due_to_cap ? ", " + c.not_judged_due_to_cap + " not checked because of the limit" : "") + "." +
+      (c.no_term_overlap ? " " + c.no_term_overlap + " share no words with the research areas and were not checked." : "") +
+      (c.model_call_failures ? " " + c.model_call_failures + " could not be rated because the model failed." : "") +
+      (c.source_failures ? " " + c.source_failures + " source" + (c.source_failures === 1 ? "" : "s") + " could not be read." : "");
+    return el("p", { class: "countline" }, [t]);
   }
 
   /* ---------------------------------------------------------------- live mode */
   function liveBanner() {
     var b = document.querySelector(".mock-banner");
-    if (b) b.textContent = "Live preview \u00b7 opportunity data comes from the public Grants.gov API \u00b7 runs are logged";
+    if (b) b.textContent = "Live preview. Opportunity data comes from the public Grants.gov API. Runs are logged.";
     var f = document.querySelector("footer p");      // the footer must not claim sample data when the data is real
     if (f && f.firstChild) f.firstChild.nodeValue = f.firstChild.nodeValue.replace("Preview with sample data only;",
       "Preview using public Grants.gov data;");
@@ -144,8 +172,9 @@
 
   function greeting() {
     var p = M.profile || {};
-    if (LIVE) return p.type === "pi_name" && p.investigator ? "Dear " + p.investigator + "," : "Hello,";
-    return "Dear Dr. " + p.investigator.split(" ")[1] + ",";
+    if (LIVE) return "Hello,";   // the person who sends this chooses how to address the recipient
+    var parts = (p.investigator || "").replace(/\(fictional\)/, "").trim().split(/\s+/);
+    return "Dear Dr. " + (parts[parts.length - 1] || "") + ",";
   }
 
   function provenance() {
@@ -173,14 +202,15 @@
 
   function noRun(message) {
     document.querySelectorAll("main > .wrap").forEach(function (w) { w.hidden = true; });
+    document.querySelectorAll(".pagehead .btn-row, #screened, #dl-hint").forEach(function (n) { n.hidden = true; });
     var c = $("count"); if (c) c.textContent = "No run yet.";
-    document.querySelector("main").appendChild(el("div", { class: "wrap", style: "padding-top:28px" }, [
-      el("div", { class: "notice warn" }, [el("strong", {}, ["No run to show. "]),
-        document.createTextNode(message || "Start a match first. Results, the calendar and the draft alert are built from your latest run.")]),
-      el("div", { class: "btn-row", style: "margin-top:14px" }, [el("a", { class: "btn", href: "match.html" }, ["Start a match"])])]));
+    document.querySelector("main").appendChild(el("div", { class: "wrap pt-main" }, [
+      el("div", { class: "status none" }, [el("h2", {}, ["There is no run to show yet"]),
+        el("p", {}, [message || "Start by finding funding for a researcher. Results, the calendar and the draft alert are built from your latest run in this browser tab."]),
+        el("div", { class: "btn-row" }, [el("a", { class: "btn", href: "match.html" }, ["Find funding for a researcher"])])])]));
   }
 
-  var RANKS = { "High only": ["High"], "Medium and above": ["High", "Medium"], "Low and above": ["High", "Medium", "Low"] };
+  var RANKS = { "High only": ["High"], "Medium and above": ["High", "Medium"], "All": ["High", "Medium", "Low"], "Low and above": ["High", "Medium", "Low"] };
 
   /* the saved run plus the engine's calendar for it, shaped like the sample run the pages were built on */
   function loadLive() {
@@ -190,7 +220,7 @@
     return api("/api/runs/" + encodeURIComponent(resp.run_id) + "/calendar").then(function (cal) {
       var byUrl = {};
       Object.keys(cal.groups).forEach(function (g) { cal.groups[g].forEach(function (r) { byUrl[r.url] = r; }); });
-      var keep = RANKS[inp.minfit] || RANKS["Low and above"];
+      var keep = RANKS[inp.minfit] || RANKS["All"];
       var results = resp.results.filter(function (r) { return keep.indexOf(r.fit) >= 0; }).map(function (r) {
         var c = byUrl[r.url] || {};
         ["status", "flags", "internal_deadline", "amount", "next_action"].forEach(function (k) { if (c[k] != null) r[k] = c[k]; });
@@ -206,71 +236,122 @@
   function lines(id) { return ($(id).value || "").split("\n").map(function (x) { return x.trim(); }).filter(Boolean); }
   function firstNumber(text, fallback) { var m = /(\d+)/.exec(text || ""); return m ? +m[1] : fallback; }
 
-  function sampleRun(steps, done) {
-    steps.hidden = false; done.hidden = true;
-    var items = steps.querySelectorAll("li"), i = 0;
-    items.forEach(function (li) { li.className = "todo"; });
-    (function tick() {
-      if (i > 0) items[i - 1].className = "done";
-      if (i < items.length) { items[i].className = "now"; i++; setTimeout(tick, 650); }
-      else { done.hidden = false; done.focus(); }
-    })();
+  /* ---------------------------------------------------------------- run status
+     Status and errors live in the "This run" card under the button, so they are on screen when the person clicks.
+     The server does not report steps, so there are no step ticks: an elapsed timer and an honest range only. */
+  function say(msg) { var n = $("runsay"); if (n) n.textContent = msg; }
+  function reveal(n) { if (n && n.scrollIntoView) n.scrollIntoView({ block: "center" }); }
+  function fmtTime(sec) { var m = Math.floor(sec / 60), r = sec % 60; return m ? m + " min " + r + " s" : r + " s"; }
+  var FIELD_HINT = { "pi-name": "pi-name-hint", lanes: "lanes-hint" };
+  function clearInvalid() {
+    document.querySelectorAll(".field-err").forEach(function (n) { n.parentNode.removeChild(n); });
+    document.querySelectorAll("[aria-invalid]").forEach(function (n) {
+      n.removeAttribute("aria-invalid");
+      if (FIELD_HINT[n.id]) n.setAttribute("aria-describedby", FIELD_HINT[n.id]); else n.removeAttribute("aria-describedby");
+    });
+  }
+  function markInvalid(id, msg) {
+    var f = $(id); if (!f) return null;
+    f.setAttribute("aria-invalid", "true");
+    var eid = id + "-err";
+    f.setAttribute("aria-describedby", (FIELD_HINT[id] ? FIELD_HINT[id] + " " : "") + eid);
+    var hint = FIELD_HINT[id] && $(FIELD_HINT[id]);
+    var p = el("p", { class: "field-err", id: eid }, [msg]);
+    if (hint) hint.parentNode.insertBefore(p, hint); else f.parentNode.insertBefore(p, f.nextSibling);
+    return f;
+  }
+  function showError(head, msg) {
+    var err = $("runerror"); clear(err);
+    err.appendChild(el("h3", {}, [head])); err.appendChild(el("p", {}, [msg]));
+    err.hidden = false; $("progress").hidden = true; $("done").hidden = true;
+  }
+  function showDone(count, note) {
+    $("progress").hidden = true; $("runerror").hidden = true;
+    var done = $("done");
+    $("donecount").textContent = String(count);
+    $("donenote").textContent = note || "";
+    done.hidden = false; reveal(done); done.focus();
+    say("Search finished. " + count + " opportunities rated.");
   }
 
-  function liveRun(form, steps, done) {
-    var err = $("runerror"), timer = $("runtimer"), btn = form.querySelector("button[type=submit]");
+  function sampleRun() {
+    clearInvalid(); $("runerror").hidden = true; $("done").hidden = true;
+    var prog = $("progress"), btn = $("runbtn");
+    prog.hidden = false; btn.disabled = true; $("stopwait").hidden = true;
+    $("runtimer").textContent = "Sample search: nothing is really being checked.";
+    say("Sample run started."); reveal(prog);
+    setTimeout(function () { btn.disabled = false; showDone(7); }, 1400);
+  }
+
+  function liveRun(form) {
+    var btn = $("runbtn"), prog = $("progress"), stop = $("stopwait");
     var picked = document.querySelector("[data-panel]:checked"), panel = picked ? picked.getAttribute("data-panel") : "p-pi";
     var body = { options: { horizon_months: firstNumber($("horizon").value, 3), lead_time_days: firstNumber($("lead").value, 14) } };
     var input = { minfit: $("minfit").value, funders: $("funders").value, name: "", lanes: [], type: "" };
-    function fail(msg) { clear(err); err.appendChild(document.createTextNode(msg)); err.hidden = false; steps.hidden = false; done.hidden = true; }
-    clear(err); err.hidden = true; done.hidden = true;
+    clearInvalid(); $("runerror").hidden = true; $("done").hidden = true;
 
+    var bad = [];
     if (panel === "p-pi") {
       var name = $("pi-name").value.trim(), lanes = lines("lanes");
-      if (!name || !lanes.length) return fail("Enter the researcher\u2019s name and at least one established research area.");
+      if (!name) bad.push(markInvalid("pi-name", "Enter the researcher’s name."));
+      if (!lanes.length) bad.push(markInvalid("lanes", "Enter at least one research area, one per line."));
       body.input_type = "pi_name"; body.input_text = name;
       body.profile = { career_stage: $("stage").value, lanes: lanes, positioning_rules: lines("rules") };
       input.name = name; input.lanes = lanes; input.type = "pi_name";
     } else if (panel === "p-project") {
       var abs = $("abstract").value.trim();
-      if (!abs) return fail("Paste a project description first.");
+      if (!abs) bad.push(markInvalid("abstract", "Paste a project description."));
       body.input_type = "project"; body.input_text = abs; body.profile = { career_stage: "", lanes: [], positioning_rules: [] };
       input.lanes = [abs.slice(0, 160)]; input.type = "project";
     } else if (panel === "p-keywords") {
       var kw = $("kw").value.trim();
-      if (!kw) return fail("Enter at least one topic.");
+      if (!kw) bad.push(markInvalid("kw", "Enter at least one topic."));
       body.input_type = "keywords"; body.input_text = kw; body.profile = { career_stage: "", lanes: [], positioning_rules: [] };
       input.lanes = [kw]; input.type = "keywords";
     } else {
-      return fail("Opportunity-and-department matching is not available in the live engine yet. Choose another starting point.");
+      showError("Not available yet", "Opportunity-and-department matching is coming later. Choose a researcher, a project description or keywords for now.");
+      reveal($("runerror")); return;
+    }
+    bad = bad.filter(Boolean);
+    if (bad.length) {
+      showError(bad.length === 1 ? "One thing needs fixing" : bad.length + " things need fixing",
+                "Fix the highlighted field" + (bad.length === 1 ? "" : "s") + " and select Find opportunities again.");
+      bad[0].focus(); return;
     }
 
-    var items = steps.querySelectorAll("li"), t0 = Date.now(), i = 0, running = true;
-    steps.hidden = false; btn.disabled = true; timer.hidden = false;
-    items.forEach(function (li) { li.className = "todo"; });
-    (function guide() {                      // the server does not report steps, so the list is only a guide
-      if (!running) return;
-      if (i > 0 && i <= 3) items[i - 1].className = "done";
-      if (i < 3) { items[i].className = "now"; i++; setTimeout(guide, 900); } else { items[3].className = "now"; }
-    })();
-    function tickTimer() {
-      timer.textContent = "Working for " + Math.round((Date.now() - t0) / 1000) + " s. The server does not report each step, " +
-        "so the list below is a guide. Opportunities are screened one at a time.";
+    var t0 = Date.now(), ac = window.AbortController ? new AbortController() : null, over = false;
+    prog.hidden = false; btn.disabled = true; stop.hidden = !ac; reveal(prog);
+    say("Search started. This can take some time.");
+    function tick() {
+      var sec = Math.round((Date.now() - t0) / 1000);
+      $("runtimer").textContent = "Search in progress · " + fmtTime(sec);
+      if (sec > 0 && sec % 30 === 0) say("Still searching. " + fmtTime(sec) + " so far.");
     }
-    tickTimer(); var iv = setInterval(tickTimer, 1000);
+    tick(); var iv = setInterval(tick, 1000);
+    stop.onclick = function () { over = true; if (ac) ac.abort(); };
 
-    api("/api/runs", { method: "POST", body: body }).then(function (resp) {
-      running = false;
+    api("/api/runs", { method: "POST", body: body, signal: ac ? ac.signal : undefined }).then(function (resp) {
       saveRun({ input: input, response: resp, savedAt: new Date().toISOString() });
-      items.forEach(function (li) { li.className = "done"; });
-      var keep = RANKS[input.minfit] || RANKS["Low and above"];
-      $("donecount").textContent = String(resp.results.filter(function (r) { return keep.indexOf(r.fit) >= 0; }).length);
-      $("donenote").textContent = input.funders !== "Federal only"
-        ? " State, foundation and other sources are not read in this version; this run used federal opportunities from Grants.gov only." : "";
-      done.hidden = false; done.focus();
+      var keep = RANKS[input.minfit] || RANKS["All"];
+      var n = resp.results.filter(function (r) { return keep.indexOf(r.fit) >= 0; }).length;
+      var note = n === 0 ? " Nothing was rated at or above your setting; the results page explains why." : "";
+      if (input.funders !== "Federal only") note += " State, foundation and other sources are not read in this version; this run used federal opportunities from Grants.gov only.";
+      showDone(n, note);
     }, function (e) {
-      running = false; items.forEach(function (li) { li.className = "todo"; }); fail(e.message);
-    }).then(function () { clearInterval(iv); timer.hidden = true; btn.disabled = false; });
+      if (over || (e && e.name === "AbortError")) {
+        showError("You stopped waiting", "The run may still finish on the server and appear in the run log. Your entries are still here.");
+      } else if (e.status === 413) {
+        showError("Request too large", e.message);
+      } else if (e.status === 429) {
+        showError("Limit reached", e.message);
+      } else if (e.status === 502) {
+        showError("Nothing could be rated", e.message);      // every model call failed or every answer was unreadable: not the same as "no results"
+      } else if (e.status === 503) {
+        showError("Service not available", e.message);
+      } else {
+        showError("Search did not finish", e.message);
+      }
+    }).then(function () { clearInterval(iv); btn.disabled = false; });
   }
 
   /* ---------------------------------------------------------------- pages */
@@ -287,13 +368,14 @@
       fill(controls.status, [...new Set(all.map(function (r) { return r.status; }).filter(Boolean))].sort());
       fill(controls.sponsor, [...new Set(all.map(function (r) { return r.sponsor; }).filter(Boolean))].sort());
 
-      $("count").textContent = all.length + " of " + M.counters.judged +
-        " screened opportunities are shown. Excluded items are kept in the run log, not here.";
-      if (M.hidden_by_filter) $("count").textContent += " " + M.hidden_by_filter + " more rated below your setting are hidden.";
+      $("count").textContent = all.length
+        ? "Showing " + all.length + " of " + M.counters.judged + " opportunities checked. The rest were ruled out and are saved in the run log."
+        : (M.counters.judged === 0 ? "Nothing was checked in this run." : "Nothing was rated at or above your setting in this run.");
+      if (all.length && M.hidden_by_filter) $("count").textContent += " " + M.hidden_by_filter + " more rated below your setting are hidden.";
+      if (M.run_id && $("runid")) { $("runid").appendChild(document.createTextNode("Run ID: ")); $("runid").appendChild(el("span", { class: "mono" }, [M.run_id])); }
+      var when = M.screened_at || M.retrieved_at;
+      if ($("screened") && when) $("screened").textContent = (LIVE ? "Checked " : "Sample search, checked ") + new Date(when).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
       provenance();
-      if (LIVE && M.screened_at && $("screened")) {
-        $("screened").textContent = "Step 2 of 3 \u00b7 screened " + new Date(M.screened_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
-      }
       $("counters").appendChild(counters(M.counters));
       var f = $("failures");
       (M.source_failures || []).forEach(function (x) { f.appendChild(el("li", {}, [x.source_id + " \u2014 " + x.error])); });
@@ -334,6 +416,19 @@
           };
           chips.appendChild(b);
         }
+        if (!all.length) {
+          $("shown").textContent = "No results to show.";
+          var more = M.hidden_by_filter ? [el("p", {}, [M.hidden_by_filter + " more were rated below your \u201cShow results rated\u201d setting and are hidden. Choose \u201cAll\u201d on the Find funding page to see them."])] : [];
+          list.appendChild(el("div", { class: "status none" }, [
+            el("h2", {}, [M.counters.judged === 0 ? "Nothing was checked" : "Nothing rated at or above your setting"]),
+            el("p", {}, [(M.counters.judged === 0 && M.counters.no_term_overlap) ? "Nothing was checked: " + M.counters.no_term_overlap + " announcements share no words with the research areas. Try the words funders use for this field." : "SIGNAL checked " + M.counters.judged + " opportunities. Each was ruled out (for example by a stated restriction), had no supported connection to the research areas, or was rated below your minimum. Ruled-out items are kept in the run log."])
+          ].concat(more).concat([
+            el("p", {}, [el("strong", {}, ["You could try:"])]),
+            el("ul", {}, [el("li", {}, ["A longer deadline window."]), el("li", {}, ["Research areas written in more detail, in the researcher\u2019s own words."]),
+                          el("li", {}, ["A keyword search instead of a researcher."])]),
+            el("div", { class: "btn-row" }, [el("a", { class: "btn", href: "match.html" }, ["Change the run"])])])));
+          return;
+        }
         var shown = all.filter(matches);
         $("shown").textContent = shown.length === all.length
           ? "Showing all " + all.length + " results, highest fit first."
@@ -341,7 +436,7 @@
         if (!shown.length) {
           list.appendChild(el("div", { class: "empty" }, [
             el("strong", {}, ["No results match these filters"]),
-            el("span", {}, ["Every screened opportunity is still in the run. Remove a filter above to see it."])]));
+            el("span", {}, ["Every checked opportunity is still in this search. Remove a filter above to see it."])]));
           return;
         }
         shown.forEach(function (r) { list.appendChild(resultCard(r)); });
@@ -359,19 +454,35 @@
       M.results.filter(function (r) { return r.fit; }).forEach(function (r) {
         (r.status === "Rolling" ? groups.Rolling : r.status === "Watch" ? groups.Watch : groups.Fixed).push(r);
       });
-      var cols = ["Opportunity", "Sponsor", "NOFO / Call ID", "Fit", "Status & conditions", "Sponsor deadline",
-                  "Internal deadline", "Days left", "Amount / scale", "Eligibility", "Recommended next action", "Official source"];
+      var lead = (M.settings && M.settings.lead_time_days) || 14;
+      var cols = ["Opportunity", "Fit", "Sponsor deadline", "Internal deadline", "Eligibility", "Recommended next action",
+                  "Status & conditions", "Sponsor", "NOFO / Call ID", "Days to sponsor deadline", "Amount / scale", "Official source"];
       var host = $("tables");
+      if (!groups.Fixed.length && !groups.Rolling.length && !groups.Watch.length) {
+        $("scrollhint").hidden = true;
+        host.appendChild(el("div", { class: "status none mb3" }, [el("h2", {}, ["Nothing to put on the calendar"]),
+          el("p", {}, ["This run produced no rated opportunities, so there are no dates to show."]),
+          el("div", { class: "btn-row" }, [el("a", { class: "btn", href: "match.html" }, ["Change the run"])])]));
+      }
       Object.keys(groups).forEach(function (g) {
         if (!groups[g].length) return;
-        var scroll = el("div", { class: "table-scroll", style: "margin-bottom:22px" }), t = el("table");
-        t.appendChild(el("caption", {}, [g === "Fixed" ? "Fixed deadlines" : g === "Rolling" ? "Rolling or anytime (no invented deadline)" : "Watch: dates not yet announced"]));
+        var cap = g === "Fixed" ? "Fixed deadlines" : g === "Rolling" ? "Rolling or anytime (no invented deadline)" : "Watch: dates not yet announced";
+        var scroll = el("div", { class: "table-scroll mb3", tabindex: "0", role: "region", "aria-label": cap + " (table, scrolls sideways)" }), t = el("table");
+        t.appendChild(el("caption", {}, [cap]));
         var hr = el("tr"); cols.forEach(function (c) { hr.appendChild(el("th", { scope: "col" }, [c])); });
         t.appendChild(el("thead", {}, [hr]));
         var tb = el("tbody");
         groups[g].forEach(function (r) {
+          var idl = dateLong(r.internal_deadline);
+          var passed = r.internal_deadline && r.days_to_deadline != null && (r.days_to_deadline - lead) < 0;
           var cells = [
-            [r.title], [r.sponsor], [el("span", { class: "mono" }, [r.number])], [fitBadge(r)],
+            [r.title], [fitBadge(r)],
+            [orNot(dateLong(r.close_date), "Rolling / not stated")],
+            [passed ? el("span", {}, [idl + " ", el("span", { class: "passed" }, ["(passed)"])]) : orNot(idl, "Not available: no sponsor date")],
+            [el("span", {}, [r.eligibility])],
+            [r.next_action || (r.eligibility === "Needs verification" ? "Verify eligibility on the sponsor page before any outreach."
+              : r.status === "Rolling" ? "Contact the program officer to confirm topic fit."
+              : "Confirm the deadline, then prepare outreach.")],
             [(function () {
               var d = el("span", {}, [r.status || "Open"]);
               (r.flags || []).concat(r.currency_flags || []).forEach(function (f) {
@@ -379,15 +490,10 @@
               });
               return d;
             })()],
-            [orNot(dateLong(r.close_date), "Rolling / not stated")],
-            [orNot(dateLong(r.internal_deadline), "Set once the sponsor date is known")],
-            [r.days_to_deadline == null ? el("span", { class: "nostate" }, ["—"]) : document.createTextNode(String(r.days_to_deadline))],
+            [r.sponsor], [el("span", { class: "mono" }, [r.number])],
+            [r.days_to_deadline == null ? el("span", { class: "nostate" }, ["\u2014"]) : document.createTextNode(String(r.days_to_deadline))],
             [r.amount ? document.createTextNode(r.amount) : orNot(r.award_ceiling ? "up to " + money(r.award_ceiling) : null, "Not specified")],
-            [el("span", {}, [r.eligibility])],
-            [r.next_action || (r.eligibility === "Needs verification" ? "Verify eligibility on the sponsor page before any outreach."
-              : r.status === "Rolling" ? "Contact the program officer to confirm topic fit."
-              : "Confirm the deadline, then prepare outreach.")],
-            [el("a", { href: r.url, rel: "noopener noreferrer", target: "_blank" }, ["Open announcement"])]
+            [el("a", { href: r.url, rel: "noopener noreferrer", target: "_blank", "aria-label": "Open announcement " + r.number + " (opens in a new tab)" }, ["Open announcement"])]
           ];
           var tr = el("tr");
           cells.forEach(function (c, i) { tr.appendChild(el("td", { "data-label": cols[i] }, c)); });
@@ -396,7 +502,6 @@
         t.appendChild(tb); scroll.appendChild(t); host.appendChild(scroll);
       });
 
-      var lead = (M.settings && M.settings.lead_time_days) || 14;
       var decide = M.results.filter(function (r) {
         return (r.fit === "High" || r.fit === "Medium") && r.days_to_deadline != null &&
                r.days_to_deadline >= 0 && r.days_to_deadline < lead && r.status !== "Watch";
@@ -407,21 +512,22 @@
         decide.forEach(function (r) {
           dl.appendChild(el("li", {}, [
             el("strong", {}, [r.title]), document.createTextNode(" \u2014 " + r.days_to_deadline +
-              " day" + (r.days_to_deadline === 1 ? "" : "s") + " to the sponsor deadline, inside the " +
-              lead + "-day lead time. "), fitBadge(r)]));
+              " day" + (r.days_to_deadline === 1 ? "" : "s") + " to the sponsor deadline, closer than your " +
+              lead + "-day internal deadline. "), fitBadge(r)]));
         });
       }
       var soon = M.results.filter(function (r) { return r.fit && r.days_to_deadline != null && r.days_to_deadline <= 45; });
       var ul = $("soon");
       soon.forEach(function (r) {
-        ul.appendChild(el("li", {}, [r.title + " — ", el("strong", {}, [r.days_to_deadline + " days"]),
-          document.createTextNode(" (internal deadline " + (dateLong(r.internal_deadline) || "not set") + ")")]));
+        ul.appendChild(el("li", {}, [r.title + " \u2014 ", el("strong", {}, [r.days_to_deadline + " days"]),
+          document.createTextNode(" (internal deadline " + (dateLong(r.internal_deadline) || "not set") + ") "), fitBadge(r)]));
       });
       if (!soon.length) ul.appendChild(el("li", { class: "nostate" }, ["Nothing inside 45 days."]));
       var top = $("top5");
-      M.results.filter(function (r) { return r.fit; }).slice(0, 5).forEach(function (r) {
-        top.appendChild(el("li", {}, [r.title + " ", fitBadge(r)]));
-      });
+      var top5 = M.results.filter(function (r) { return r.fit; }).slice(0, 5);
+      top5.forEach(function (r) { top.appendChild(el("li", {}, [r.title + " ", fitBadge(r)])); });
+      if (!top5.length) top.appendChild(el("li", { class: "nostate" }, ["Nothing was rated in this run."]));
+      else if (top5.length < 5) top.appendChild(el("li", { class: "nostate" }, ["Only " + top5.length + " opportunit" + (top5.length === 1 ? "y was" : "ies were") + " rated in this run."]));
       var watch = $("watchlist");
       groups.Watch.concat(groups.Rolling).forEach(function (r) {
         watch.appendChild(el("li", {}, [r.title + " — " + (r.status === "Rolling" ? "rolling; confirm topic" : "next cycle not announced")]));
@@ -441,10 +547,11 @@
       fill("surfaced", surfaced, "Nothing would be sent.");
       fill("held", held, "Nothing held back.");
       fill("excluded", excluded, LIVE ? "Ruled-out items are kept in the run log, not listed here." : "Nothing excluded.");
-      $("draft").value =
-        "Subject: Funding opportunities for your consideration (" + surfaced.length + " to review)\n\n" +
+      $("draft").value = !surfaced.length ? "" :
+        "DRAFT. Review and edit before sending.\n\n" +
+        "Subject: [DRAFT] Funding opportunities for your consideration (" + surfaced.length + " to review)\n\n" +
         greeting() + "\n\n" +
-        "Research Development screened current federal opportunities against your public profile. " +
+        "I checked current federal funding opportunities against your research areas. " +
         surfaced.length + " may be worth a look:\n\n" +
         surfaced.map(function (r) {
           return "• " + r.title + " (" + r.sponsor + ", " + r.number + ")\n" +
@@ -454,10 +561,14 @@
                  "  Eligibility: " + r.eligibility + "\n  " + r.url;
         }).join("\n\n") +
         "\n\nThis is an informational alert, not a recommendation to apply. Please verify every deadline and " +
-        "eligibility requirement on the sponsor page before committing time.\n\n[Your name]\nResearch Development";
+        "eligibility requirement on the sponsor page before committing time.\n\n[Your name]";
 
       var tick = $("confirm"), to = $("to"), send = $("send");
-      function sync() { send.disabled = !(tick.checked && /[^@\s]+@[^@\s]+\.[^@\s]+/.test(to.value)); }
+      if (!surfaced.length) {
+        $("noalert").hidden = false; $("draft").hidden = true; $("sendform").hidden = true; $("draft").disabled = true; $("draft").setAttribute("aria-label", "Draft alert text (empty)");
+        tick.disabled = true; to.disabled = true;
+      }
+      function sync() { send.disabled = !(surfaced.length && tick.checked && /[^@\s]+@[^@\s]+\.[^@\s]+/.test(to.value)); }
       tick.addEventListener("change", sync); to.addEventListener("input", sync); sync();
       $("sendform").addEventListener("submit", function (e) {
         e.preventDefault();
@@ -470,26 +581,30 @@
             .then(function () { $("sent").hidden = false; sync(); });
           return;
         }
-        $("sent").textContent = "Logged in dummy mode at " + new Date().toLocaleTimeString() +
+        $("sent").textContent = "Logged in test mode at " + new Date().toLocaleTimeString() +
           ". Recipient " + to.value + " recorded in the run log. No email was sent.";
         $("sent").hidden = false;
       });
     },
 
     match: function () {
-      var form = $("runform"), steps = $("progress"), done = $("done");
+      var form = $("runform");
       if (LIVE) {
-        var hint = $("runhint");
-        if (hint) hint.textContent = "A run reads the stored Grants.gov records and screens the best candidates one at a time, so it can take a minute or more.";
+        /* real runs start from an empty form: the pre-filled researcher is fictional sample content */
+        ["pi-name", "lanes", "rules"].forEach(function (id) { var f = $(id); if (f) f.value = ""; });
         var unit = document.querySelector('[data-panel="p-unit"]');
-        if (unit) { unit.disabled = true; unit.parentNode.appendChild(el("span", { class: "hint" }, [" Not available in the live engine yet."])); }
+        if (unit) {
+          unit.disabled = true;
+          unit.closest("label").appendChild(el("span", { class: "hint" }, [" Coming later."]));
+        }
       }
       form.addEventListener("submit", function (e) {
         e.preventDefault();
-        if (LIVE) liveRun(form, steps, done); else sampleRun(steps, done);
+        if (LIVE) liveRun(form); else sampleRun();
       });
       document.querySelectorAll("[data-panel]").forEach(function (radio) {
         radio.addEventListener("change", function () {
+          clearInvalid(); $("runerror").hidden = true;
           document.querySelectorAll(".input-panel").forEach(function (p) { p.hidden = true; });
           var panel = $(radio.getAttribute("data-panel"));
           if (panel) panel.hidden = false;
@@ -513,10 +628,15 @@
     });
   }
 
+  /* press / to jump to search on Results */
+  document.addEventListener("keydown", function (e) {
+    var q = $("q"), t = e.target && e.target.tagName;
+    if (e.key === "/" && q && !e.metaKey && !e.ctrlKey && t !== "INPUT" && t !== "TEXTAREA" && t !== "SELECT") { e.preventDefault(); q.focus(); }
+  });
   document.addEventListener("DOMContentLoaded", function () {
     heroVideo();
     var p = document.body.getAttribute("data-page");
-    if (LIVE) liveBanner();
+    if (LIVE) { liveBanner(); document.querySelectorAll(".sample-only").forEach(function (n) { n.hidden = true; }); }
     if (LIVE && (p === "results" || p === "calendar" || p === "review")) {
       loadLive().then(function (m) {
         if (!m) { noRun(); return; }

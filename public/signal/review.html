@@ -6,62 +6,64 @@
 <title>Review and send | FORGE SIGNAL</title>
 <meta name="description" content="Review what SIGNAL surfaced and what it held back, edit the draft alert, and send it yourself.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" href="assets/forge-signal-icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="app.css">
 </head>
 <body data-page="review">
 <a class="skip" href="#main">Skip to main content</a>
-<p class="mock-banner">Interface preview &middot; every figure below is fictional sample data</p>
+<p class="mock-banner" role="region" aria-label="Preview notice"><strong>Preview.</strong> Every figure on these pages is fictional sample data.</p>
 <header class="nav"><div class="wrap">
- <a class="brand" href="index.html">FORGE<small>SIGNAL</small></a>
- <nav aria-label="Main"><ul><li><a href="index.html">Home</a></li><li><a href="match.html">Match</a></li><li><a href="results.html">Results</a></li><li><a href="calendar.html">Calendar</a></li><li><a href="review.html" aria-current="page">Review</a></li><li><a href="about.html">About</a></li><li><a href="settings.html">Settings<span class="admin-tag">admin</span></a></li></ul></nav>
+ <a class="brand" href="index.html" aria-label="FORGE SIGNAL home"><img src="assets/forge-signal-logo.svg" alt="" width="189" height="46"></a>
+ <nav aria-label="Main"><ul><li><a href="index.html">Home</a></li><li><a href="match.html" aria-current="true">Find funding</a></li><li><a href="about.html">About</a></li><li><a class="iconlink" href="settings.html" aria-label="Settings (admin preview)" title="Settings (admin preview)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></a></li></ul></nav>
 </div></header>
 <main id="main">
-<section class="hero"><div class="wrap">
- <p class="eyebrow">Human review</p>
- <h1>Review and send</h1>
+<div class="subbar"><div class="wrap"><nav aria-label="Find funding steps"><ol class="steps4" aria-label="Steps in a run"><li class=""><a href="match.html"><span class="num" aria-hidden="true">1</span>Find funding</a></li><li class=""><a href="results.html"><span class="num" aria-hidden="true">2</span>Results</a></li><li class=""><a href="calendar.html"><span class="num" aria-hidden="true">3</span>Calendar</a></li><li class="you"><a href="review.html" aria-current="step"><span class="num" aria-hidden="true">4</span>Review: you decide</a></li></ol></nav></div></div>
+<section class="pagehead"><div class="wrap">
+<h1>Review and send</h1>
  <p class="lead">SIGNAL never sends anything. Check what would reach the researcher and what would not, edit the wording, then send it under your own name.</p>
 </div></section>
-<div class="wrap" style="padding-top:28px">
+<div class="wrap pt-main">
 <div class="sidebar-layout">
  <div class="card">
   <h2>Draft alert</h2>
-  <p class="hint" style="margin:6px 0 12px">This is a draft. Edit it freely; nothing is sent until you tick the confirmation and choose a recipient.</p>
+  <p class="hint mb2">This is a draft. Edit it freely; nothing is sent until you tick the confirmation and choose a recipient.</p>
+  <div class="status none mb2" id="noalert" hidden><h3>Nothing to include in an alert</h3><p>This run has no High or Medium results. You can change the run, or write your own message outside SIGNAL.</p><div class="btn-row"><a class="btn" href="match.html">Change the run</a></div></div>
   <label for="draft" class="sr">Draft alert text</label>
-  <textarea id="draft" style="min-height:360px;font-size:14px"></textarea>
+  <textarea id="draft" class="draft"></textarea>
 
-  <form id="sendform" style="margin-top:16px">
+  <form id="sendform" class="mt2">
    <div class="field"><label for="to">Send to</label>
     <input type="email" id="to" placeholder="name@university.edu" required>
     <p class="hint">The recipient is recorded in the run log for each send.</p></div>
    <label class="choice"><input type="checkbox" id="confirm">
     <span><strong>I have reviewed this draft.</strong><span class="hint">I have checked the deadlines and eligibility statements against the sponsor pages, and I take responsibility for sending it.</span></span></label>
-   <button class="btn" type="submit" id="send" disabled>Send alert</button>
-   <p class="notice warn" id="sent" hidden style="margin-top:12px"></p>
-   <p class="hint" style="margin-top:10px">Dummy mode: the alert is written to the run log and no email leaves the system.</p>
+   <button class="btn" type="submit" id="send" disabled>Log alert (nothing is emailed)</button>
+   <p class="notice warn mt2" id="sent" role="status" hidden></p>
+   <p class="hint mt1">Test mode: the alert is written to the run log and no email leaves the system.</p>
   </form>
  </div>
 
  <aside>
   <div class="card">
    <h3>Who this reaches</h3>
-   <p class="hint" style="margin:6px 0 9px">Included in the draft.</p>
+   <p class="hint mb1">Included in the draft.</p>
    <ul class="rule-list" id="surfaced"></ul>
-   <h3 style="margin-top:16px">Held back</h3>
-   <p class="hint" style="margin:6px 0 9px">Rated Low. Shown here so a quiet omission is still a visible decision.</p>
+   <h3 class="mt2">Not in the draft</h3>
+   <p class="hint mb1">Rated Low. Listed here so that leaving them out is your choice.</p>
    <ul class="rule-list" id="held"></ul>
-   <h3 style="margin-top:16px">Excluded</h3>
-   <p class="hint" style="margin:6px 0 9px">Ruled out by a stated restriction, with the quote in the run log.</p>
+   <h3 class="mt2">Excluded</h3>
+   <p class="hint mb1">Ruled out by a stated restriction, with the quote in the run log.</p>
    <ul class="rule-list" id="excluded"></ul>
   </div>
-  <div class="notice" style="margin-top:14px"><strong>Check who is missing.</strong> Screening can only see what the
-  sources say. Before sending, consider whether anyone who should have been surfaced was not.</div>
+  <div class="notice mt2"><strong>Check who is missing.</strong> Search can only see what the
+  sources say. Before sending, consider whether anyone who should have been surfaced was not.<br>SIGNAL helps you find and check opportunities. The sponsor's page and your institution's own systems stay the official record.</div>
  </aside>
 </div>
 </div>
 
 </main>
-<footer><div class="wrap"><p>FORGE SIGNAL &middot; capstone project, SMU Cox MS in AI in Business. Preview with sample data only; not an approved or endorsed university service. <a href="about.html">What this is and is not</a></p></div></footer>
+<footer><div class="wrap"><p>FORGE SIGNAL &middot; capstone project, SMU Cox MS in AI in Business. Not an approved or endorsed university service, and not a replacement for university systems. <a href="about.html">About</a></p></div></footer>
 <script src="config.js"></script>
 <script src="mock-data.js"></script>
 <script src="app.js"></script>

@@ -2,12 +2,14 @@
    Coral is an accent only: white on #E98262 fails AA, so primary actions are Trust Blue
    and small coral text uses coral-ink. Status is never signalled by colour alone. */
 :root{
-  --blue:#244B70; --blue-deep:#1B3A58; --coral:#E98262; --coral-ink:#A4441F;
+  --blue:#244B70; --blue-deep:#1B3A58; --coral:#E98262; --coral-ink:#8F4318;
   --soft:#EFF4F8; --warm:#F3F4F2; --white:#fff; --slate:#344452; --muted:#566878; --border:#D9E2EA;
-  --navy:#0d2238; --navy-2:#13304c; --human:#b3112b; --coral-lt:#F4A98E;
+  --navy:#0d2238; --navy-2:#13304c; --human:#4B3A8C; --coral-lt:#F4A98E;
   --on-navy:#DCE7F1; --on-navy-muted:#AFC2D4;
-  --ok:#266B4D; --ok-bg:#E7F2EC; --warn:#8A5A00; --warn-bg:#FBF0DC; --stop:#8A2F1C; --stop-bg:#FBEAE5;
-  --r-sm:6px; --r-md:10px; --r-lg:14px;
+  --ok:#266B4D; --ok-bg:#E7F2EC; --warn:#8A5A00; --warn-bg:#FBF0DC; --stop:#6B3A0F; --stop-bg:#F3EADF;
+  --r-sm:6px; --r-md:8px; --r-lg:12px;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px; --s8:64px;
+  --field:#6B7F91; --focus:#244B70;
   --shadow:0 1px 2px rgba(36,75,112,.06); --shadow-md:0 8px 24px rgba(36,75,112,.08);
   --f-head:Sora,Manrope,system-ui,sans-serif; --f-body:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -18,14 +20,15 @@ body{margin:0;background:var(--warm);color:var(--slate);font-family:var(--f-body
 h1,h2,h3,h4{font-family:var(--f-head);color:var(--blue);margin:0;font-weight:600;line-height:1.2;letter-spacing:-.01em}
 h1{font-size:clamp(26px,3.4vw,38px)} h2{font-size:clamp(20px,2.2vw,26px)} h3{font-size:18px} h4{font-size:15px}
 p{margin:0} a{color:var(--blue)}
-:focus-visible{outline:3px solid var(--coral);outline-offset:2px;border-radius:4px}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:4px;box-shadow:0 0 0 2px #fff}
+.hero :focus-visible,footer :focus-visible,header.nav :focus-visible{outline-color:#fff;box-shadow:0 0 0 2px var(--navy)}
 .skip{position:absolute;left:-9999px;top:8px;background:#fff;padding:10px 16px;z-index:100;border-radius:8px}
 .skip:focus{left:8px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .wrap{max-width:1140px;margin:0 auto;padding:0 20px}
 
 /* header ------------------------------------------------------------ */
-header.nav{background:var(--blue);color:#fff;padding:12px 0;border-bottom:3px solid var(--coral)}
+header.nav{background:var(--blue);color:#fff;padding:8px 0;border-bottom:3px solid var(--coral)}
 header.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font-family:var(--f-head);font-weight:700;letter-spacing:.1em;font-size:15px}
 .brand small{display:block;color:#F4B49F;font-weight:600;letter-spacing:.26em;font-size:9px;margin-top:-3px}
@@ -38,7 +41,7 @@ header.nav nav a[aria-current=page]{background:#fff;color:var(--blue);font-weigh
 /* layout ------------------------------------------------------------ */
 main{padding:28px 0 56px}
 .page-head{margin-bottom:22px}
-.page-head .eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--coral-ink);display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.page-head .eyebrow{font-size:14px;font-weight:600;color:var(--coral-ink);display:flex;align-items:center;gap:9px;margin-bottom:9px}
 .page-head .eyebrow::before{content:"";width:20px;height:2px;background:var(--coral)}
 .lead{color:var(--muted);max-width:68ch;margin-top:8px}
 .card{background:#fff;border:1px solid var(--border);border-radius:var(--r-md);padding:20px;box-shadow:var(--shadow)}
@@ -57,9 +60,9 @@ main{padding:28px 0 56px}
 
 /* forms ------------------------------------------------------------- */
 label{display:block;font-weight:600;font-size:14px;margin-bottom:5px;color:var(--blue)}
-.hint{font-size:13px;color:var(--muted);font-weight:400;margin-top:3px}
+.hint{font-size:14px;color:var(--muted);font-weight:400;margin-top:3px}
 input[type=text],input[type=email],input[type=number],input[type=search],select,textarea{
-  width:100%;padding:9px 11px;border:1px solid #9FB0C0;border-radius:var(--r-sm);font:inherit;font-size:15px;background:#fff;color:var(--slate)}
+  width:100%;padding:9px 11px;border:1px solid var(--field);border-radius:var(--r-sm);font:inherit;font-size:15px;background:#fff;color:var(--slate)}
 textarea{min-height:92px;resize:vertical}
 .field{margin-bottom:16px}
 fieldset{border:1px solid var(--border);border-radius:var(--r-md);padding:16px;margin:0 0 16px}
@@ -84,8 +87,8 @@ legend{font-family:var(--f-head);font-weight:600;color:var(--blue);padding:0 7px
 .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
 
 /* badges: always carry text, never colour alone -------------------- */
-.badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;
-  border:1px solid currentColor;font-family:var(--f-mono);letter-spacing:.03em;white-space:nowrap}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:600;padding:3px 10px;border-radius:999px;
+  border:1px solid currentColor;font-family:var(--f-body);white-space:normal}
 .b-high{color:#17503A;background:var(--ok-bg)}
 .b-medium{color:var(--warn);background:var(--warn-bg)}
 .b-low{color:#3C4A57;background:#EDF1F4}
@@ -94,7 +97,7 @@ legend{font-family:var(--f-head);font-weight:600;color:var(--blue);padding:0 7px
 .b-needs{color:var(--warn);background:var(--warn-bg)}
 .b-notelig{color:var(--stop);background:var(--stop-bg)}
 .flag{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:3px 9px;border-radius:var(--r-sm);
-  background:var(--stop-bg);color:var(--stop);border:1px solid #E3BCB1;font-weight:600}
+  background:var(--stop-bg);color:var(--stop);border:1px solid #D6C2A8;font-weight:600}
 .flag.info{background:var(--soft);color:var(--blue);border-color:#C3D5E4}
 .pill{display:inline-block;font-family:var(--f-mono);font-size:11px;background:var(--soft);color:var(--blue);
   padding:2px 8px;border-radius:999px;border:1px solid #C3D5E4}
@@ -107,11 +110,12 @@ legend{font-family:var(--f-head);font-weight:600;color:var(--blue);padding:0 7px
 .meta{font-size:13px;color:var(--muted);display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin:6px 0}
 .meta .sep{color:var(--border)}
 .badges{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}
-.quote{border-left:3px solid var(--coral);background:var(--soft);padding:9px 13px;margin:7px 0;font-size:14px;border-radius:0 var(--r-sm) var(--r-sm) 0}
+.quote{border-left:3px solid var(--blue);background:var(--soft);padding:9px 13px;margin:7px 0;font-size:14px;border-radius:0 var(--r-sm) var(--r-sm) 0}
 .quote q{font-style:italic;display:block;margin-bottom:5px;color:var(--slate)}
-.quote .src{font-size:12px;color:var(--muted);font-family:var(--f-mono)}
+.quote .src{font-size:14px;color:var(--muted)}
 .quote .src a{color:var(--blue)}
-.for-tag{font-family:var(--f-mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--coral-ink);font-weight:700}
+.for-tag{display:block;font-size:14px;color:var(--blue);font-weight:700}
+.for-tag::first-letter{text-transform:uppercase}
 
 /* disclosure -------------------------------------------------------- */
 details.calc{margin-top:12px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--soft)}
@@ -136,8 +140,9 @@ thead th{background:var(--soft);color:var(--blue);font-weight:700;font-size:12px
 tbody tr:hover{background:#FAFCFD}
 td .mono,.mono{font-family:var(--f-mono);font-size:12px;white-space:nowrap}
 th{white-space:nowrap}
-td .badge{white-space:nowrap}
+td .badge{white-space:normal}
 tbody td:nth-child(6),tbody td:nth-child(7),tbody td:nth-child(8){white-space:nowrap}
+.nostate{color:var(--muted)}
 .nostate{color:var(--muted);font-style:italic}
 @media(max-width:760px){
   table,thead,tbody,tr,td{display:block;min-width:0}
@@ -154,7 +159,7 @@ tbody td:nth-child(6),tbody td:nth-child(7),tbody td:nth-child(8){white-space:no
 .counters div{flex:1 1 120px;padding:12px 14px;border-right:1px solid var(--border)}
 .counters div:last-child{border-right:none}
 .counters .n{font-family:var(--f-head);font-size:22px;font-weight:700;color:var(--blue);display:block;line-height:1.1}
-.counters .l{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-family:var(--f-mono);margin-top:3px;display:block}
+.counters .l{font-size:13px;color:var(--muted);margin-top:3px;display:block}
 
 /* progress ---------------------------------------------------------- */
 .steps{list-style:none;margin:14px 0 0;padding:0}
@@ -167,7 +172,8 @@ tbody td:nth-child(6),tbody td:nth-child(7),tbody td:nth-child(8){white-space:no
 
 footer{background:var(--blue);color:#C9D8E6;padding:22px 0;font-size:13px;margin-top:40px}
 footer a{color:#fff}
-.mock-banner{background:var(--coral);color:#2A1206;text-align:center;padding:7px 20px;font-size:13px;font-weight:700;font-family:var(--f-mono)}
+.mock-banner{background:var(--soft);color:var(--slate);text-align:center;padding:6px 20px;font-size:14px;font-weight:500;border-bottom:1px solid var(--border)}
+.mock-banner strong{color:var(--blue)}
 
 /* ============================================================================
    Components carried forward from the earlier SIGNAL build (git 55cca27).
@@ -202,7 +208,7 @@ footer a{color:#fff}
 .band.warm{background:#fff}
 .band:first-child{margin-top:0}
 .sec-head{max-width:70ch;margin-bottom:26px}
-.sec-head .eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+.sec-head .eyebrow{font-size:14px;font-weight:600;
   color:var(--coral-ink);display:flex;align-items:center;gap:9px;margin-bottom:9px}
 .sec-head .eyebrow::before{content:"";width:20px;height:2px;background:var(--coral)}
 .sec-head p{color:var(--muted);margin-top:9px}
@@ -216,7 +222,7 @@ footer a{color:#fff}
 .flow li::before{content:counter(s);display:inline-flex;align-items:center;justify-content:center;width:25px;height:25px;
   border-radius:50%;background:var(--blue);color:#fff;font-weight:700;font-size:13px;margin-bottom:9px;font-family:var(--f-head)}
 .flow li strong{display:block;color:var(--blue);margin-bottom:3px;font-size:15px}
-.flow li.human{border-color:var(--human);background:#FFF7F8}
+.flow li.human{border-color:var(--human);background:#F4F1FA}
 .flow li.human::before{background:var(--human)}
 .flow li.human strong{color:var(--human)}
 .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;margin:14px 0 0;color:var(--muted)}
@@ -225,7 +231,7 @@ footer a{color:#fff}
 .legend .h::before{background:var(--human)}
 
 /* two-column comparison, pull quote, rules -------------------------- */
-.collab{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+.collab{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:18px}
 .col{background:#fff;border:1px solid var(--border);border-radius:var(--r-md);padding:22px}
 .col.ai{border-top:4px solid var(--blue)}
 .col.hu{border-top:4px solid var(--human)}
@@ -245,7 +251,7 @@ footer a{color:#fff}
 .tools{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:12px}
 @media(max-width:860px){.tools{grid-template-columns:1fr 1fr}.tools .q{grid-column:1/-1}}
 @media(max-width:520px){.tools{grid-template-columns:1fr}}
-.tools label{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-family:var(--f-mono);font-weight:600}
+.tools label{font-size:14px;color:var(--blue);font-weight:600}
 .chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .chips:not(:empty){margin-top:13px}
 .chip{display:inline-flex;align-items:center;gap:3px;background:var(--soft);border:1px solid #B9C9D8;border-radius:999px;
@@ -296,3 +302,526 @@ legend{float:left;width:100%;padding:0 0 10px}
 legend+*{clear:both}
 /* the page container's top padding must not show as a pale strip above a hero */
 main>.hero:first-child{margin-top:-28px}
+
+
+/* ==========================================================================
+   V1 design system (25 Nov 2026). Rules:
+   - spacing from --s1..--s8, never inline margins
+   - Inter for everything a person reads; mono only for IDs and timestamps
+   - coral = brand mark and the one accent button; blue = focus, links, quote edges;
+     red (--human) = a person decides, nothing else
+   - tool pages use .pagehead; only Home and About use .hero
+   ========================================================================== */
+.mt1{margin-top:var(--s2)} .mt2{margin-top:var(--s4)} .mt3{margin-top:var(--s5)} .mt4{margin-top:var(--s6)}
+.mb1{margin-bottom:var(--s2)} .mb2{margin-bottom:var(--s4)} .mb3{margin-bottom:var(--s5)}
+.pt-main{padding-top:var(--s5)}
+.full{width:100%;justify-content:center}
+.stack>*+*{margin-top:var(--s4)}
+
+/* brand */
+.brand{gap:var(--s3)}
+.brand img{display:block;height:60px;width:auto}
+.brand .prod{font-family:var(--f-head);font-weight:600;letter-spacing:.14em;font-size:13px;color:#F4B49F;border-left:1px solid #ffffff55;padding-left:var(--s3)}
+header.nav{border-bottom:2px solid #F28C28}
+
+/* compact page header for task pages */
+.pagehead{background:#fff;border-bottom:1px solid var(--border);padding:var(--s5) 0 var(--s4)}
+main>.pagehead:first-child{margin-top:-28px}
+.pagehead h1{font-size:clamp(24px,3vw,32px)}
+.pagehead .lead{margin-top:var(--s2);max-width:72ch}
+.pagehead .btn-row{margin-top:var(--s4)}
+.pagehead .hint{margin-top:var(--s2)}
+.pagehead .eyebrow{font-size:14px;font-weight:600;color:var(--coral-ink);margin:0 0 var(--s1)}
+
+/* four-step indicator; the last step is the human one */
+.steps4{list-style:none;display:flex;gap:var(--s2);flex-wrap:wrap;margin:0 0 var(--s3);padding:0;font-size:14px}
+.steps4 li{display:flex;align-items:center;gap:var(--s2);color:var(--muted)}
+.steps4 li+li::before{content:"";width:18px;height:2px;background:var(--border)}
+.steps4 a{color:var(--muted);text-decoration:none;border-radius:var(--r-sm);padding:2px 4px}
+.steps4 a:hover{text-decoration:underline}
+.steps4 [aria-current=step]{color:var(--blue);font-weight:700}
+.steps4 .num{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:2px solid currentColor;font-size:12px;font-weight:700;margin-right:6px}
+.steps4 [aria-current=step] .num{background:var(--blue);color:#fff;border-color:var(--blue)}
+.steps4 .you .num{border-color:var(--human);color:var(--human)}
+.steps4 .you [aria-current=step] .num{background:var(--human);color:#fff}
+.steps4 .you a{color:var(--human)}
+
+/* status block: one pattern for waiting, errors, empty and success */
+.status{border:1px solid var(--border);border-left:5px solid var(--blue);background:#fff;border-radius:var(--r-md);padding:var(--s4)}
+.status h2,.status h3{font-size:18px;margin-bottom:var(--s1)}
+.status p+p,.status ul{margin-top:var(--s2)}
+.status ul{padding-left:20px;margin-bottom:0}
+.status.wait{background:var(--soft)}
+.status.err{border-left-color:var(--stop);background:var(--stop-bg)}
+.status.err h2,.status.err h3{color:var(--stop)}
+.status.none{border-left-color:var(--muted)}
+.field-err{color:var(--stop);font-size:14px;font-weight:600;margin-top:var(--s1)}
+.field-err::before{content:"Problem: ";font-weight:700}
+input[aria-invalid=true],textarea[aria-invalid=true]{border:2px solid var(--stop)}
+.req{color:var(--stop);font-weight:700}
+
+/* evidence disclosure and "your check" */
+details.evidence{margin-top:var(--s3);border:1px solid var(--border);border-radius:var(--r-sm)}
+details.evidence>summary{cursor:pointer;padding:var(--s3) var(--s4);font-weight:600;font-size:15px;color:var(--blue);list-style:none;display:flex;gap:var(--s2);align-items:center}
+details.evidence>summary::-webkit-details-marker{display:none}
+details.evidence>summary::before{content:"\25B8";font-size:12px;transition:transform .15s}
+details.evidence[open]>summary::before{transform:rotate(90deg)}
+details.evidence .body{padding:0 var(--s4) var(--s3)}
+.yourcheck{margin-top:var(--s3);border:1px solid var(--human);border-left:5px solid var(--human);background:#F4F1FA;border-radius:var(--r-sm);padding:var(--s3) var(--s4);font-size:15px}
+.yourcheck strong{color:var(--human)}
+.meta-list{list-style:none;margin:var(--s2) 0;padding:0;display:flex;gap:var(--s2) var(--s4);flex-wrap:wrap;font-size:14px;color:var(--muted)}
+.passed{color:var(--stop);font-weight:600}
+.countline{font-size:14px;color:var(--muted);margin-top:var(--s2)}
+
+/* tables: first column stays in view; scroll region is keyboard reachable */
+.table-scroll:focus-visible{outline-offset:-3px}
+.scrollhint{display:flex;gap:var(--s2);align-items:center;font-size:14px;color:var(--blue);font-weight:600;margin-bottom:var(--s2)}
+@media(min-width:761px){
+ tbody td:first-child,thead th:first-child{position:sticky;left:0;background:#fff;z-index:1;box-shadow:1px 0 0 var(--border);min-width:200px;white-space:normal}
+ thead th:first-child{background:var(--soft);z-index:2}
+}
+.counters{margin-top:var(--s4)}
+
+/* section rhythm on tool pages and consistent main padding */
+main .wrap>section.tool{padding:var(--s5) 0}
+footer .xdesc{margin-bottom:var(--s4)}
+.demoLink{margin-top:var(--s3)}
+@media(max-width:480px){.badge{font-size:13px}.btn{padding:10px 14px}}
+.hero .btn.accent{color:#2A1206}
+
+.hint.inl{display:inline;font-weight:400;margin:0}
+textarea.draft{min-height:360px;font-size:15px}
+
+/* home hero: sample result instead of video */
+.hero-grid{align-items:center}
+.hero h1{max-width:22ch;font-size:clamp(28px,3.6vw,42px)}
+.trustline{margin-top:var(--s4);font-size:14px;color:var(--on-navy-muted);max-width:60ch}
+.sample-card{margin:0}
+.sample-card .result{margin:0;color:var(--slate)}
+.sample-card .h3like{font-size:18px;color:var(--blue)}
+.sample-card figcaption{margin-top:var(--s2);font-size:14px;color:var(--on-navy-muted)}
+.hero-grid .btn-row{margin-top:var(--s5)}
+.hero .eyebrow{font-size:14px;font-weight:600;margin-bottom:var(--s2)}
+.hero-video+.trustline{margin-top:var(--s2)}
+.vdesc{margin-top:var(--s2);background:#ffffff12;border-color:#ffffff40}
+details.vdesc>summary{color:#fff}
+.vdesc .body{color:var(--on-navy)}
+.sample-card.light{max-width:720px}
+.sample-card.light figcaption{color:var(--muted)}
+
+.card>h2,.decide>h2{font-size:20px}
+
+/* settings: small gear icon, admin preview */
+header.nav nav a.iconlink{display:grid;place-items:center;width:40px;height:36px;padding:0;margin-left:var(--s2)}
+header.nav nav a.iconlink[aria-current=page]{background:#fff;color:var(--blue)}
+header.nav nav a.iconlink svg{display:block}
+
+.brand .prod{display:none}
+
+/* ==========================================================================
+   V2: monochrome. One ink, hairlines, generous space, Inter throughout.
+   Orange (the logo's) is the only accent and is never used for text.
+   AI-produced content is grey; the places a person decides are solid ink.
+   ========================================================================== */
+:root{
+  --ink:#111418; --blue:#111418; --blue-deep:#000; --slate:#242A31; --muted:#58616D;
+  --warm:#FAFAF9; --soft:#F3F3F1; --border:#E3E3DF; --field:#767E88; --focus:#111418;
+  --coral:#F28C28; --coral-lt:#F5B06A; --coral-ink:#58616D;
+  --human:#111418; --navy:#111418; --on-navy:#E8E8E6; --on-navy-muted:#B4B8BE;
+  --ok:#2F6B4F; --ok-bg:#F1F6F3; --warn:#7A5300; --warn-bg:#FAF4E6; --stop:#5B3A12; --stop-bg:#F6F1EA;
+  --r-sm:6px; --r-md:8px; --r-lg:12px; --shadow:none; --shadow-md:0 12px 32px rgba(17,20,24,.08);
+  --f-head:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+body{background:var(--warm);color:var(--slate);font-feature-settings:"cv11","ss01";letter-spacing:-.005em}
+h1,h2,h3,h4{font-family:var(--f-head);color:var(--ink);letter-spacing:-.02em;font-weight:650}
+h2{font-size:clamp(22px,2.4vw,28px)} h3{font-size:18px}
+a{color:var(--ink);text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px;box-shadow:0 0 0 4px #fff}
+.hero :focus-visible,footer :focus-visible{box-shadow:0 0 0 4px #fff}
+
+/* notice bar and header: light, sticky, quiet */
+.mock-banner{background:var(--ink);color:#E8E8E6;font-size:13px;padding:6px 20px;border:0}
+.mock-banner strong{color:#fff}
+header.nav{background:rgba(255,255,255,.92);backdrop-filter:saturate(1.4) blur(10px);color:var(--ink);padding:6px 0;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
+.brand img{height:46px}
+header.nav nav a{color:var(--muted);font-weight:500;font-size:15px;border-radius:0;padding:10px 12px;position:relative}
+header.nav nav a:hover{background:transparent;color:var(--ink)}
+header.nav nav a[aria-current=page]{background:transparent;color:var(--ink);font-weight:600}
+header.nav nav a[aria-current=page]::after{content:"";position:absolute;left:12px;right:12px;bottom:2px;height:2px;background:var(--coral);border-radius:2px}
+header.nav nav a.iconlink{color:var(--muted);border-radius:var(--r-sm)}
+header.nav nav a.iconlink:hover{background:var(--soft);color:var(--ink)}
+header.nav nav a.iconlink[aria-current=page]{background:var(--soft);color:var(--ink)}
+header.nav nav a.iconlink[aria-current=page]::after{display:none}
+
+/* buttons: ink primary, outline secondary, no colour fills */
+.btn{border-radius:var(--r-sm);border:1px solid var(--ink);background:var(--ink);color:#fff;font-weight:600;padding:11px 20px;transition:background .15s,transform .15s}
+.btn:hover{background:#000;border-color:#000}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:#fff;color:var(--ink);border-color:#C9CAC6}
+.btn.ghost:hover{background:var(--soft);border-color:var(--ink)}
+.btn.accent{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn[disabled]{opacity:1;background:var(--soft);border-color:var(--border);color:#8A9099}
+
+/* heroes (Home, About): light, large type, hairline */
+.hero{background:#fff;color:var(--slate);padding:72px 0 64px;border-bottom:1px solid var(--border)}
+.hero h1{color:var(--ink);font-size:clamp(34px,4.6vw,56px);line-height:1.05;letter-spacing:-.035em;max-width:16ch}
+.hero .lead{color:var(--muted);font-size:18px;max-width:52ch}
+.hero .eyebrow{color:var(--muted)}
+.hero .eyebrow::before{background:var(--coral)}
+.hero .btn.ghost{color:var(--ink);border-color:#C9CAC6;background:#fff}
+.hero .btn.ghost:hover{background:var(--soft);border-color:var(--ink)}
+.hero .btn.accent{color:#fff}
+.trustline{color:var(--muted)}
+.toc a{color:var(--ink);border-color:#C9CAC6;background:#fff}
+.toc a:hover{border-color:var(--ink);background:var(--soft);color:var(--ink)}
+.page-head .eyebrow,.sec-head .eyebrow,.pagehead .eyebrow,.eyebrow{color:var(--muted);font-weight:600;font-size:13px;letter-spacing:.04em;text-transform:uppercase}
+.sec-head .eyebrow::before,.hero .eyebrow::before{background:var(--coral)}
+.hero-grid{gap:64px;align-items:center}
+.hero-grid .btn-row{margin-top:var(--s5)}
+
+/* the product is the hero visual */
+.sample-card .result{box-shadow:var(--shadow-md);border:1px solid var(--border);border-left:1px solid var(--border);padding:24px;border-radius:12px}
+.sample-card figcaption{color:var(--muted)}
+.hero-video{border:0;box-shadow:var(--shadow-md);border-radius:12px}
+
+/* page header on task pages */
+.pagehead{background:transparent;border-bottom:1px solid var(--border);padding:32px 0 24px}
+.pagehead h1{font-size:clamp(28px,3.4vw,40px);letter-spacing:-.03em}
+.pagehead .lead{color:var(--muted)}
+.steps4{font-size:14px}
+.steps4 li+li::before{background:#CFCFCB;width:24px;height:1px}
+.steps4 .num{border-width:1.5px}
+.steps4 [aria-current=step]{color:var(--ink)}
+.steps4 [aria-current=step] .num{background:var(--ink);border-color:var(--ink)}
+.steps4 .you a{color:var(--ink);font-weight:600}
+.steps4 .you .num{border-color:var(--ink);color:var(--ink)}
+.steps4 .you [aria-current=step] .num{background:var(--ink);color:#fff}
+
+/* surfaces: flat, hairline, no shadow, no tinted bands */
+.card,.result,.filters,.counters,.table-scroll,.decide,.status,.col,.flow li,.rules li,fieldset{box-shadow:none}
+.card,.filters,.counters,.table-scroll,.col{border-color:var(--border);border-radius:10px}
+.band{background:#fff;border-block:1px solid var(--border)}
+.band.warm{background:var(--warm)}
+.notice{background:#fff;border:1px solid var(--border);border-left:3px solid var(--ink);border-radius:var(--r-sm)}
+.notice strong{color:var(--ink)}
+.notice.warn{background:var(--warn-bg);border-color:#E4D3A8;border-left-color:var(--warn)}
+.notice.warn strong{color:var(--warn)}
+.hint{color:var(--muted)}
+.rules li{border:1px solid var(--border);border-left:1px solid var(--border);border-radius:10px;background:#fff;padding:20px}
+.rules strong{color:var(--ink)}
+.cards .card{border-radius:10px}
+
+/* forms */
+input[type=text],input[type=email],input[type=number],input[type=search],select,textarea{border-radius:var(--r-sm);padding:11px 12px;background:#fff;transition:border-color .15s,box-shadow .15s}
+input:hover,select:hover,textarea:hover{border-color:var(--ink)}
+input:focus-visible,select:focus-visible,textarea:focus-visible{border-color:var(--ink)}
+label{color:var(--ink);font-weight:600}
+.choice{border-radius:var(--r-sm);padding:12px 14px;transition:border-color .15s,background .15s}
+.choice:hover{border-color:var(--ink)}
+.choice:has(input:checked){border-color:var(--ink);background:#fff;box-shadow:inset 0 0 0 1px var(--ink)}
+input[type=radio],input[type=checkbox]{accent-color:var(--ink)}
+legend{color:var(--ink)}
+
+/* results: calm cards, rating as the one strong element */
+.result{border:1px solid var(--border);border-left:1px solid var(--border);border-radius:10px;padding:24px;margin-bottom:16px;transition:border-color .15s}
+.result:hover{border-color:#BDBDB8}
+.result h3 a{text-decoration:none;color:var(--ink)}
+.result h3 a:hover{text-decoration:underline}
+.badge{border-radius:999px;padding:3px 11px;gap:7px}
+.badge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
+.b-high{background:var(--ink);color:#fff;border-color:var(--ink)}
+.b-medium{background:#fff;color:var(--ink);border:1.5px solid var(--ink)}
+.b-low{background:var(--soft);color:#4B535D;border:1px solid #CFCFCB}
+.b-excluded{background:#fff;color:var(--stop);border:1px dashed var(--stop)}
+.b-elig,.b-needs,.b-notelig{background:#fff;color:var(--ink);border:1px solid #CFCFCB}
+.b-elig::before{background:var(--ok)} .b-needs::before{background:#C98A1B} .b-notelig::before{background:var(--stop)}
+.flag{background:var(--soft);color:var(--ink);border:1px solid #CFCFCB;font-weight:500}
+.flag.info{background:#fff;color:var(--muted);border-color:var(--border)}
+.pill{background:var(--soft);color:var(--ink);border-color:var(--border)}
+.quote{background:var(--soft);border-left:2px solid var(--ink);border-radius:0 var(--r-sm) var(--r-sm) 0}
+.for-tag{color:var(--ink)}
+.yourcheck{background:#fff;border:1px solid var(--ink);border-left:3px solid var(--ink);border-radius:var(--r-sm)}
+.yourcheck strong{color:var(--ink)}
+details.evidence,details.calc{background:#fff;border-color:var(--border)}
+details.calc{background:var(--soft)}
+.adjust{background:var(--warn-bg);border-left-color:var(--warn)}
+.counters{background:#fff}
+.counters .n{color:var(--ink);font-weight:650;letter-spacing:-.02em}
+.filters{position:sticky;top:64px;z-index:20;box-shadow:0 6px 16px rgba(17,20,24,.05)}
+.chip{background:var(--soft);border-color:#CFCFCB;color:var(--ink)}
+.clear-all{border-color:var(--ink);color:var(--ink)}
+.empty{border-color:#C9CAC6}
+
+/* status blocks */
+.status{border-radius:10px;border-color:var(--border);border-left:3px solid var(--ink)}
+.status.wait{background:#fff}
+.status.err{background:var(--warn-bg);border-color:#E4D3A8;border-left-color:var(--stop)}
+.status.err h2,.status.err h3{color:var(--stop)}
+.status.none{border-left-color:#BDBDB8}
+.field-err{color:var(--stop)}
+input[aria-invalid=true],textarea[aria-invalid=true]{border:2px solid var(--stop)}
+.req{color:var(--ink)}
+
+/* decide now: the human decision, in solid ink */
+.decide{background:var(--ink);color:#E8E8E6;border:0;border-radius:10px}
+.decide h2,.decide h3{color:#fff}
+.decide .hint{color:#B4B8BE}
+.decide strong{color:#fff}
+.decide li{color:#E8E8E6}
+.decide .badge{background:#fff;color:var(--ink);border-color:#fff}
+
+/* flow and boundaries: AI steps light, human steps solid ink */
+.flow li{border-color:var(--border);border-radius:10px;background:#fff;padding:20px}
+.flow li::before{background:#fff;color:var(--ink);border:1.5px solid var(--ink)}
+.flow li strong{color:var(--ink)}
+.flow li.human{background:var(--ink);border-color:var(--ink);color:#C9CCD1}
+.flow li.human::before{background:#fff;color:var(--ink);border-color:#fff}
+.flow li.human strong{color:#fff}
+.legend span::before{background:#fff;border:1.5px solid var(--ink)}
+.legend .h::before{background:var(--ink)}
+.col.ai{border-top:2px solid #BDBDB8} .col.hu{border-top:2px solid var(--ink)} .col.hu h3{color:var(--ink)}
+.pull{background:var(--ink);border-left:3px solid var(--coral);border-radius:10px}
+.steps .mark{border-color:var(--border)}
+
+/* tables: clean, quiet header, real rhythm */
+table{font-size:14px}
+caption{font-family:var(--f-head);font-size:17px;color:var(--ink);padding:16px}
+thead th{background:#fff;color:var(--muted);text-transform:none;letter-spacing:0;font-size:13px;font-weight:600;border-bottom:1px solid var(--ink)}
+th,td{padding:12px 14px;border-bottom:1px solid var(--border)}
+tbody tr:hover{background:var(--warm)}
+tbody td:first-child,thead th:first-child{background:#fff}
+tbody tr:hover td:first-child{background:var(--warm)}
+td,.counters .n{font-variant-numeric:tabular-nums}
+.passed{color:var(--stop)}
+.scrollhint{color:var(--muted);font-weight:500}
+
+/* footer: light */
+footer{background:#fff;color:var(--muted);border-top:1px solid var(--border);padding:28px 0}
+footer a{color:var(--ink)}
+.vctl{background:rgba(17,20,24,.85)}
+.vdesc{background:#fff;border-color:var(--border)}
+details.vdesc>summary{color:var(--ink)}
+.vdesc .body{color:var(--slate)}
+main{padding-bottom:72px}
+main .wrap>section{padding:56px 0}
+
+.hero h1{max-width:20ch;font-size:clamp(32px,4vw,50px)}
+.hero-video{max-width:760px}
+#explainer .hero-video{margin:0}
+.result.r-High,.result.r-Medium,.result.r-Low{border-left-color:var(--border)}
+.sample-card .h3like{font-size:18px;font-weight:650;color:var(--ink);margin:0 0 6px;letter-spacing:-.02em}
+
+/* ==========================================================================
+   V3: SMU-inspired, not SMU-branded.
+   Adapted from SMU's public brand pages (palette logic and serif + sans pairing):
+   blue is the primary, warm secondaries are used as highlights, near-black is the ink,
+   Georgia (SMU's approved alternative to Tiempos) carries headlines.
+   Not used: any SMU logo, seal, mark or wordmark; SMU red. FORGE SIGNAL keeps its own
+   logo and the "not an approved or endorsed university service" statement.
+   Teal and yellow fail contrast as text, so they are decoration and highlights only.
+   ========================================================================== */
+:root{
+  --ink:#262626; --blue:#354CA1; --blue-deep:#283B80; --slate:#2E3138; --muted:#565B66;
+  --warm:#FAFAF8; --soft:#F1F3F9; --border:#DEE1EA; --field:#6F7787; --focus:#354CA1;
+  --coral:#59C3C3; --coral-lt:#59C3C3; --hl:#F9C80E; --human:#262626;
+  --f-head:Georgia,"Times New Roman",serif;
+}
+h1,h2,h3,h4{font-family:var(--f-head);color:var(--ink);font-weight:700;letter-spacing:-.01em}
+.hero h1{font-family:var(--f-head);font-weight:700;letter-spacing:-.02em;line-height:1.08;max-width:19ch}
+.pagehead h1{font-family:var(--f-head);letter-spacing:-.015em}
+a{color:var(--blue)}
+:focus-visible{outline:3px solid var(--blue);box-shadow:0 0 0 2px #fff}
+
+header.nav{border-top:4px solid var(--blue)}
+header.nav nav a[aria-current=page]::after{background:var(--blue)}
+header.nav nav a{color:var(--slate)}
+header.nav nav a:hover{color:var(--blue)}
+.mock-banner{background:var(--soft);color:var(--ink);border-bottom:1px solid var(--border)}
+.mock-banner strong{color:var(--blue)}
+
+.btn{background:var(--blue);border-color:var(--blue)}
+.btn:hover{background:var(--blue-deep);border-color:var(--blue-deep)}
+.btn.accent{background:var(--blue);border-color:var(--blue)}
+.btn.ghost{background:#fff;color:var(--blue);border-color:var(--blue)}
+.btn.ghost:hover{background:var(--soft);border-color:var(--blue-deep);color:var(--blue-deep)}
+.hero .btn.ghost{color:var(--blue);border-color:var(--blue)}
+.hero .btn.ghost:hover{background:var(--soft)}
+
+.b-high{background:var(--blue);border-color:var(--blue)}
+.b-medium{color:var(--blue);border:1.5px solid var(--blue)}
+.steps4 [aria-current=step] .num{background:var(--blue);border-color:var(--blue)}
+.steps4 [aria-current=step]{color:var(--blue)}
+.counters .n{color:var(--blue)}
+.notice{border-left-color:var(--blue)}
+.choice:has(input:checked){border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue)}
+input[type=radio],input[type=checkbox]{accent-color:var(--blue)}
+.eyebrow,.page-head .eyebrow,.sec-head .eyebrow,.pagehead .eyebrow{color:var(--blue)}
+.sec-head .eyebrow::before,.hero .eyebrow::before{background:var(--coral);height:3px;width:24px}
+.flow li::before{border-color:var(--blue);color:var(--blue)}
+.flow li.human{background:var(--ink)}
+.decide{background:var(--ink)}
+.yourcheck{border-color:var(--ink);border-left-color:var(--ink)}
+.result h3 a{color:var(--ink)}
+.filters{border-top:3px solid var(--blue)}
+tr:hover td{background:var(--soft)}
+
+/* evidence: the quoted sentence is highlighted like a marker pen, with a teal edge */
+.quote{background:#fff;border-left:3px solid var(--coral);border-radius:0 var(--r-sm) var(--r-sm) 0;border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+.quote q{font-style:normal;background:linear-gradient(transparent 52%,rgba(249,200,14,.6) 52%);padding:0 2px;color:var(--ink)}
+.quote q::before,.quote q::after{content:""}
+.for-tag{color:var(--blue)}
+mark{background:linear-gradient(transparent 40%,rgba(249,200,14,.7) 40%);color:var(--ink);padding:0 2px}
+
+/* Home hero: announcement excerpt, highlighted sentence, then the rating it produced */
+.excerpt{background:#fff;border:1px solid var(--border);border-left:3px solid var(--coral);border-radius:var(--r-md);padding:20px 22px;font-family:var(--f-head);font-size:17px;line-height:1.6;color:var(--ink)}
+.excerpt .src{font-family:var(--f-body);font-size:13px;color:var(--muted);margin:0 0 8px}
+.excerpt p:last-child{margin:0}
+.because{margin:10px 0;text-align:center;font-size:14px;color:var(--blue);font-weight:600}
+.because::before{content:"\2193  "}
+.sample-card .result{box-shadow:none}
+.hero{background:linear-gradient(180deg,#fff 0,#fff 100%)}
+
+/* ==========================================================================
+   V4: fresher palette from the owner's reference (navy #213159, blue #3D6098,
+   grey #E7E7E7), a bold sans headline with an italic serif phrase, uppercase nav.
+   The reference's red button is replaced by the logo's orange, because the owner asked for no red.
+   Red is the single primary action per page; everything else is blue.
+   ========================================================================== */
+:root{
+  --ink:#213159; --slate:#2B3347; --muted:#5B6475;
+  --blue:#3D6098; --blue-deep:#2F4C7C; --sky:#4A95D6; --tint:#EAF1FB;
+  --soft:#F1F4F9; --warm:#F6F7F9; --border:#DCE1EA; --field:#6B7790;
+  --focus:#213159; --human:#213159; --coral:#F28C28; --accent:#F28C28;
+  --f-head:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-serif:Georgia,"Times New Roman",serif;
+}
+body{background:var(--warm)}
+h1,h2,h3,h4{font-family:var(--f-head);color:var(--ink);font-weight:750;letter-spacing:-.025em}
+h1 em,h2 em{font-family:var(--f-serif);font-style:italic;font-weight:400;letter-spacing:-.01em;color:var(--blue)}
+.hero h1{font-family:var(--f-head);font-weight:800;letter-spacing:-.035em;max-width:18ch}
+.pagehead h1{font-family:var(--f-head);font-weight:800;letter-spacing:-.03em}
+a{color:var(--blue)}
+:focus-visible{outline:3px solid var(--ink);box-shadow:0 0 0 2px #fff}
+
+/* header: crisp, uppercase navigation as in the reference */
+header.nav{border-top:4px solid var(--blue)}
+header.nav nav a{text-transform:uppercase;letter-spacing:.06em;font-size:13px;font-weight:600;color:var(--ink)}
+header.nav nav a:hover{color:var(--blue)}
+header.nav nav a[aria-current=page]{color:var(--blue)}
+header.nav nav a[aria-current=page]::after{background:var(--accent);height:3px}
+.mock-banner{background:var(--ink);color:#EAF1FB;border:0}
+.mock-banner strong{color:#fff}
+
+/* buttons: orange is the one primary action, blue is secondary */
+.btn{background:var(--blue);border-color:var(--blue);color:#fff;text-transform:uppercase;letter-spacing:.05em;font-size:13px;font-weight:700;padding:13px 22px;border-radius:4px}
+.btn:hover{background:var(--blue-deep);border-color:var(--blue-deep)}
+.btn.accent{background:var(--accent);border-color:var(--accent);color:var(--ink)}
+.btn.accent:hover{background:#E07F1B;border-color:#E07F1B}
+.btn.ghost,.hero .btn.ghost{background:#fff;color:var(--blue);border:2px solid var(--blue)}
+.btn.ghost:hover,.hero .btn.ghost:hover{background:var(--tint);color:var(--ink);border-color:var(--ink)}
+.btn.s{font-size:12px;padding:8px 14px}
+.btn[disabled]{background:var(--soft);color:#8A93A6;border-color:var(--border)}
+.btn-row .btn:first-child:not(.ghost):not(.accent){}
+
+/* hero: fresh blue tint, the sample is the picture */
+.hero{background:linear-gradient(135deg,var(--tint) 0,#fff 62%);border-bottom:1px solid var(--border)}
+.hero .lead{color:#3B4660}
+.eyebrow,.page-head .eyebrow,.sec-head .eyebrow,.pagehead .eyebrow,.hero .eyebrow{color:var(--blue);font-weight:700}
+.sec-head .eyebrow::before,.hero .eyebrow::before{background:var(--accent);height:3px;width:24px}
+.sample-card .result,.excerpt{box-shadow:0 18px 40px rgba(33,49,89,.12)}
+.excerpt{border-left-color:var(--sky);font-family:var(--f-serif)}
+.because{color:var(--blue)}
+
+/* surfaces and ratings */
+.b-high{background:var(--blue);border-color:var(--blue);color:#fff}
+.b-medium{color:var(--blue);border:1.5px solid var(--blue);background:#fff}
+.steps4 [aria-current=step] .num{background:var(--blue);border-color:var(--blue)}
+.steps4 [aria-current=step]{color:var(--blue)}
+.steps4 .you a,.steps4 .you .num{color:var(--ink);border-color:var(--ink)}
+.counters .n{color:var(--blue);font-family:var(--f-head);font-weight:750}
+.notice{border-left-color:var(--sky);background:var(--tint);border-color:#CFDBEE}
+.notice strong{color:var(--ink)}
+.notice.warn{background:#FFF4E5;border-color:#F0D3A6;border-left-color:#C77012}
+.notice.warn strong{color:#8A4B00}
+.filters{border-top:3px solid var(--blue)}
+.choice:has(input:checked){border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue);background:var(--tint)}
+.quote{border-left-color:var(--sky)}
+.for-tag{color:var(--blue)}
+.yourcheck{border-color:var(--ink);border-left-color:var(--ink);background:#fff}
+.decide,.flow li.human{background:var(--ink)}
+.flow li::before{border-color:var(--blue);color:var(--blue)}
+.pull{background:var(--ink);border-left-color:var(--accent)}
+thead th{color:var(--ink);border-bottom:2px solid var(--ink)}
+tr:hover td{background:var(--tint)}
+tbody tr:hover td:first-child{background:var(--tint)}
+.band{background:var(--soft)}
+footer{background:var(--ink);color:#C4CCDD;border:0}
+footer a{color:#fff}
+.status{border-left-color:var(--blue)}
+.status.wait{background:var(--tint)}
+.chip{background:var(--tint);border-color:#B9CBE8}
+.hero-video,.vdesc{border-radius:8px}
+.hero .btn.accent,.btn.accent{color:var(--ink)}
+
+/* V4 accent is the reference red. Decoration uses the exact #F04B4C; filled buttons use a slightly
+   deeper #D93638 so white text reaches 4.5:1 (white on #F04B4C is only 3.6:1). */
+:root{--accent:#F04B4C;--accent-btn:#D93638;--accent-btn-hover:#BC2A2C}
+.btn.accent,.hero .btn.accent{background:var(--accent-btn);border-color:var(--accent-btn);color:#fff}
+.btn.accent:hover,.hero .btn.accent:hover{background:var(--accent-btn-hover);border-color:var(--accent-btn-hover)}
+.hero h1 em{font-size:.9em}
+
+/* simple hero: tagline and actions only; the promise sits in a slim band underneath */
+.hero{padding:88px 0 80px}
+.hero h1{font-size:clamp(40px,5.6vw,68px);line-height:1.04;max-width:12ch;margin-bottom:var(--s5)}
+.hero h1 em{font-size:.95em}
+.promise{background:#fff;border-bottom:1px solid var(--border);padding:32px 0}
+.promise .for{margin:0 0 var(--s2);font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue)}
+.promise-text{margin:0;max-width:72ch;font-size:18px;line-height:1.55;color:var(--slate)}
+.hero h1{max-width:17ch;font-size:clamp(38px,5vw,60px)}
+
+/* clean home: two short sections under the hero */
+.hero{padding:80px 0 72px}
+.plain{padding:64px 0 8px}
+.plain h2{font-size:clamp(24px,2.6vw,32px);margin-bottom:var(--s5)}
+.three{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s6)}
+.three li{border-top:2px solid var(--ink);padding-top:var(--s3)}
+.three strong{display:block;font-family:var(--f-head);font-size:20px;font-weight:750;color:var(--ink);letter-spacing:-.02em;margin-bottom:var(--s1)}
+.three span{display:block;color:var(--muted);font-size:17px;line-height:1.5;max-width:34ch}
+@media(max-width:760px){.three{grid-template-columns:1fr;gap:var(--s5)}}
+main .wrap>.plain:last-child{padding-bottom:var(--s7)}
+main .wrap>section.plain{padding:72px 0 16px}
+main .wrap>section.plain:last-child{padding-bottom:var(--s7)}
+body[data-page=about] .hero{padding:56px 0 40px}
+body[data-page=about] .hero h1{font-size:clamp(32px,4vw,46px);max-width:24ch}
+body[data-page=about] .hero .lead{max-width:60ch}
+
+/* two levels of navigation: Home, Find funding, About, Settings on top;
+   the four steps of a run sit in a second bar inside Find funding */
+:root{--hdr:66px}
+header.nav nav a[aria-current]{color:var(--blue)}
+header.nav nav a[aria-current]::after{content:"";position:absolute;left:12px;right:12px;bottom:2px;height:3px;background:var(--accent);border-radius:2px}
+header.nav nav a.iconlink[aria-current]::after{display:none}
+.subbar{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:var(--hdr);z-index:40;padding:12px 0}
+main>.subbar:first-child{margin-top:-28px}
+.subbar .steps4{margin:0}
+.subbar nav{display:block}
+.pagehead{padding-top:28px}
+.filters{top:calc(var(--hdr) + 54px)}
+
+/* exact sticky offsets; on narrow screens the bars scroll away so content keeps the room */
+:root{--hdr:63px}
+.filters{top:calc(var(--hdr) + 52px)}
+@media(max-width:900px){
+  header.nav,.subbar,.filters{position:static}
+}
+
+/* V5 logo: horizontal lockup, F with a red middle arm (the highlighted sentence) */
+.brand img{height:34px;width:auto}
+header.nav{padding:10px 0}
+:root{--hdr:67px}
+
+/* V6 logo: option B1 "words as the funnel" is the main logo; its compact sibling (B3) is the header version */
+.brand img{height:46px;width:auto}
+header.nav{padding:8px 0}
+:root{--hdr:67px}
+.countline{margin:var(--s4) 0}

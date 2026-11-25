@@ -623,6 +623,11 @@
     });
   }
 
+  /* press / to jump to search on Results */
+  document.addEventListener("keydown", function (e) {
+    var q = $("q"), t = e.target && e.target.tagName;
+    if (e.key === "/" && q && !e.metaKey && !e.ctrlKey && t !== "INPUT" && t !== "TEXTAREA" && t !== "SELECT") { e.preventDefault(); q.focus(); }
+  });
   document.addEventListener("DOMContentLoaded", function () {
     heroVideo();
     var p = document.body.getAttribute("data-page");

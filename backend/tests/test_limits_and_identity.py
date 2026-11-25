@@ -71,3 +71,14 @@ def test_whoami_is_admin_only_and_reports_the_believed_address(c, monkeypatch):
     assert c.get("/api/admin/whoami").status_code == 401
     j = c.get("/api/admin/whoami", headers={"X-Admin-Token": "t", "x-forwarded-for": "9.9.9.9, 1.1.1.1"}).json()
     assert j["believed_client_ip"] == "1.1.1.1" and j["trusted_proxy_hops"] == "1"
+
+
+def test_hosted_database_without_a_salt_logs_a_warning(monkeypatch, caplog):
+    import app.main as main
+    class FakeDb(main.Database):
+        def __init__(self, path=":memory:"):
+            super().__init__(":memory:"); self.pg = True
+    monkeypatch.setattr(main, "Database", FakeDb); monkeypatch.delenv("FORGE_SALT", raising=False)
+    with caplog.at_level("WARNING", logger="uvicorn.error"):
+        main.create_app("postgresql://x", lister=lambda *a, **k: [], detailer=lambda *a, **k: ([], []))
+    assert "FORGE_SALT is not set" in caplog.text

@@ -1,0 +1,16 @@
+Fictional researcher: Dr. Sample Researcher (fictional); areas: ['Cancer early detection and biomarkers', 'Tumor imaging and image-guided therapy', 'Artificial intelligence for cancer imaging and pathology']
+record_run: typically 15 to 17 live model calls, at most about 30 (about $0.9); typical cost about $0.45
+PASS run id, model, rubric version, code commit, recording date present
+PASS rubric version is the real hash, not a placeholder
+PASS run detail hash recorded
+PASS opportunity retrieval date present
+PASS counters present (listed, judged, tokens, latency)
+PASS redactions stated (list present; empty means none)
+PASS input stored with it is what produced it (profile, question, limit)
+PASS profile is marked fictional
+PASS every quote re-checked against its stored source text
+PASS deadline flags carry the recording date and a stale-deadline note
+PASS results hash matches the results (not edited)
+run detail exported to /tmp/claude-0/-home-user-Forge/cbb90d2d-1f7f-5843-851a-fe1d8a9a10e5/scratchpad/recorded/recorded-run.run-detail.json (sha256 707eb752981e2f683a019106941a6b89604d849747110ab38839abaf61d12237); code commit 1a1bd5cf3b8f64640ff5fc6c615f2d465dd6fbfa
+wrote /tmp/claude-0/-home-user-Forge/cbb90d2d-1f7f-5843-851a-fe1d8a9a10e5/scratchpad/recorded/recorded-run.js: 7 results, judged 15, tokens 21479/19799, cost 0.481896
+quote check: 52/52 supported, 0 failed

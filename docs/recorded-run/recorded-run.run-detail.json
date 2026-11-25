@@ -1,0 +1,2086 @@
+{
+ "annotations": [],
+ "archived": 0,
+ "citations": [
+  {
+   "quote": "The proposed project must involve at least 1 clinical trial related to the scientific interests of one or more of the following research programs: Cancer Therapy Evaluation Program, Cancer Imaging Program, Cancer Diagnosis Program, Radiation Research Program, Complementary and Alternative Medicine Program and/or the HIV and AIDS Malignancies Research Programs.",
+   "reason": "factor:centrality",
+   "source_id": "https://www.grants.gov/search-results-detail/357075",
+   "validated": 1
+  },
+  {
+   "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+   "reason": "factor:centrality",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Positioning rule: Clinical trials only where a named clinical collaborator is in place",
+   "reason": "factor:repositioning",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "seeks research projects that implement early phase (Phase 0, I, and II) investigator-initiated clinical trials focused on cancer-targeted diagnostic and therapeutic interventions",
+   "reason": "factor:repositioning",
+   "source_id": "https://www.grants.gov/search-results-detail/357075",
+   "validated": 1
+  },
+  {
+   "quote": "investigator-initiated clinical trials",
+   "reason": "factor:pi_can_lead",
+   "source_id": "https://www.grants.gov/search-results-detail/357075",
+   "validated": 1
+  },
+  {
+   "quote": "Career stage: Established investigator.",
+   "reason": "factor:career_stage_excluded",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Positioning rule: Clinical trials only where a named clinical collaborator is in place",
+   "reason": "factor:positioning_violation",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Other Eligible Applicants include the following:",
+   "reason": "eligibility",
+   "source_id": "https://www.grants.gov/search-results-detail/357075",
+   "validated": 1
+  },
+  {
+   "quote": "improvements in early detection, screening, prevention and interception, healthcare delivery, quality of life, and/or survivorship related to cancer",
+   "reason": "factor:centrality",
+   "source_id": "https://www.grants.gov/search-results-detail/357074",
+   "validated": 1
+  },
+  {
+   "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+   "reason": "factor:centrality",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "This NOFO does not and will not support clinical trials for studies of cancer diagnosis and/or oncologic therapy in patients.",
+   "reason": "factor:centrality",
+   "source_id": "https://www.grants.gov/search-results-detail/357074",
+   "validated": 1
+  },
+  {
+   "quote": "Positioning rule: Clinical trials only where a named clinical collaborator is in place",
+   "reason": "factor:repositioning",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Applications submitted to this NOFO must include studies that meet the National Institutes of Health (NIH) definition of a clinical trial",
+   "reason": "factor:repositioning",
+   "source_id": "https://www.grants.gov/search-results-detail/357074",
+   "validated": 1
+  },
+  {
+   "quote": "Career stage: Established investigator.",
+   "reason": "factor:pi_can_lead",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "invites applications for support of investigator-initiated clinical trials",
+   "reason": "factor:pi_can_lead",
+   "source_id": "https://www.grants.gov/search-results-detail/357074",
+   "validated": 1
+  },
+  {
+   "quote": "Positioning rule: Population-science programs only where an imaging or biomarker component is central",
+   "reason": "factor:positioning_violation",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "The objective is to maintain these national resources for the collection, processing, storage, and distribution of high-quality, clinically annotated human biospecimens.",
+   "reason": "factor:centrality",
+   "source_id": "https://www.grants.gov/search-results-detail/361134",
+   "validated": 1
+  },
+  {
+   "quote": "The NCTN Biobanks support biomarker development and validation",
+   "reason": "factor:centrality",
+   "source_id": "https://www.grants.gov/search-results-detail/361134",
+   "validated": 1
+  },
+  {
+   "quote": "Cancer early detection and biomarkers",
+   "reason": "factor:centrality",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Through this limited competition Notice of Funding Opportunity (NOFO), the National Cancer Institute (NCI) solicits applications to support continuation of two biospecimen banking resources.",
+   "reason": "factor:repositioning",
+   "source_id": "https://www.grants.gov/search-results-detail/361134",
+   "validated": 1
+  },
+  {
+   "quote": "Eligibility is limited to an institution/entity that is the recipient of an existing NCTN biobank of human biospecimens from NCI clinical trials funded under RFA-CA-20-002 or an existing EET Biobank of human specimens under RFA-CA-20-003.",
+   "reason": "factor:pi_can_lead",
+   "source_id": "https://www.grants.gov/search-results-detail/361134",
+   "validated": 1
+  },
+  {
+   "quote": "Career stage: Established investigator.",
+   "reason": "factor:career_stage_excluded",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Positioning rule: Clinical trials only where a named clinical collaborator is in place",
+   "reason": "factor:positioning_violation",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Eligibility is limited to an institution/entity that is the recipient of an existing NCTN biobank of human biospecimens from NCI clinical trials funded under RFA-CA-20-002 or an existing EET Biobank of human specimens under RFA-CA-20-003.",
+   "reason": "eligibility",
+   "source_id": "https://www.grants.gov/search-results-detail/361134",
+   "validated": 1
+  },
+  {
+   "quote": "The USGS is offering a funding opportunity to a CESU partner for research in improving accuracy assessment and area estimation for use in annual remote-sensing based land-cover monitoring.",
+   "reason": "factor:centrality",
+   "source_id": "https://www.grants.gov/search-results-detail/364192",
+   "validated": 1
+  },
+  {
+   "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+   "reason": "factor:centrality",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "research centered on improvements in land cover research by focusing on investigating and implementing state-of-the-art sampling and statistical strategies for accuracy assessment and area estimation, and the impacts of reference data uncertainties",
+   "reason": "factor:repositioning",
+   "source_id": "https://www.grants.gov/search-results-detail/364192",
+   "validated": 1
+  },
+  {
+   "quote": "Artificial intelligence for cancer imaging and pathology",
+   "reason": "factor:repositioning",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "The USGS EROS has long been at the forefront of land cover research at local to global geographies.",
+   "reason": "factor:pi_can_lead",
+   "source_id": "https://www.grants.gov/search-results-detail/364192",
+   "validated": 1
+  },
+  {
+   "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+   "reason": "factor:pi_can_lead",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Career stage: Established investigator.",
+   "reason": "factor:career_stage_excluded",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Positioning rule: Clinical trials only where a named clinical collaborator is in place",
+   "reason": "factor:positioning_violation",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Positioning rule: Population-science programs only where an imaging or biomarker component is central",
+   "reason": "factor:positioning_violation",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Eligible recipients must be a participating partner of the Great Lakes Northern Forrest Cooperative Ecosystem Studies Unit.",
+   "reason": "eligibility",
+   "source_id": "https://www.grants.gov/search-results-detail/364192",
+   "validated": 1
+  },
+  {
+   "quote": "Artificial intelligence for cancer imaging and pathology",
+   "reason": "factor:centrality",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "can be improved through interactions with others or through the use of artificial intelligence in technology",
+   "reason": "factor:centrality",
+   "source_id": "https://www.grants.gov/search-results-detail/320753",
+   "validated": 1
+  },
+  {
+   "quote": "develops basic theoretical insights and fundamental knowledge about principles, processes and mechanisms of learning",
+   "reason": "factor:repositioning",
+   "source_id": "https://www.grants.gov/search-results-detail/320753",
+   "validated": 1
+  },
+  {
+   "quote": "Connections between proposed research and specific technological, educational and workforce applications will be considered as valuable broader impacts but are not necessarily central to the intellectual merit of proposed research.",
+   "reason": "factor:repositioning",
+   "source_id": "https://www.grants.gov/search-results-detail/320753",
+   "validated": 1
+  },
+  {
+   "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+   "reason": "factor:pi_can_lead",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Career stage: Established investigator.",
+   "reason": "factor:career_stage_excluded",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "translation of scientific discoveries and engineering developments in imaging, data science and/or spectroscopic technologies into methods or tools that address contemporary problems in understanding the fundamental biology, potential risk of development, diagnosis, treatment, and/or disease status for cancer or other disease",
+   "reason": "factor:centrality",
+   "source_id": "https://www.grants.gov/search-results-detail/357018",
+   "validated": 1
+  },
+  {
+   "quote": "Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology",
+   "reason": "factor:centrality",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology",
+   "reason": "factor:repositioning",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Career stage: Established investigator.",
+   "reason": "factor:pi_can_lead",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Other Eligible Applicants include the following:",
+   "reason": "eligibility",
+   "source_id": "https://www.grants.gov/search-results-detail/357018",
+   "validated": 1
+  },
+  {
+   "quote": "NCI seeks meritorious proposals to critically and systematically evaluate the scientific evidence on carcinogenic hazards to humans.",
+   "reason": "factor:centrality",
+   "source_id": "https://www.grants.gov/search-results-detail/360905",
+   "validated": 1
+  },
+  {
+   "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+   "reason": "factor:centrality",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Identifying potential carcinogens is essential for guiding and advancing cancer research, as well as informing cancer control and prevention efforts.",
+   "reason": "factor:repositioning",
+   "source_id": "https://www.grants.gov/search-results-detail/360905",
+   "validated": 1
+  },
+  {
+   "quote": "Career stage: Established investigator.",
+   "reason": "factor:pi_can_lead",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Career stage: Established investigator. Exclude programs restricted to early-career investigators..",
+   "reason": "factor:career_stage_excluded",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Positioning rule: Population-science programs only where an imaging or biomarker component is central",
+   "reason": "factor:positioning_violation",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "NCI seeks meritorious proposals to critically and systematically evaluate the scientific evidence on carcinogenic hazards to humans.",
+   "reason": "factor:positioning_violation",
+   "source_id": "https://www.grants.gov/search-results-detail/360905",
+   "validated": 1
+  },
+  {
+   "quote": "Refer to Section III. Eligibility Information in the NOFO for additional information on eligibility.",
+   "reason": "eligibility",
+   "source_id": "https://www.grants.gov/search-results-detail/360905",
+   "validated": 1
+  },
+  {
+   "quote": "Applicants are encouraged to propose sequencing of existing pediatric cancer or congenital anomaly cohorts to elucidate the genetic contribution (somatic and/or germline) to childhood cancers",
+   "reason": "factor:centrality",
+   "source_id": "https://www.grants.gov/search-results-detail/361164",
+   "validated": 1
+  },
+  {
+   "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+   "reason": "factor:centrality",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "the NIH invites applications to submit samples from pediatric cohorts for whole genome sequencing at a Kids First Program supported genomic data generating centers",
+   "reason": "factor:repositioning",
+   "source_id": "https://www.grants.gov/search-results-detail/361164",
+   "validated": 1
+  },
+  {
+   "quote": "Career stage: Established investigator.",
+   "reason": "factor:pi_can_lead",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Career stage: Established investigator. Exclude programs restricted to early-career investigators..",
+   "reason": "factor:career_stage_excluded",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Refer to Section III. Eligibility Information in the NOFO for additional information on eligibility.",
+   "reason": "eligibility",
+   "source_id": "https://www.grants.gov/search-results-detail/361164",
+   "validated": 1
+  },
+  {
+   "quote": "Non-domestic (non-U.S.) Entities (Foreign Organizations) are not eligible to apply.",
+   "reason": "eligibility",
+   "source_id": "https://www.grants.gov/search-results-detail/361164",
+   "validated": 1
+  },
+  {
+   "quote": "The CAPRI Program establishes and strengthens comprehensive, mutually beneficial and meaningful partnerships between Resource Limited Institutions (RLIs) and NCI-designated Cancer Centers (CCs) to accelerate collaborative and innovative cancer.",
+   "reason": "factor:centrality",
+   "source_id": "https://www.grants.gov/search-results-detail/360393",
+   "validated": 1
+  },
+  {
+   "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+   "reason": "factor:centrality",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "partnerships between Resource Limited Institutions (RLIs) and NCI-designated Cancer Centers (CCs)",
+   "reason": "factor:repositioning",
+   "source_id": "https://www.grants.gov/search-results-detail/360393",
+   "validated": 1
+  },
+  {
+   "quote": "Career stage: Established investigator.",
+   "reason": "factor:pi_can_lead",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Career stage: Established investigator. Exclude programs restricted to early-career investigators..",
+   "reason": "factor:career_stage_excluded",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "cultivating the next generation of Early-Stage Investigators and trainees",
+   "reason": "factor:career_stage_excluded",
+   "source_id": "https://www.grants.gov/search-results-detail/360393",
+   "validated": 1
+  },
+  {
+   "quote": "This is a Notice of Funding Opportunity (NOFO) for a Limited Competition that invites applications from eligible organizations to apply.",
+   "reason": "eligibility",
+   "source_id": "https://www.grants.gov/search-results-detail/360393",
+   "validated": 1
+  },
+  {
+   "quote": "Refer to Section III. Eligibility Information in the NOFO for additional information on eligibility.",
+   "reason": "eligibility",
+   "source_id": "https://www.grants.gov/search-results-detail/360393",
+   "validated": 1
+  },
+  {
+   "quote": "Projects in this program area should enhance confidence and reproducibility in AI produced scientific results by improving the integrity, provenance, and authenticity of scientific datasets used by Artificial Intelligence systems.",
+   "reason": "factor:centrality",
+   "source_id": "https://www.grants.gov/search-results-detail/358004",
+   "validated": 1
+  },
+  {
+   "quote": "Artificial intelligence for cancer imaging and pathology",
+   "reason": "factor:centrality",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "The objective of the Cybersecurity Innovation for Cyberinfrastructure (CICI) program is to advance scientific discovery and innovation by enhancing the security and privacy of cyberinfrastructure.",
+   "reason": "factor:repositioning",
+   "source_id": "https://www.grants.gov/search-results-detail/358004",
+   "validated": 1
+  },
+  {
+   "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+   "reason": "factor:repositioning",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "CICI supports efforts to develop, deploy and integrate cybersecurity that will benefit the broader scientific community by securing science data, computation, collaborations workflows, and infrastructure.",
+   "reason": "factor:pi_can_lead",
+   "source_id": "https://www.grants.gov/search-results-detail/358004",
+   "validated": 1
+  },
+  {
+   "quote": "Career stage: Established investigator.",
+   "reason": "factor:career_stage_excluded",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Institutions of Higher Education (IHEs): Two- and four-year IHEs (including community colleges) accredited in, and having a campus located in the US, acting on behalf of their faculty members.",
+   "reason": "eligibility",
+   "source_id": "https://www.grants.gov/search-results-detail/358004",
+   "validated": 1
+  },
+  {
+   "quote": "support research and technology development that advances automated fish detection, enumeration, and risk assessment at Brandon Road Lock and Dam through the use of the Live Imaging Sonar Surveillance Array (LISSA)",
+   "reason": "factor:centrality",
+   "source_id": "https://www.grants.gov/search-results-detail/364229",
+   "validated": 1
+  },
+  {
+   "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+   "reason": "factor:centrality",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "This work directly contributes to federal efforts to prevent the upstream movement of invasive carp toward the Great Lakes.",
+   "reason": "factor:repositioning",
+   "source_id": "https://www.grants.gov/search-results-detail/364229",
+   "validated": 1
+  },
+  {
+   "quote": "Artificial intelligence for cancer imaging and pathology",
+   "reason": "factor:repositioning",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "a significant need remains to automate interpretation of the substantial data streams the LISSA generates",
+   "reason": "factor:pi_can_lead",
+   "source_id": "https://www.grants.gov/search-results-detail/364229",
+   "validated": 1
+  },
+  {
+   "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+   "reason": "factor:pi_can_lead",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Career stage: Established investigator.",
+   "reason": "factor:career_stage_excluded",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Positioning rule: Clinical trials only where a named clinical collaborator is in place",
+   "reason": "factor:positioning_violation",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Positioning rule: Population-science programs only where an imaging or biomarker component is central",
+   "reason": "factor:positioning_violation",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Eligible recipients must be a participating partner of the Chesapeake Watershed Cooperative Ecosystem Studies Unit.",
+   "reason": "eligibility",
+   "source_id": "https://www.grants.gov/search-results-detail/364229",
+   "validated": 1
+  },
+  {
+   "quote": "The purpose of this notice of funding opportunity (NOFO) is to support the advancement of systems-level understanding of the link between infectious pathogens and inflammatory pathways that result in predisposition, onset and progression of chronic diseases.",
+   "reason": "factor:centrality",
+   "source_id": "https://www.grants.gov/search-results-detail/362952",
+   "validated": 1
+  },
+  {
+   "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+   "reason": "factor:centrality",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "The NOFO will stimulate integration of clinical and patient data, large-scale omics datasets, advanced Artificial Intelligence (AI) and computational modeling to prevent, treat, and mitigate the combined impact of chronic diseases, inflammation, and infections.",
+   "reason": "factor:repositioning",
+   "source_id": "https://www.grants.gov/search-results-detail/362952",
+   "validated": 1
+  },
+  {
+   "quote": "Career stage: Established investigator.",
+   "reason": "factor:pi_can_lead",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "advanced Artificial Intelligence (AI) and computational modeling",
+   "reason": "factor:pi_can_lead",
+   "source_id": "https://www.grants.gov/search-results-detail/362952",
+   "validated": 1
+  },
+  {
+   "quote": "Career stage: Established investigator. Exclude programs restricted to early-career investigators..",
+   "reason": "factor:career_stage_excluded",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Positioning rule: Clinical trials only where a named clinical collaborator is in place",
+   "reason": "factor:positioning_violation",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Positioning rule: Population-science programs only where an imaging or biomarker component is central",
+   "reason": "factor:positioning_violation",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Other Eligible ApplicantsIndian/Native American Tribal Governments (Other than Federally Recognized);Eligible Agencies of the Federal Government;U.S. Territory or Possession;Faith-based or Community-based Organizations;Regional Organizations;Non-domestic (non-U.S.) Entities (Foreign Institutions).",
+   "reason": "eligibility",
+   "source_id": "https://www.grants.gov/search-results-detail/362952",
+   "validated": 1
+  },
+  {
+   "quote": "research to assess the efficacy of using in-situ fluorometry for detection of milt (seminal fluid) from invasive carp in rivers downstream from spawning sites",
+   "reason": "factor:centrality",
+   "source_id": "https://www.grants.gov/search-results-detail/364233",
+   "validated": 1
+  },
+  {
+   "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+   "reason": "factor:centrality",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Technologies allowing for early detection of these species, especially evidence of natural reproduction, are needed by state and federal agencies throughout the Great Lakes and Mississippi River Basins to control the spread of invasive carp and assess risk to uninvaded waters.",
+   "reason": "factor:repositioning",
+   "source_id": "https://www.grants.gov/search-results-detail/364233",
+   "validated": 1
+  },
+  {
+   "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+   "reason": "factor:repositioning",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+   "reason": "factor:pi_can_lead",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Career stage: Established investigator.",
+   "reason": "factor:career_stage_excluded",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Eligible recipients must be a participating partner of the Great Rivers Cooperative Ecosystem Studies Unit.",
+   "reason": "eligibility",
+   "source_id": "https://www.grants.gov/search-results-detail/364233",
+   "validated": 1
+  },
+  {
+   "quote": "prepare the next generation of researchers in biomedical informatics, data science, and artificial intelligence/machine learning (AI/ML)",
+   "reason": "factor:centrality",
+   "source_id": "https://www.grants.gov/search-results-detail/361318",
+   "validated": 1
+  },
+  {
+   "quote": "Artificial intelligence for cancer imaging and pathology.",
+   "reason": "factor:centrality",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "The National Library of Medicine (NLM) invites applications for innovative predoctoral and postdoctoral training programs",
+   "reason": "factor:repositioning",
+   "source_id": "https://www.grants.gov/search-results-detail/361318",
+   "validated": 1
+  },
+  {
+   "quote": "NLM seeks programs that integrate methods and perspectives across disciplines to advance biomedical informatics, data science, and AI/ML.",
+   "reason": "factor:repositioning",
+   "source_id": "https://www.grants.gov/search-results-detail/361318",
+   "validated": 1
+  },
+  {
+   "quote": "Career stage: Established investigator.",
+   "reason": "factor:pi_can_lead",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Applications may propose the creation of new training programs or the renewal of existing NLM-supported programs.",
+   "reason": "factor:career_stage_excluded",
+   "source_id": "https://www.grants.gov/search-results-detail/361318",
+   "validated": 1
+  },
+  {
+   "quote": "Non-domestic (non-U.S.) Entities (Foreign Institutions) are not eligible to apply.",
+   "reason": "eligibility",
+   "source_id": "https://www.grants.gov/search-results-detail/361318",
+   "validated": 1
+  },
+  {
+   "quote": "to understand how dynamic activity of single cells and ensembles of neurons in spatially organized networks gives rise to the internal states we experience as sensations, perceptions, emotions, thoughts, and memories, and to observable motor and social behaviors",
+   "reason": "factor:centrality",
+   "source_id": "https://www.grants.gov/search-results-detail/359649",
+   "validated": 1
+  },
+  {
+   "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+   "reason": "factor:centrality",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "using invasive neural recording and stimulation technologies in the human brain",
+   "reason": "factor:repositioning",
+   "source_id": "https://www.grants.gov/search-results-detail/359649",
+   "validated": 1
+  },
+  {
+   "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+   "reason": "factor:repositioning",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Projects should maximize opportunities to conduct innovative in vivo human neuroscience research made available by direct access to the brain from invasive surgical procedures.",
+   "reason": "factor:pi_can_lead",
+   "source_id": "https://www.grants.gov/search-results-detail/359649",
+   "validated": 1
+  },
+  {
+   "quote": "from newly formed or established multi-disciplinary teams",
+   "reason": "factor:career_stage_excluded",
+   "source_id": "https://www.grants.gov/search-results-detail/359649",
+   "validated": 1
+  },
+  {
+   "quote": "Career stage: Established investigator.",
+   "reason": "factor:career_stage_excluded",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Positioning rule: Clinical trials only where a named clinical collaborator is in place",
+   "reason": "factor:positioning_violation",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Positioning rule: Population-science programs only where an imaging or biomarker component is central",
+   "reason": "factor:positioning_violation",
+   "source_id": "researcher-profile",
+   "validated": 1
+  },
+  {
+   "quote": "Refer to Section III. Eligibility Information in the NOFO for additional information on eligibility.",
+   "reason": "eligibility",
+   "source_id": "https://www.grants.gov/search-results-detail/359649",
+   "validated": 1
+  },
+  {
+   "quote": "Non-domestic (non-U.S.) Entities (Foreign Organizations) are not eligible to apply.",
+   "reason": "eligibility",
+   "source_id": "https://www.grants.gov/search-results-detail/359649",
+   "validated": 1
+  }
+ ],
+ "cost_usd": 0.481896,
+ "created_at": "2026-11-25T16:20:18+00:00",
+ "details_fetched": 253,
+ "emails": [],
+ "error": null,
+ "id": "6790215da1be4254867d055862a987a4",
+ "input_text": "recorded run (fictional researcher)",
+ "input_tokens": 21479,
+ "input_type": "keywords",
+ "latency_ms": 23723,
+ "matches": [
+  {
+   "award_ceiling": 499999,
+   "award_floor": null,
+   "citations": [
+    {
+     "for": "centrality",
+     "quote": "The proposed project must involve at least 1 clinical trial related to the scientific interests of one or more of the following research programs: Cancer Therapy Evaluation Program, Cancer Imaging Program, Cancer Diagnosis Program, Radiation Research Program, Complementary and Alternative Medicine Program and/or the HIV and AIDS Malignancies Research Programs.",
+     "source_id": "https://www.grants.gov/search-results-detail/357075"
+    },
+    {
+     "for": "centrality",
+     "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "repositioning",
+     "quote": "Positioning rule: Clinical trials only where a named clinical collaborator is in place",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "repositioning",
+     "quote": "seeks research projects that implement early phase (Phase 0, I, and II) investigator-initiated clinical trials focused on cancer-targeted diagnostic and therapeutic interventions",
+     "source_id": "https://www.grants.gov/search-results-detail/357075"
+    },
+    {
+     "for": "pi_can_lead",
+     "quote": "investigator-initiated clinical trials",
+     "source_id": "https://www.grants.gov/search-results-detail/357075"
+    },
+    {
+     "for": "career_stage_excluded",
+     "quote": "Career stage: Established investigator.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "positioning_violation",
+     "quote": "Positioning rule: Clinical trials only where a named clinical collaborator is in place",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "eligibility",
+     "quote": "Other Eligible Applicants include the following:",
+     "source_id": "https://www.grants.gov/search-results-detail/357075"
+    }
+   ],
+   "close_date": "2027-01-07",
+   "cost_sharing": false,
+   "currency_flags": [],
+   "days_to_deadline": 43,
+   "eligibility": "Needs verification",
+   "failed_citation_count": 0,
+   "fit": "Medium",
+   "how_calculated": {
+    "adjustments": [],
+    "factors": {
+     "career_stage_excluded": "no",
+     "centrality": "partial",
+     "pi_can_lead": "yes",
+     "positioning_violation": "no",
+     "repositioning": "partner"
+    },
+    "reasons": [
+     "Partial overlap that depends on a topic, partner or bridge: Strong."
+    ],
+    "rules_fired": [
+     "R9"
+    ]
+   },
+   "number": "PAR-25-081",
+   "prefilter_shared_terms": [
+    "cancer",
+    "earli",
+    "imag",
+    "therapi"
+   ],
+   "rationale": "The opportunity names the Cancer Imaging Program and Cancer Diagnosis Program, which overlap the investigator's imaging and biomarker work, but it requires an early phase clinical trial. The profile allows clinical trials only with a named clinical collaborator, and the sources do not show one is in place, so a clinical partner is needed. The sources list only 'other' eligible applicant types, so institutional eligibility needs verification.",
+   "related_opportunity_ids": [],
+   "source_status": "posted",
+   "sponsor": "National Institutes of Health",
+   "tier": "Strong",
+   "title": "National Cancer Institute's Investigator-Initiated Early Phase Clinical Trials for Cancer Treatment and Diagnosis (R01 Clinical Trial Required)",
+   "url": "https://www.grants.gov/search-results-detail/357075"
+  },
+  {
+   "award_ceiling": null,
+   "award_floor": null,
+   "citations": [
+    {
+     "for": "centrality",
+     "quote": "improvements in early detection, screening, prevention and interception, healthcare delivery, quality of life, and/or survivorship related to cancer",
+     "source_id": "https://www.grants.gov/search-results-detail/357074"
+    },
+    {
+     "for": "centrality",
+     "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "centrality",
+     "quote": "This NOFO does not and will not support clinical trials for studies of cancer diagnosis and/or oncologic therapy in patients.",
+     "source_id": "https://www.grants.gov/search-results-detail/357074"
+    },
+    {
+     "for": "repositioning",
+     "quote": "Positioning rule: Clinical trials only where a named clinical collaborator is in place",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "repositioning",
+     "quote": "Applications submitted to this NOFO must include studies that meet the National Institutes of Health (NIH) definition of a clinical trial",
+     "source_id": "https://www.grants.gov/search-results-detail/357074"
+    },
+    {
+     "for": "pi_can_lead",
+     "quote": "Career stage: Established investigator.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "pi_can_lead",
+     "quote": "invites applications for support of investigator-initiated clinical trials",
+     "source_id": "https://www.grants.gov/search-results-detail/357074"
+    },
+    {
+     "for": "positioning_violation",
+     "quote": "Positioning rule: Population-science programs only where an imaging or biomarker component is central",
+     "source_id": "researcher-profile"
+    }
+   ],
+   "close_date": "2027-01-07",
+   "cost_sharing": false,
+   "currency_flags": [],
+   "days_to_deadline": 43,
+   "eligibility": "Needs verification",
+   "failed_citation_count": 0,
+   "fit": "Medium",
+   "how_calculated": {
+    "adjustments": [],
+    "factors": {
+     "career_stage_excluded": "no",
+     "centrality": "partial",
+     "pi_can_lead": "yes",
+     "positioning_violation": "no",
+     "repositioning": "partner"
+    },
+    "reasons": [
+     "Partial overlap that depends on a topic, partner or bridge: Strong."
+    ],
+    "rules_fired": [
+     "R9"
+    ]
+   },
+   "number": "PAR-25-167",
+   "prefilter_shared_terms": [
+    "cancer",
+    "detection",
+    "earli",
+    "therapi"
+   ],
+   "rationale": "The NOFO funds clinical trials in cancer early detection and screening. This overlaps the investigator's early-detection and biomarker work, but trials of cancer diagnosis or oncologic therapy in patients are excluded, and the profile allows clinical trials only with a named clinical collaborator in place, which the sources do not show. The sources list only 'Other Eligible Applicants' and do not confirm the university's applicant eligibility, so eligibility needs verification.",
+   "related_opportunity_ids": [],
+   "source_status": "posted",
+   "sponsor": "National Institutes of Health",
+   "tier": "Strong",
+   "title": "Cancer Prevention and Control Clinical Trials Grant Program (R01 Clinical Trial Required)",
+   "url": "https://www.grants.gov/search-results-detail/357074"
+  },
+  {
+   "award_ceiling": null,
+   "award_floor": null,
+   "citations": [
+    {
+     "for": "centrality",
+     "quote": "The objective is to maintain these national resources for the collection, processing, storage, and distribution of high-quality, clinically annotated human biospecimens.",
+     "source_id": "https://www.grants.gov/search-results-detail/361134"
+    },
+    {
+     "for": "centrality",
+     "quote": "The NCTN Biobanks support biomarker development and validation",
+     "source_id": "https://www.grants.gov/search-results-detail/361134"
+    },
+    {
+     "for": "centrality",
+     "quote": "Cancer early detection and biomarkers",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "repositioning",
+     "quote": "Through this limited competition Notice of Funding Opportunity (NOFO), the National Cancer Institute (NCI) solicits applications to support continuation of two biospecimen banking resources.",
+     "source_id": "https://www.grants.gov/search-results-detail/361134"
+    },
+    {
+     "for": "pi_can_lead",
+     "quote": "Eligibility is limited to an institution/entity that is the recipient of an existing NCTN biobank of human biospecimens from NCI clinical trials funded under RFA-CA-20-002 or an existing EET Biobank of human specimens under RFA-CA-20-003.",
+     "source_id": "https://www.grants.gov/search-results-detail/361134"
+    },
+    {
+     "for": "career_stage_excluded",
+     "quote": "Career stage: Established investigator.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "positioning_violation",
+     "quote": "Positioning rule: Clinical trials only where a named clinical collaborator is in place",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "eligibility",
+     "quote": "Eligibility is limited to an institution/entity that is the recipient of an existing NCTN biobank of human biospecimens from NCI clinical trials funded under RFA-CA-20-002 or an existing EET Biobank of human specimens under RFA-CA-20-003.",
+     "source_id": "https://www.grants.gov/search-results-detail/361134"
+    }
+   ],
+   "close_date": "2027-02-11",
+   "cost_sharing": false,
+   "currency_flags": [],
+   "days_to_deadline": 78,
+   "eligibility": "Needs verification",
+   "failed_citation_count": 0,
+   "fit": null,
+   "how_calculated": {
+    "adjustments": [],
+    "factors": {
+     "career_stage_excluded": "no",
+     "centrality": "adjacent",
+     "pi_can_lead": "no",
+     "positioning_violation": "no",
+     "repositioning": "stretch"
+    },
+    "reasons": [
+     "Science would have to be stretched to fit: excluded (keyword overlap only)."
+    ],
+    "rules_fired": [
+     "R3"
+    ]
+   },
+   "number": "RFA-CA-28-004",
+   "prefilter_shared_terms": [
+    "biomarker",
+    "cancer",
+    "earli"
+   ],
+   "rationale": "This limited competition continues existing NCI biobanks. The investigator's biomarker research would use such a resource but is not the resource operation the program funds. Eligibility depends on whether the institution already holds an award under RFA-CA-20-002 or RFA-CA-20-003, which the sources do not state.",
+   "related_opportunity_ids": [],
+   "source_status": "posted",
+   "sponsor": "National Institutes of Health",
+   "tier": "Excluded",
+   "title": "Limited Competition: Biospecimen Banks to support NCI National Clinical Trials Network Biospecimen Banks (NCTN Biobanks) and the NCI Early-Phase and Experimental Clinical Trials Biospecimen Bank (EET Biobank) (U24 Clinical Trial Not Allowed)",
+   "url": "https://www.grants.gov/search-results-detail/361134"
+  },
+  {
+   "award_ceiling": 135000,
+   "award_floor": 1,
+   "citations": [
+    {
+     "for": "centrality",
+     "quote": "The USGS is offering a funding opportunity to a CESU partner for research in improving accuracy assessment and area estimation for use in annual remote-sensing based land-cover monitoring.",
+     "source_id": "https://www.grants.gov/search-results-detail/364192"
+    },
+    {
+     "for": "centrality",
+     "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "repositioning",
+     "quote": "research centered on improvements in land cover research by focusing on investigating and implementing state-of-the-art sampling and statistical strategies for accuracy assessment and area estimation, and the impacts of reference data uncertainties",
+     "source_id": "https://www.grants.gov/search-results-detail/364192"
+    },
+    {
+     "for": "repositioning",
+     "quote": "Artificial intelligence for cancer imaging and pathology",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "pi_can_lead",
+     "quote": "The USGS EROS has long been at the forefront of land cover research at local to global geographies.",
+     "source_id": "https://www.grants.gov/search-results-detail/364192"
+    },
+    {
+     "for": "pi_can_lead",
+     "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "career_stage_excluded",
+     "quote": "Career stage: Established investigator.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "positioning_violation",
+     "quote": "Positioning rule: Clinical trials only where a named clinical collaborator is in place",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "positioning_violation",
+     "quote": "Positioning rule: Population-science programs only where an imaging or biomarker component is central",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "eligibility",
+     "quote": "Eligible recipients must be a participating partner of the Great Lakes Northern Forrest Cooperative Ecosystem Studies Unit.",
+     "source_id": "https://www.grants.gov/search-results-detail/364192"
+    }
+   ],
+   "close_date": "2026-12-02",
+   "cost_sharing": false,
+   "currency_flags": [],
+   "days_to_deadline": 7,
+   "eligibility": "Needs verification",
+   "failed_citation_count": 0,
+   "fit": null,
+   "how_calculated": {
+    "adjustments": [],
+    "factors": {
+     "career_stage_excluded": "no",
+     "centrality": "none",
+     "pi_can_lead": "no",
+     "positioning_violation": "no",
+     "repositioning": "stretch"
+    },
+    "reasons": [
+     "Established science is not in the program scope: excluded."
+    ],
+    "rules_fired": [
+     "R2"
+    ]
+   },
+   "number": "G27AS00040",
+   "prefilter_shared_terms": [
+    "artifici",
+    "detection",
+    "imag",
+    "intelligence"
+   ],
+   "rationale": "This opportunity funds remote-sensing land-cover accuracy assessment and area estimation for the USGS. The investigator's established work is in cancer detection, tumor imaging, and AI for cancer imaging and pathology, so the science does not overlap except for a general AI/imaging methods link. Eligibility is limited to partners of the Great Lakes Northern Forrest CESU, and the sources do not say whether the investigator's institution is a partner, so this needs to be checked.",
+   "related_opportunity_ids": [],
+   "source_status": "posted",
+   "sponsor": "Geological Survey",
+   "tier": "Excluded",
+   "title": "Cooperative Agreement for affiliated Partner with the Great Lakes Northern Forrest Cooperative Ecosystem Studies Unit",
+   "url": "https://www.grants.gov/search-results-detail/364192"
+  },
+  {
+   "award_ceiling": null,
+   "award_floor": 550,
+   "citations": [
+    {
+     "for": "centrality",
+     "quote": "Artificial intelligence for cancer imaging and pathology",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "centrality",
+     "quote": "can be improved through interactions with others or through the use of artificial intelligence in technology",
+     "source_id": "https://www.grants.gov/search-results-detail/320753"
+    },
+    {
+     "for": "repositioning",
+     "quote": "develops basic theoretical insights and fundamental knowledge about principles, processes and mechanisms of learning",
+     "source_id": "https://www.grants.gov/search-results-detail/320753"
+    },
+    {
+     "for": "repositioning",
+     "quote": "Connections between proposed research and specific technological, educational and workforce applications will be considered as valuable broader impacts but are not necessarily central to the intellectual merit of proposed research.",
+     "source_id": "https://www.grants.gov/search-results-detail/320753"
+    },
+    {
+     "for": "pi_can_lead",
+     "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "career_stage_excluded",
+     "quote": "Career stage: Established investigator.",
+     "source_id": "researcher-profile"
+    }
+   ],
+   "close_date": "2027-02-10",
+   "cost_sharing": false,
+   "currency_flags": [],
+   "days_to_deadline": 77,
+   "eligibility": "Needs verification",
+   "failed_citation_count": 0,
+   "fit": null,
+   "how_calculated": {
+    "adjustments": [],
+    "factors": {
+     "career_stage_excluded": "no",
+     "centrality": "adjacent",
+     "pi_can_lead": "no",
+     "positioning_violation": "no",
+     "repositioning": "stretch"
+    },
+    "reasons": [
+     "Science would have to be stretched to fit: excluded (keyword overlap only)."
+    ],
+    "rules_fired": [
+     "R3"
+    ]
+   },
+   "number": "PD-19-127Y",
+   "prefilter_shared_terms": [
+    "artifici",
+    "intelligence"
+   ],
+   "rationale": "The program funds basic research on how learning works and on human-AI augmented intelligence. The investigator's AI for cancer imaging is next to this scope but would need to be stretched toward fundamental learning or cognition questions, because applications count only as broader impacts. The sources do not state eligibility, so it needs verification.",
+   "related_opportunity_ids": [],
+   "source_status": "posted",
+   "sponsor": "U.S. National Science Foundation",
+   "tier": "Excluded",
+   "title": "Science of Learning and Augmented Intelligence (SL)",
+   "url": "https://www.grants.gov/search-results-detail/320753"
+  },
+  {
+   "award_ceiling": 500000,
+   "award_floor": null,
+   "citations": [
+    {
+     "for": "centrality",
+     "quote": "translation of scientific discoveries and engineering developments in imaging, data science and/or spectroscopic technologies into methods or tools that address contemporary problems in understanding the fundamental biology, potential risk of development, diagnosis, treatment, and/or disease status for cancer or other disease",
+     "source_id": "https://www.grants.gov/search-results-detail/357018"
+    },
+    {
+     "for": "centrality",
+     "quote": "Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "repositioning",
+     "quote": "Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "pi_can_lead",
+     "quote": "Career stage: Established investigator.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "eligibility",
+     "quote": "Other Eligible Applicants include the following:",
+     "source_id": "https://www.grants.gov/search-results-detail/357018"
+    }
+   ],
+   "close_date": "2027-01-07",
+   "cost_sharing": false,
+   "currency_flags": [],
+   "days_to_deadline": 43,
+   "eligibility": "Needs verification",
+   "failed_citation_count": 0,
+   "fit": "High",
+   "how_calculated": {
+    "adjustments": [],
+    "factors": {
+     "career_stage_excluded": "no",
+     "centrality": "central",
+     "pi_can_lead": "yes",
+     "positioning_violation": "no",
+     "repositioning": "none"
+    },
+    "reasons": [
+     "Central science, no repositioning, investigator can lead: Direct."
+    ],
+    "rules_fired": [
+     "R5"
+    ]
+   },
+   "number": "PAR-25-079",
+   "prefilter_shared_terms": [
+    "cancer",
+    "imag"
+   ],
+   "rationale": "The NCI opportunity seeks to translate imaging and data-science technologies into tools for cancer diagnosis and treatment. This matches the investigator's established work in tumor imaging and AI for cancer imaging. The provided excerpt lists only 'other' eligible applicant types and does not state whether the investigator's institution qualifies, so eligibility needs verification.",
+   "related_opportunity_ids": [],
+   "source_status": "posted",
+   "sponsor": "National Institutes of Health",
+   "tier": "Direct",
+   "title": "Academic-Industrial Partnerships (AIP) to Translate and Validate In Vivo Imaging Systems (R01 Clinical Trial Optional)",
+   "url": "https://www.grants.gov/search-results-detail/357018"
+  },
+  {
+   "award_ceiling": 700000,
+   "award_floor": 700000,
+   "citations": [
+    {
+     "for": "centrality",
+     "quote": "NCI seeks meritorious proposals to critically and systematically evaluate the scientific evidence on carcinogenic hazards to humans.",
+     "source_id": "https://www.grants.gov/search-results-detail/360905"
+    },
+    {
+     "for": "centrality",
+     "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "repositioning",
+     "quote": "Identifying potential carcinogens is essential for guiding and advancing cancer research, as well as informing cancer control and prevention efforts.",
+     "source_id": "https://www.grants.gov/search-results-detail/360905"
+    },
+    {
+     "for": "pi_can_lead",
+     "quote": "Career stage: Established investigator.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "career_stage_excluded",
+     "quote": "Career stage: Established investigator. Exclude programs restricted to early-career investigators..",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "positioning_violation",
+     "quote": "Positioning rule: Population-science programs only where an imaging or biomarker component is central",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "positioning_violation",
+     "quote": "NCI seeks meritorious proposals to critically and systematically evaluate the scientific evidence on carcinogenic hazards to humans.",
+     "source_id": "https://www.grants.gov/search-results-detail/360905"
+    },
+    {
+     "for": "eligibility",
+     "quote": "Refer to Section III. Eligibility Information in the NOFO for additional information on eligibility.",
+     "source_id": "https://www.grants.gov/search-results-detail/360905"
+    }
+   ],
+   "close_date": "2027-02-09",
+   "cost_sharing": false,
+   "currency_flags": [],
+   "days_to_deadline": 76,
+   "eligibility": "Needs verification",
+   "failed_citation_count": 0,
+   "fit": null,
+   "how_calculated": {
+    "adjustments": [],
+    "factors": {
+     "career_stage_excluded": "no",
+     "centrality": "adjacent",
+     "pi_can_lead": "yes",
+     "positioning_violation": "yes",
+     "repositioning": "stretch"
+    },
+    "reasons": [
+     "Science would have to be stretched to fit: excluded (keyword overlap only)."
+    ],
+    "rules_fired": [
+     "R3"
+    ]
+   },
+   "number": "RFA-CA-28-013",
+   "prefilter_shared_terms": [
+    "cancer",
+    "guid"
+   ],
+   "rationale": "This opportunity asks for systematic evaluation of evidence on carcinogenic hazards, which sits next to the investigator's work on early detection, imaging, and AI but is not part of it. The sources do not describe an imaging or biomarker component as central, which conflicts with the profile's population-science positioning rule, and full eligibility details are in a NOFO section that was not provided.",
+   "related_opportunity_ids": [],
+   "source_status": "posted",
+   "sponsor": "National Institutes of Health",
+   "tier": "Excluded",
+   "title": "Carcinogen Hazard Assessment Monographs Program (CHAMP) (R01 Clinical Trial Not Allowed)",
+   "url": "https://www.grants.gov/search-results-detail/360905"
+  },
+  {
+   "award_ceiling": null,
+   "award_floor": null,
+   "citations": [
+    {
+     "for": "centrality",
+     "quote": "Applicants are encouraged to propose sequencing of existing pediatric cancer or congenital anomaly cohorts to elucidate the genetic contribution (somatic and/or germline) to childhood cancers",
+     "source_id": "https://www.grants.gov/search-results-detail/361164"
+    },
+    {
+     "for": "centrality",
+     "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "repositioning",
+     "quote": "the NIH invites applications to submit samples from pediatric cohorts for whole genome sequencing at a Kids First Program supported genomic data generating centers",
+     "source_id": "https://www.grants.gov/search-results-detail/361164"
+    },
+    {
+     "for": "pi_can_lead",
+     "quote": "Career stage: Established investigator.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "career_stage_excluded",
+     "quote": "Career stage: Established investigator. Exclude programs restricted to early-career investigators..",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "eligibility",
+     "quote": "Refer to Section III. Eligibility Information in the NOFO for additional information on eligibility.",
+     "source_id": "https://www.grants.gov/search-results-detail/361164"
+    },
+    {
+     "for": "eligibility",
+     "quote": "Non-domestic (non-U.S.) Entities (Foreign Organizations) are not eligible to apply.",
+     "source_id": "https://www.grants.gov/search-results-detail/361164"
+    }
+   ],
+   "close_date": "2027-01-11",
+   "cost_sharing": false,
+   "currency_flags": [],
+   "days_to_deadline": 47,
+   "eligibility": "Needs verification",
+   "failed_citation_count": 0,
+   "fit": "Low",
+   "how_calculated": {
+    "adjustments": [],
+    "factors": {
+     "career_stage_excluded": "no",
+     "centrality": "adjacent",
+     "pi_can_lead": "yes",
+     "positioning_violation": "no",
+     "repositioning": "partner"
+    },
+    "reasons": [
+     "Scientifically adjacent: Conditional, only with a clear topic or partner bridge."
+    ],
+    "rules_fired": [
+     "R4"
+    ]
+   },
+   "number": "PAR-27-071",
+   "prefilter_shared_terms": [
+    "cancer",
+    "tumor"
+   ],
+   "rationale": "The program funds genomic sequencing of existing pediatric cancer and congenital anomaly cohorts, while the investigator's established work is in cancer early detection, biomarkers, tumor imaging, and AI for imaging and pathology. The fit is adjacent and would need a partner who brings a pediatric cohort and a genomics component. The sources give only foreign-entity exclusions, so eligibility needs verification against Section III of the NOFO.",
+   "related_opportunity_ids": [],
+   "source_status": "posted",
+   "sponsor": "National Institutes of Health",
+   "tier": "Conditional",
+   "title": "Discovery of the Genetic Basis of Childhood Cancers and of Congenital Anomalies: Gabriella Miller Kids First Pediatric Research Program (X01 Clinical Trial Not Allowed)",
+   "url": "https://www.grants.gov/search-results-detail/361164"
+  },
+  {
+   "award_ceiling": null,
+   "award_floor": null,
+   "citations": [
+    {
+     "for": "centrality",
+     "quote": "The CAPRI Program establishes and strengthens comprehensive, mutually beneficial and meaningful partnerships between Resource Limited Institutions (RLIs) and NCI-designated Cancer Centers (CCs) to accelerate collaborative and innovative cancer.",
+     "source_id": "https://www.grants.gov/search-results-detail/360393"
+    },
+    {
+     "for": "centrality",
+     "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "repositioning",
+     "quote": "partnerships between Resource Limited Institutions (RLIs) and NCI-designated Cancer Centers (CCs)",
+     "source_id": "https://www.grants.gov/search-results-detail/360393"
+    },
+    {
+     "for": "pi_can_lead",
+     "quote": "Career stage: Established investigator.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "career_stage_excluded",
+     "quote": "Career stage: Established investigator. Exclude programs restricted to early-career investigators..",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "career_stage_excluded",
+     "quote": "cultivating the next generation of Early-Stage Investigators and trainees",
+     "source_id": "https://www.grants.gov/search-results-detail/360393"
+    },
+    {
+     "for": "eligibility",
+     "quote": "This is a Notice of Funding Opportunity (NOFO) for a Limited Competition that invites applications from eligible organizations to apply.",
+     "source_id": "https://www.grants.gov/search-results-detail/360393"
+    },
+    {
+     "for": "eligibility",
+     "quote": "Refer to Section III. Eligibility Information in the NOFO for additional information on eligibility.",
+     "source_id": "https://www.grants.gov/search-results-detail/360393"
+    }
+   ],
+   "close_date": "2027-01-25",
+   "cost_sharing": false,
+   "currency_flags": [],
+   "days_to_deadline": 61,
+   "eligibility": "Needs verification",
+   "failed_citation_count": 0,
+   "fit": "Medium",
+   "how_calculated": {
+    "adjustments": [],
+    "factors": {
+     "career_stage_excluded": "no",
+     "centrality": "partial",
+     "pi_can_lead": "yes",
+     "positioning_violation": "no",
+     "repositioning": "partner"
+    },
+    "reasons": [
+     "Partial overlap that depends on a topic, partner or bridge: Strong."
+    ],
+    "rules_fired": [
+     "R9"
+    ]
+   },
+   "number": "PAR-28-062",
+   "prefilter_shared_terms": [
+    "cancer",
+    "earli"
+   ],
+   "rationale": "CAPRI funds cancer research through institutional partnerships between Resource Limited Institutions and NCI-designated Cancer Centers, so the investigator's cancer imaging and biomarker science fits only as part of such a partnership. This is a limited competition, and the sources do not show whether the investigator's institution qualifies, so eligibility must be verified.",
+   "related_opportunity_ids": [],
+   "source_status": "posted",
+   "sponsor": "National Institutes of Health",
+   "tier": "Strong",
+   "title": "Cancer Advancement through Partnerships in Research and Infrastructure (CAPRI) (U54 Clinical Trial Optional)",
+   "url": "https://www.grants.gov/search-results-detail/360393"
+  },
+  {
+   "award_ceiling": 1200000,
+   "award_floor": null,
+   "citations": [
+    {
+     "for": "centrality",
+     "quote": "Projects in this program area should enhance confidence and reproducibility in AI produced scientific results by improving the integrity, provenance, and authenticity of scientific datasets used by Artificial Intelligence systems.",
+     "source_id": "https://www.grants.gov/search-results-detail/358004"
+    },
+    {
+     "for": "centrality",
+     "quote": "Artificial intelligence for cancer imaging and pathology",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "repositioning",
+     "quote": "The objective of the Cybersecurity Innovation for Cyberinfrastructure (CICI) program is to advance scientific discovery and innovation by enhancing the security and privacy of cyberinfrastructure.",
+     "source_id": "https://www.grants.gov/search-results-detail/358004"
+    },
+    {
+     "for": "repositioning",
+     "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "pi_can_lead",
+     "quote": "CICI supports efforts to develop, deploy and integrate cybersecurity that will benefit the broader scientific community by securing science data, computation, collaborations workflows, and infrastructure.",
+     "source_id": "https://www.grants.gov/search-results-detail/358004"
+    },
+    {
+     "for": "career_stage_excluded",
+     "quote": "Career stage: Established investigator.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "eligibility",
+     "quote": "Institutions of Higher Education (IHEs): Two- and four-year IHEs (including community colleges) accredited in, and having a campus located in the US, acting on behalf of their faculty members.",
+     "source_id": "https://www.grants.gov/search-results-detail/358004"
+    }
+   ],
+   "close_date": "2027-01-20",
+   "cost_sharing": false,
+   "currency_flags": [],
+   "days_to_deadline": 56,
+   "eligibility": "Needs verification",
+   "failed_citation_count": 0,
+   "fit": null,
+   "how_calculated": {
+    "adjustments": [],
+    "factors": {
+     "career_stage_excluded": "no",
+     "centrality": "adjacent",
+     "pi_can_lead": "no",
+     "positioning_violation": "no",
+     "repositioning": "stretch"
+    },
+    "reasons": [
+     "Science would have to be stretched to fit: excluded (keyword overlap only)."
+    ],
+    "rules_fired": [
+     "R3"
+    ]
+   },
+   "number": "25-531",
+   "prefilter_shared_terms": [
+    "artifici",
+    "intelligence"
+   ],
+   "rationale": "CICI is a cybersecurity program for scientific cyberinfrastructure. Only its IPAAI area, on the integrity and provenance of AI-ready scientific datasets, sits next to the investigator's AI-for-cancer-imaging work, so competing would stretch the science beyond its cancer-imaging AI focus. The sources do not state the investigator's institution, so it must be confirmed as an accredited US institution of higher education.",
+   "related_opportunity_ids": [],
+   "source_status": "posted",
+   "sponsor": "U.S. National Science Foundation",
+   "tier": "Excluded",
+   "title": "Cybersecurity Innovation for Cyberinfrastructure (CICI)",
+   "url": "https://www.grants.gov/search-results-detail/358004"
+  },
+  {
+   "award_ceiling": 180000,
+   "award_floor": 1,
+   "citations": [
+    {
+     "for": "centrality",
+     "quote": "support research and technology development that advances automated fish detection, enumeration, and risk assessment at Brandon Road Lock and Dam through the use of the Live Imaging Sonar Surveillance Array (LISSA)",
+     "source_id": "https://www.grants.gov/search-results-detail/364229"
+    },
+    {
+     "for": "centrality",
+     "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "repositioning",
+     "quote": "This work directly contributes to federal efforts to prevent the upstream movement of invasive carp toward the Great Lakes.",
+     "source_id": "https://www.grants.gov/search-results-detail/364229"
+    },
+    {
+     "for": "repositioning",
+     "quote": "Artificial intelligence for cancer imaging and pathology",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "pi_can_lead",
+     "quote": "a significant need remains to automate interpretation of the substantial data streams the LISSA generates",
+     "source_id": "https://www.grants.gov/search-results-detail/364229"
+    },
+    {
+     "for": "pi_can_lead",
+     "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "career_stage_excluded",
+     "quote": "Career stage: Established investigator.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "positioning_violation",
+     "quote": "Positioning rule: Clinical trials only where a named clinical collaborator is in place",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "positioning_violation",
+     "quote": "Positioning rule: Population-science programs only where an imaging or biomarker component is central",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "eligibility",
+     "quote": "Eligible recipients must be a participating partner of the Chesapeake Watershed Cooperative Ecosystem Studies Unit.",
+     "source_id": "https://www.grants.gov/search-results-detail/364229"
+    }
+   ],
+   "close_date": "2026-12-07",
+   "cost_sharing": false,
+   "currency_flags": [],
+   "days_to_deadline": 12,
+   "eligibility": "Needs verification",
+   "failed_citation_count": 0,
+   "fit": null,
+   "how_calculated": {
+    "adjustments": [],
+    "factors": {
+     "career_stage_excluded": "no",
+     "centrality": "none",
+     "pi_can_lead": "no",
+     "positioning_violation": "no",
+     "repositioning": "stretch"
+    },
+    "reasons": [
+     "Established science is not in the program scope: excluded."
+    ],
+    "rules_fired": [
+     "R2"
+    ]
+   },
+   "number": "G27AS00047",
+   "prefilter_shared_terms": [
+    "detection",
+    "imag"
+   ],
+   "rationale": "This USGS opportunity funds automated sonar-based fish detection to support invasive carp control. The investigator's established work is in cancer detection, tumor imaging, and AI for cancer imaging, so the overlap is limited to general imaging-AI methods, and the science would need substantial stretching; eligibility depends on whether the institution is a Chesapeake Watershed CESU partner, which the sources do not state.",
+   "related_opportunity_ids": [],
+   "source_status": "posted",
+   "sponsor": "Geological Survey",
+   "tier": "Excluded",
+   "title": "Cooperative Agreement for affiliated Partner with Chesapeake Watershed Cooperative Ecosystem Studies Unit",
+   "url": "https://www.grants.gov/search-results-detail/364229"
+  },
+  {
+   "award_ceiling": 2500000,
+   "award_floor": null,
+   "citations": [
+    {
+     "for": "centrality",
+     "quote": "The purpose of this notice of funding opportunity (NOFO) is to support the advancement of systems-level understanding of the link between infectious pathogens and inflammatory pathways that result in predisposition, onset and progression of chronic diseases.",
+     "source_id": "https://www.grants.gov/search-results-detail/362952"
+    },
+    {
+     "for": "centrality",
+     "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "repositioning",
+     "quote": "The NOFO will stimulate integration of clinical and patient data, large-scale omics datasets, advanced Artificial Intelligence (AI) and computational modeling to prevent, treat, and mitigate the combined impact of chronic diseases, inflammation, and infections.",
+     "source_id": "https://www.grants.gov/search-results-detail/362952"
+    },
+    {
+     "for": "pi_can_lead",
+     "quote": "Career stage: Established investigator.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "pi_can_lead",
+     "quote": "advanced Artificial Intelligence (AI) and computational modeling",
+     "source_id": "https://www.grants.gov/search-results-detail/362952"
+    },
+    {
+     "for": "career_stage_excluded",
+     "quote": "Career stage: Established investigator. Exclude programs restricted to early-career investigators..",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "positioning_violation",
+     "quote": "Positioning rule: Clinical trials only where a named clinical collaborator is in place",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "positioning_violation",
+     "quote": "Positioning rule: Population-science programs only where an imaging or biomarker component is central",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "eligibility",
+     "quote": "Other Eligible ApplicantsIndian/Native American Tribal Governments (Other than Federally Recognized);Eligible Agencies of the Federal Government;U.S. Territory or Possession;Faith-based or Community-based Organizations;Regional Organizations;Non-domestic (non-U.S.) Entities (Foreign Institutions).",
+     "source_id": "https://www.grants.gov/search-results-detail/362952"
+    }
+   ],
+   "close_date": "2027-02-18",
+   "cost_sharing": false,
+   "currency_flags": [],
+   "days_to_deadline": 85,
+   "eligibility": "Needs verification",
+   "failed_citation_count": 0,
+   "fit": "Low",
+   "how_calculated": {
+    "adjustments": [],
+    "factors": {
+     "career_stage_excluded": "no",
+     "centrality": "adjacent",
+     "pi_can_lead": "yes",
+     "positioning_violation": "no",
+     "repositioning": "partner"
+    },
+    "reasons": [
+     "Scientifically adjacent: Conditional, only with a clear topic or partner bridge."
+    ],
+    "rules_fired": [
+     "R4"
+    ]
+   },
+   "number": "RFA-AI-28-014",
+   "prefilter_shared_terms": [
+    "artifici",
+    "intelligence"
+   ],
+   "rationale": "The opportunity's emphasis on AI and computational modeling fits the investigator's AI expertise. However, the core scope is how infectious pathogens and inflammation drive chronic disease, which sits next to the investigator's cancer imaging and biomarker work, so a partner with infection or inflammation expertise would be needed to bridge the topic. The excerpt lists only 'other' eligible applicant types and does not mention universities, so institutional eligibility needs to be checked in the full notice.",
+   "related_opportunity_ids": [],
+   "source_status": "posted",
+   "sponsor": "National Institutes of Health",
+   "tier": "Conditional",
+   "title": "Systems Biology of Infection and Inflammation in Chronic Diseases (U19 Clinical Trial Not Allowed)",
+   "url": "https://www.grants.gov/search-results-detail/362952"
+  },
+  {
+   "award_ceiling": 300000,
+   "award_floor": 1,
+   "citations": [
+    {
+     "for": "centrality",
+     "quote": "research to assess the efficacy of using in-situ fluorometry for detection of milt (seminal fluid) from invasive carp in rivers downstream from spawning sites",
+     "source_id": "https://www.grants.gov/search-results-detail/364233"
+    },
+    {
+     "for": "centrality",
+     "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "repositioning",
+     "quote": "Technologies allowing for early detection of these species, especially evidence of natural reproduction, are needed by state and federal agencies throughout the Great Lakes and Mississippi River Basins to control the spread of invasive carp and assess risk to uninvaded waters.",
+     "source_id": "https://www.grants.gov/search-results-detail/364233"
+    },
+    {
+     "for": "repositioning",
+     "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "pi_can_lead",
+     "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "career_stage_excluded",
+     "quote": "Career stage: Established investigator.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "eligibility",
+     "quote": "Eligible recipients must be a participating partner of the Great Rivers Cooperative Ecosystem Studies Unit.",
+     "source_id": "https://www.grants.gov/search-results-detail/364233"
+    }
+   ],
+   "close_date": "2026-12-07",
+   "cost_sharing": false,
+   "currency_flags": [],
+   "days_to_deadline": 12,
+   "eligibility": "Needs verification",
+   "failed_citation_count": 0,
+   "fit": null,
+   "how_calculated": {
+    "adjustments": [],
+    "factors": {
+     "career_stage_excluded": "no",
+     "centrality": "none",
+     "pi_can_lead": "no",
+     "positioning_violation": "no",
+     "repositioning": "stretch"
+    },
+    "reasons": [
+     "Established science is not in the program scope: excluded."
+    ],
+    "rules_fired": [
+     "R2"
+    ]
+   },
+   "number": "G27AS00059",
+   "prefilter_shared_terms": [
+    "detection",
+    "earli"
+   ],
+   "rationale": "The opportunity funds in-situ fluorometry to detect invasive carp milt in rivers, which is outside the investigator's established cancer detection, imaging, and AI research areas. Eligibility depends on whether the investigator's institution is a participating partner of the Great Rivers CESU, and the sources do not say whether it is.",
+   "related_opportunity_ids": [],
+   "source_status": "posted",
+   "sponsor": "Geological Survey",
+   "tier": "Excluded",
+   "title": "Cooperative Agreement for affiliated Partner with Great Rivers Cooperative Ecosystem Studies Unit",
+   "url": "https://www.grants.gov/search-results-detail/364233"
+  },
+  {
+   "award_ceiling": 775000,
+   "award_floor": 500000,
+   "citations": [
+    {
+     "for": "centrality",
+     "quote": "prepare the next generation of researchers in biomedical informatics, data science, and artificial intelligence/machine learning (AI/ML)",
+     "source_id": "https://www.grants.gov/search-results-detail/361318"
+    },
+    {
+     "for": "centrality",
+     "quote": "Artificial intelligence for cancer imaging and pathology.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "repositioning",
+     "quote": "The National Library of Medicine (NLM) invites applications for innovative predoctoral and postdoctoral training programs",
+     "source_id": "https://www.grants.gov/search-results-detail/361318"
+    },
+    {
+     "for": "repositioning",
+     "quote": "NLM seeks programs that integrate methods and perspectives across disciplines to advance biomedical informatics, data science, and AI/ML.",
+     "source_id": "https://www.grants.gov/search-results-detail/361318"
+    },
+    {
+     "for": "pi_can_lead",
+     "quote": "Career stage: Established investigator.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "career_stage_excluded",
+     "quote": "Applications may propose the creation of new training programs or the renewal of existing NLM-supported programs.",
+     "source_id": "https://www.grants.gov/search-results-detail/361318"
+    },
+    {
+     "for": "eligibility",
+     "quote": "Non-domestic (non-U.S.) Entities (Foreign Institutions) are not eligible to apply.",
+     "source_id": "https://www.grants.gov/search-results-detail/361318"
+    }
+   ],
+   "close_date": "2027-02-11",
+   "cost_sharing": false,
+   "currency_flags": [],
+   "days_to_deadline": 78,
+   "eligibility": "Needs verification",
+   "failed_citation_count": 0,
+   "fit": "Medium",
+   "how_calculated": {
+    "adjustments": [],
+    "factors": {
+     "career_stage_excluded": "no",
+     "centrality": "partial",
+     "pi_can_lead": "yes",
+     "positioning_violation": "no",
+     "repositioning": "framing"
+    },
+    "reasons": [
+     "Partial overlap that depends on a topic, partner or bridge: Strong."
+    ],
+    "rules_fired": [
+     "R9"
+    ]
+   },
+   "number": "RFA-LM-28-001",
+   "prefilter_shared_terms": [
+    "artifici",
+    "intelligence"
+   ],
+   "rationale": "The investigator's AI work in cancer imaging and pathology overlaps the AI/ML and biomedical informatics part of this NLM training-program scope. Competing would mean framing that expertise as an interdisciplinary predoctoral and postdoctoral training program. Eligibility needs verification because the sources only exclude foreign institutions and do not confirm the researcher's institution qualifies.",
+   "related_opportunity_ids": [],
+   "source_status": "posted",
+   "sponsor": "National Institutes of Health",
+   "tier": "Strong",
+   "title": "NLM Institutional Grants for Research Training in Biomedical Informatics, Data Science, and AI (T15 Independent Clinical Trial Not Allowed)",
+   "url": "https://www.grants.gov/search-results-detail/361318"
+  },
+  {
+   "award_ceiling": 700000,
+   "award_floor": null,
+   "citations": [
+    {
+     "for": "centrality",
+     "quote": "to understand how dynamic activity of single cells and ensembles of neurons in spatially organized networks gives rise to the internal states we experience as sensations, perceptions, emotions, thoughts, and memories, and to observable motor and social behaviors",
+     "source_id": "https://www.grants.gov/search-results-detail/359649"
+    },
+    {
+     "for": "centrality",
+     "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "repositioning",
+     "quote": "using invasive neural recording and stimulation technologies in the human brain",
+     "source_id": "https://www.grants.gov/search-results-detail/359649"
+    },
+    {
+     "for": "repositioning",
+     "quote": "Established research areas: Cancer early detection and biomarkers; Tumor imaging and image-guided therapy; Artificial intelligence for cancer imaging and pathology.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "pi_can_lead",
+     "quote": "Projects should maximize opportunities to conduct innovative in vivo human neuroscience research made available by direct access to the brain from invasive surgical procedures.",
+     "source_id": "https://www.grants.gov/search-results-detail/359649"
+    },
+    {
+     "for": "career_stage_excluded",
+     "quote": "from newly formed or established multi-disciplinary teams",
+     "source_id": "https://www.grants.gov/search-results-detail/359649"
+    },
+    {
+     "for": "career_stage_excluded",
+     "quote": "Career stage: Established investigator.",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "positioning_violation",
+     "quote": "Positioning rule: Clinical trials only where a named clinical collaborator is in place",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "positioning_violation",
+     "quote": "Positioning rule: Population-science programs only where an imaging or biomarker component is central",
+     "source_id": "researcher-profile"
+    },
+    {
+     "for": "eligibility",
+     "quote": "Refer to Section III. Eligibility Information in the NOFO for additional information on eligibility.",
+     "source_id": "https://www.grants.gov/search-results-detail/359649"
+    },
+    {
+     "for": "eligibility",
+     "quote": "Non-domestic (non-U.S.) Entities (Foreign Organizations) are not eligible to apply.",
+     "source_id": "https://www.grants.gov/search-results-detail/359649"
+    }
+   ],
+   "close_date": "2027-02-11",
+   "cost_sharing": false,
+   "currency_flags": [],
+   "days_to_deadline": 78,
+   "eligibility": "Needs verification",
+   "failed_citation_count": 0,
+   "fit": null,
+   "how_calculated": {
+    "adjustments": [],
+    "factors": {
+     "career_stage_excluded": "no",
+     "centrality": "none",
+     "pi_can_lead": "no",
+     "positioning_violation": "no",
+     "repositioning": "stretch"
+    },
+    "reasons": [
+     "Established science is not in the program scope: excluded."
+    ],
+    "rules_fired": [
+     "R2"
+    ]
+   },
+   "number": "RFA-DC-27-004",
+   "prefilter_shared_terms": [
+    "earli",
+    "guid"
+   ],
+   "rationale": "The opportunity funds exploratory human intracranial neuroscience using invasive brain recording and stimulation. The investigator's established areas are cancer detection, tumor imaging, and AI for cancer imaging and pathology, so competing would require stretching the science well outside its current focus. Full eligibility criteria are in the NOFO's Section III, which is not provided, and the applicant organization's status is not stated.",
+   "related_opportunity_ids": [],
+   "source_status": "posted",
+   "sponsor": "National Institutes of Health",
+   "tier": "Excluded",
+   "title": "BRAIN Initiative: Exploratory Research Opportunities Using Invasive Neural Recording and Stimulating Technologies in the Human Brain (R61 Clinical Trial Not Allowed)",
+   "url": "https://www.grants.gov/search-results-detail/359649"
+  }
+ ],
+ "model": "claude",
+ "opportunities_listed": 787,
+ "output_tokens": 19799,
+ "rubric_version": "3288f1c309d6",
+ "scope_snapshot": {
+  "funder_types": [
+   "federal"
+  ],
+  "scope_level": "A named organization",
+  "units": []
+ },
+ "settings_snapshot": {
+  "active_model": "mock",
+  "cache_ttl_minutes": 15,
+  "daily_cap": 3,
+  "email_mode": "dummy",
+  "faculty_per_run": 25,
+  "funder_types": [
+   "federal"
+  ],
+  "horizon_months": 3,
+  "include_undated_deadlines": false,
+  "judge_concurrency": 8,
+  "judge_deadline_s": 90,
+  "lead_time_days": 14,
+  "max_detail_fetches": 250,
+  "max_judgments": 15,
+  "min_fit": "Low",
+  "pi_lookups_per_day": 1000,
+  "pi_lookups_per_hour": 60,
+  "pilot_budget_usd": 9.0,
+  "price_per_mtok_input": 4.0,
+  "price_per_mtok_output": 20.0,
+  "rate_limit_per_hour": 3,
+  "retention_days": 90,
+  "scope_level": "A named organization",
+  "sender_label": "Forge Signal (pilot)",
+  "source_concurrency": 8,
+  "source_timeout_s": 30,
+  "test_mailbox": "",
+  "units": []
+ },
+ "source_failures": [],
+ "sources": [
+  {
+   "retrieved_at": "2026-11-25T16:20:18+00:00",
+   "source_id": "https://www.grants.gov/search-results-detail/357075",
+   "text_hash": "d73ed4262205",
+   "url": "https://www.grants.gov/search-results-detail/357075"
+  },
+  {
+   "retrieved_at": "2026-11-25T16:20:18+00:00",
+   "source_id": "https://www.grants.gov/search-results-detail/357074",
+   "text_hash": "a7113f9d1c51",
+   "url": "https://www.grants.gov/search-results-detail/357074"
+  },
+  {
+   "retrieved_at": "2026-11-25T16:20:18+00:00",
+   "source_id": "https://www.grants.gov/search-results-detail/361134",
+   "text_hash": "a932ff194c28",
+   "url": "https://www.grants.gov/search-results-detail/361134"
+  },
+  {
+   "retrieved_at": "2026-11-25T16:20:18+00:00",
+   "source_id": "https://www.grants.gov/search-results-detail/364192",
+   "text_hash": "bdfa79006a5b",
+   "url": "https://www.grants.gov/search-results-detail/364192"
+  },
+  {
+   "retrieved_at": "2026-11-25T16:20:18+00:00",
+   "source_id": "https://www.grants.gov/search-results-detail/320753",
+   "text_hash": "b6cc0df54f3f",
+   "url": "https://www.grants.gov/search-results-detail/320753"
+  },
+  {
+   "retrieved_at": "2026-11-25T16:20:18+00:00",
+   "source_id": "https://www.grants.gov/search-results-detail/357018",
+   "text_hash": "c61afd32b44f",
+   "url": "https://www.grants.gov/search-results-detail/357018"
+  },
+  {
+   "retrieved_at": "2026-11-25T16:20:18+00:00",
+   "source_id": "https://www.grants.gov/search-results-detail/360905",
+   "text_hash": "eddf25439589",
+   "url": "https://www.grants.gov/search-results-detail/360905"
+  },
+  {
+   "retrieved_at": "2026-11-25T16:20:18+00:00",
+   "source_id": "https://www.grants.gov/search-results-detail/361164",
+   "text_hash": "d39da705bb3c",
+   "url": "https://www.grants.gov/search-results-detail/361164"
+  },
+  {
+   "retrieved_at": "2026-11-25T16:20:18+00:00",
+   "source_id": "https://www.grants.gov/search-results-detail/360393",
+   "text_hash": "2fc107618d5e",
+   "url": "https://www.grants.gov/search-results-detail/360393"
+  },
+  {
+   "retrieved_at": "2026-11-25T16:20:18+00:00",
+   "source_id": "https://www.grants.gov/search-results-detail/358004",
+   "text_hash": "7c5f8a08bae1",
+   "url": "https://www.grants.gov/search-results-detail/358004"
+  },
+  {
+   "retrieved_at": "2026-11-25T16:20:18+00:00",
+   "source_id": "https://www.grants.gov/search-results-detail/364229",
+   "text_hash": "8413553e033e",
+   "url": "https://www.grants.gov/search-results-detail/364229"
+  },
+  {
+   "retrieved_at": "2026-11-25T16:20:18+00:00",
+   "source_id": "https://www.grants.gov/search-results-detail/362952",
+   "text_hash": "88f7a6f2fd26",
+   "url": "https://www.grants.gov/search-results-detail/362952"
+  },
+  {
+   "retrieved_at": "2026-11-25T16:20:18+00:00",
+   "source_id": "https://www.grants.gov/search-results-detail/364233",
+   "text_hash": "7b4c992831d2",
+   "url": "https://www.grants.gov/search-results-detail/364233"
+  },
+  {
+   "retrieved_at": "2026-11-25T16:20:18+00:00",
+   "source_id": "https://www.grants.gov/search-results-detail/361318",
+   "text_hash": "595c5a5b1be1",
+   "url": "https://www.grants.gov/search-results-detail/361318"
+  },
+  {
+   "retrieved_at": "2026-11-25T16:20:18+00:00",
+   "source_id": "https://www.grants.gov/search-results-detail/359649",
+   "text_hash": "d05000f736ba",
+   "url": "https://www.grants.gov/search-results-detail/359649"
+  }
+ ],
+ "status": "ok",
+ "visitor_hash": "recorded-run"
+}

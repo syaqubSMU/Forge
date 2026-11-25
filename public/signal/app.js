@@ -140,7 +140,7 @@
     var dl = el("li", {}, ["Sponsor deadline: "]);
     dl.appendChild(orNot(dateLong(r.close_date), "Not stated"));
     if (r.days_to_deadline != null) {
-      if (r.days_to_deadline < 0) { dl.appendChild(document.createTextNode(" ")); dl.appendChild(el("span", { class: "passed" }, ["(passed)"])); }
+      if (r.passed || r.days_to_deadline < 0) { dl.appendChild(document.createTextNode(" ")); dl.appendChild(el("span", { class: "passed" }, ["(passed)"])); }
       else dl.appendChild(document.createTextNode(r.days_to_deadline === 0 ? " (today)" : " (" + r.days_to_deadline + " day" + (r.days_to_deadline === 1 ? "" : "s") + ")"));
     }
     card.appendChild(el("ul", { class: "meta-list" }, [el("li", {}, [r.sponsor]), el("li", {}, [el("span", { class: "mono" }, [r.number])]), dl]));
@@ -152,6 +152,8 @@
     card.appendChild(badges);
 
     card.appendChild(el("p", {}, [r.rationale]));
+    if (r.fit === "High" && r.eligibility !== "Eligible")
+      card.appendChild(el("p", { class: "hint" }, ["This High rating holds only if the sponsor page confirms that your institution may apply."]));
     card.appendChild(el("div", { class: "yourcheck" }, [el("strong", {}, ["Your check: "]), document.createTextNode(yourCheck(r))]));
 
     var cites = r.citations || [], n = cites.length, bad = r.failed_citation_count || 0;
@@ -202,7 +204,7 @@
       (s.mode === "stored copy"
         ? "Read from a stored copy retrieved " + when + (s.records ? " (" + s.records.toLocaleString("en-US") + " records)" : "") + ". Confirm every date on the sponsor page."
         : "Read live from Grants.gov for this run.") +
-      (RMODE ? " Days to a deadline are counted from today, " + dateLong(isoDay(new Date())) + ". The recording was made as of " + dateLong(M.recorded_run.as_of_date) + "." : "");
+      (RMODE ? " " + asOfLine() + "." : "");
   }
 
   function downloads() {
@@ -391,14 +393,19 @@
     });
   }
 
+  function asOfLine() { return "Days counted from " + dateLong(M.recorded_run.as_of_date) + ", the day this was recorded. A deadline earlier than today shows as passed"; }
   function recStamp(iso) { return iso ? new Date(iso).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }) + " UTC" : "unknown time"; }
 
   function prepRecorded() {
     var lead = (M.settings && M.settings.lead_time_days) || 14;
     M.screened_at = (M.recorded_run || {}).recorded_at;
     (M.results || []).forEach(function (r) {   // deadlines are counted from today, in code, never taken from the recording
-      if (r.close_date) { r.days_to_deadline = daysUntil(r.close_date); r.internal_deadline = addDays(r.close_date, -lead); }
-      else { r.days_to_deadline = null; r.internal_deadline = null; }
+      if (r.close_date) {
+        var asof = (M.recorded_run || {}).as_of_date;
+        r.days_to_deadline = Math.round((parseDay(r.close_date) - parseDay(asof)) / 864e5);   // counted from the recording date, one number per row
+        r.internal_deadline = addDays(r.close_date, -lead);
+        r.passed = daysUntil(r.close_date) < 0;                                              // passed only when the close date is before the viewer's today
+      } else { r.days_to_deadline = null; r.internal_deadline = null; r.passed = false; }
     });
   }
 
@@ -411,8 +418,7 @@
       document.createTextNode(" A real run made on " + recStamp(R.recorded_at) + ", model " + (R.model || "not stated") +
         ", opportunities as retrieved " + dateLong((retrieved || "").slice(0, 10)) + ", rubric " + (R.rubric_version || "not stated") +
         ". Not live. Not your input. Run ID " + (R.run_id || "not stated") + ".")];
-    var line2 = "Fictional researcher. Deadlines are counted from today, " + dateLong(isoDay(new Date())) +
-      "; the recording was made as of " + dateLong(R.as_of_date) + ".";
+    var line2 = "Researcher: " + ((M.profile || {}).investigator || "fictional researcher") + ". " + asOfLine() + ".";
     b.appendChild(el("span", { class: "rec-line" }, line1));
     var l2 = el("span", { class: "rec-line" }, [line2]);
     if (LIVE) {
@@ -447,8 +453,14 @@
     var elig = (M.results || []).filter(function (r) { return r.eligibility === "Needs verification"; }).length;
     if (elig && elig === (M.results || []).filter(function (r) { return r.fit; }).length && anchor) {
       anchor.parentNode.insertBefore(el("div", { class: "notice mb2" }, [el("strong", {}, ["Why every row says “Needs verification”. "]),
-        document.createTextNode("The announcements do not say whether this fictional institution may apply, so SIGNAL does not guess. " +
-          "In real use, a person reads the sponsor’s eligibility section before any outreach.")]), anchor);
+        document.createTextNode("Eligibility shows Needs verification when the notice does not say whether this researcher’s institution qualifies. " +
+          "SIGNAL never guesses it; a person checks the sponsor page. Here, the one High rating holds only once that check is done.")]), anchor);
+    }
+    var c = M.counters || {}, cv = $("counters");
+    if (cv && c.in_horizon != null) {
+      cv.insertBefore(el("p", { class: "countline" }, [el("strong", {}, ["Coverage. "]), document.createTextNode(c.judged + " of " + c.in_horizon +
+        " announcements closing in the window were checked; " + (c.not_judged_due_to_cap || 0) + " more were not checked (cap) and " +
+        (c.no_term_overlap || 0) + " share no words with the research areas.")]), cv.firstChild);
     }
     var ex = M.excluded || [], list = $("list");
     if (ex.length && list) {
@@ -631,7 +643,7 @@
         var tb = el("tbody");
         groups[g].forEach(function (r) {
           var idl = dateLong(r.internal_deadline);
-          var passed = r.internal_deadline && r.days_to_deadline != null && (r.days_to_deadline - lead) < 0;
+          var passed = r.internal_deadline && (RMODE ? daysUntil(r.internal_deadline) < 0 : (r.days_to_deadline != null && (r.days_to_deadline - lead) < 0));
           var cells = [
             [r.title], [fitBadge(r)],
             [orNot(dateLong(r.close_date), "Rolling / not stated")],
@@ -648,7 +660,7 @@
               return d;
             })()],
             [r.sponsor], [el("span", { class: "mono" }, [r.number])],
-            [r.days_to_deadline == null ? el("span", { class: "nostate" }, ["\u2014"]) : r.days_to_deadline < 0 ? el("span", { class: "passed" }, ["Passed"]) : document.createTextNode(String(r.days_to_deadline))],
+            [r.days_to_deadline == null ? el("span", { class: "nostate" }, ["\u2014"]) : (r.passed || r.days_to_deadline < 0) ? el("span", { class: "passed" }, ["Passed"]) : document.createTextNode(String(r.days_to_deadline))],
             [r.amount ? document.createTextNode(r.amount) : orNot(r.award_ceiling ? "up to " + money(r.award_ceiling) : null, "Not specified")],
             [el("a", { href: r.url, rel: "noopener noreferrer", target: "_blank", "aria-label": "Open announcement " + r.number + " (opens in a new tab)" }, ["Open announcement"])]
           ];
@@ -661,7 +673,7 @@
 
       var decide = M.results.filter(function (r) {
         return (r.fit === "High" || r.fit === "Medium") && r.days_to_deadline != null &&
-               r.days_to_deadline >= 0 && r.days_to_deadline < lead && r.status !== "Watch";
+               !r.passed && r.days_to_deadline >= 0 && r.days_to_deadline < lead && r.status !== "Watch";
       });
       if (decide.length) {
         $("decide").hidden = false;
@@ -673,7 +685,7 @@
               lead + "-day internal deadline. "), fitBadge(r)]));
         });
       }
-      var soon = M.results.filter(function (r) { return r.fit && r.days_to_deadline != null && r.days_to_deadline >= 0 && r.days_to_deadline <= 45; });
+      var soon = M.results.filter(function (r) { return r.fit && !r.passed && r.days_to_deadline != null && r.days_to_deadline >= 0 && r.days_to_deadline <= 45; });
       var ul = $("soon");
       soon.forEach(function (r) {
         ul.appendChild(el("li", {}, [r.title + " \u2014 ", el("strong", {}, [r.days_to_deadline + " days"]),

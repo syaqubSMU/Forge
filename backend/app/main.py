@@ -6,13 +6,14 @@ from datetime import date, datetime, timedelta, timezone
 
 from fastapi import Depends, FastAPI, File, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse, Response
+from fastapi.responses import JSONResponse, PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
 from typing import Annotated
 
 from pydantic import BaseModel, Field, StringConstraints, field_validator
 
 from . import rubric as R
+from . import access
 from . import store
 from .adapters.registry import available, get_adapter
 from .db import DEFAULT_SETTINGS, NOTICE, Database, now, run_cost
@@ -158,14 +159,77 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
     def notice():
         return {"notice": NOTICE}
 
+    # ---------------------------------------------------------------- tester access codes
+    access_hits = {}                               # visitor hash -> times of code checks in the last hour; per process
+
+    def access_gate(st, vh, code):
+        """Validate the X-Access-Code header. A missing code costs nothing; each real attempt counts toward a per-visitor
+        hourly ceiling (load and noise only: there is deliberately no lockout, see docs/BACKEND_DECISIONS.md D7)."""
+        if not code:
+            raise HTTPException(403, access.AccessError("missing").detail())
+        t = time.time()
+        for k in [k for k, v in access_hits.items() if not v or t - v[-1] >= 3600]: del access_hits[k]
+        recent = [x for x in access_hits.get(vh, []) if t - x < 3600]
+        if len(recent) >= st["access_checks_per_hour"]:
+            raise HTTPException(429, access.AccessError("too_many_attempts").detail())
+        access_hits[vh] = recent + [t]
+        try:
+            return access.check(db, code)
+        except access.NoSalt:
+            raise HTTPException(503, "Access codes are not configured on this server.")
+        except access.AccessError as e:
+            if e.code == "invalid":
+                import logging
+                logging.getLogger("uvicorn.error").info("access code not recognised (visitor %s)", vh)       # never the code
+            raise HTTPException(e.status, e.detail())
+
+    @app.get("/api/access/check")
+    def access_check(request: Request, x_access_code: str = Header(default="")):
+        """Validate a code without spending anything, so the page can accept or refuse it before a search is filled in."""
+        st = db.settings()
+        if not st["require_access_code"]:
+            return {"required": False, "valid": True}
+        row = access_gate(st, visitor(request), x_access_code)
+        return {"required": True, "valid": True, "remaining": access.remaining(db, row["id"]), "expires_at": row["expires_at"]}
+
+    class AccessCodeIn(BaseModel):
+        label: str = Field(max_length=100)
+        allowance: int = 3
+        expires_at: str | None = None                # omitted: the default expiry setting; "none": no expiry
+
+    @app.post("/api/admin/access-codes")
+    def create_access_code(body: AccessCodeIn, actor=Depends(admin)):
+        try:
+            exp = access.iso_expiry(body.expires_at, db.settings()["access_code_default_expiry"])
+            out = access.create(db, body.label, body.allowance, exp, actor)
+        except access.NoSalt as e:
+            raise HTTPException(503, str(e))
+        except ValueError as e:
+            raise HTTPException(400, str(e))
+        db.audit(actor, "access_code_created", {"id": out["id"], "label": out["label"], "allowance": out["allowance"], "expires_at": out["expires_at"]})
+        out["created_at"] = now()
+        return JSONResponse(out, status_code=201, headers={"Cache-Control": "no-store"})     # the only time the code is shown
+
+    @app.get("/api/admin/access-codes")
+    def list_access_codes(_=Depends(admin)):
+        return JSONResponse(access.listing(db), headers={"Cache-Control": "no-store"})
+
+    @app.post("/api/admin/access-codes/{code_id}/revoke")
+    def revoke_access_code(code_id: str, actor=Depends(admin)):
+        at = access.revoke(db, code_id)
+        if at is None: raise HTTPException(404, "access code not found")
+        db.audit(actor, "access_code_revoked", {"id": code_id})
+        return {"id": code_id, "revoked_at": at}
+
     # ---------------------------------------------------------------- public run
     @app.post("/api/runs")
-    def create_run(body: RunIn, request: Request):
+    def create_run(body: RunIn, request: Request, x_access_code: str = Header(default="")):
         if body.input_type not in INPUT_TYPES: raise HTTPException(400, f"input_type must be one of {INPUT_TYPES}")
         live = not body.sources
         if live and not (body.profile.lanes or body.input_text.strip()):
             raise HTTPException(422, "Describe the researcher's established research areas before running a live match.")
         s, vh = db.settings(), visitor(request)
+        code_row = access_gate(s, vh, x_access_code) if s["require_access_code"] else None      # tester code, before any other gate
         hour_ago = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat(timespec="seconds")
         day_start = datetime.now(timezone.utc).strftime("%Y-%m-%dT00:00:00")
         if db.count_runs_since(vh, hour_ago) >= s["rate_limit_per_hour"]: raise HTTPException(429, "Too many runs from this visitor. Try again later.")
@@ -181,8 +245,15 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
             adapter = get_adapter(s)
         except (ValueError, RuntimeError) as e:
             raise HTTPException(503, f"model not available: {e}")        # message never contains a key
+        if code_row is not None and not access.claim(db, code_row):          # atomic: two simultaneous requests cannot both take the last run
+            fresh = db.q("SELECT * FROM access_codes WHERE id=?", (code_row["id"],), one=True)
+            raise HTTPException(403, access.AccessError(access.state(fresh) or "allowance_used").detail())
         rid = db.create_run(vh, body.input_type, body.input_text, s, R.version(current_rubric()), adapter.name)
+        if code_row is not None:
+            db.q("UPDATE runs SET access_code_id=? WHERE id=?", (code_row["id"], rid), write=True)
         t0 = time.time()
+        access_info = lambda: {"remaining": access.remaining(db, code_row["id"])} if code_row is not None else None
+        refund = lambda: access.refund(db, code_row["id"]) if code_row is not None else None
 
         if live:
             profile = body.profile.model_dump()
@@ -192,6 +263,7 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                 out = run_match(db, rid, adapter, s, profile, body.question, lister=lister, detailer=detailer)
             except SourceError as e:
                 db.finish_run(rid, "failed", int((time.time() - t0) * 1000), f"source unavailable: {e}")
+                refund()                                    # nothing was spent: do not charge the tester's allowance
                 raise HTTPException(503, "The funding source could not be read right now. The attempt was logged.")
             c = out["counters"]
             if c["judged"] == 0 and c["model_failures"] > 0:
@@ -202,6 +274,8 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                 # a failed run still spent tokens (unreadable answers cost output): keep its cost so the budget sum is not understated
                 db.finish_run(rid, "failed", c["latency_ms"], reason, c["input_tokens"], c["output_tokens"],
                               c["opportunities_listed"], c["details_fetched"], cost_of(adapter, s, c["input_tokens"], c["output_tokens"]))
+                if not c["input_tokens"]:
+                    refund()                                # no model call succeeded, nothing spent; unreadable answers did spend, so they count
                 raise HTTPException(502, "The model could not be reached, so nothing was rated. The attempt was logged; please try again later."
                                     if unreachable else
                                     "The model's answers could not be read, so nothing was rated. The attempt was logged; please try again later.")
@@ -209,7 +283,7 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
             c["cost_basis"] = "estimate from reported token usage; needs both prices set; excludes calls abandoned or failed"
             db.finish_run(rid, "ok", c["latency_ms"], None, c["input_tokens"], c["output_tokens"],
                           c["opportunities_listed"], c["details_fetched"], c["cost_usd"])
-            return {"run_id": rid, "results": out["results"], "counters": c,
+            return {"run_id": rid, "results": out["results"], "counters": c, **({"access": access_info()} if code_row is not None else {}),
                     "retrieved_at": store.as_of(db) if store.status(db)["with_full_text"] else datetime.now(timezone.utc).isoformat(timespec="seconds"),
                     "source": store.provenance(db), "notice": NOTICE}
 
@@ -222,6 +296,7 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
             raise HTTPException(502, "The model did not return a valid answer. The attempt was logged.")
         except Exception as e:
             db.finish_run(rid, "failed", int((time.time() - t0) * 1000), type(e).__name__)
+            refund()
             raise HTTPException(502, "The model call failed. The attempt was logged.")
         r = validate(j, body.sources)
         for c in r["fit_citations"] + r["eligibility_citations"]: db.add_citation(rid, c.source_id, c.quote, True)
@@ -233,7 +308,7 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
         u = adapter.total_usage
         db.finish_run(rid, "ok", int((time.time() - t0) * 1000), None, u.get("input_tokens", 0), u.get("output_tokens", 0),
                       cost_usd=cost_of(adapter, s, u.get("input_tokens", 0), u.get("output_tokens", 0)))
-        return {"run_id": rid, "result": result, "notice": NOTICE}
+        return {"run_id": rid, "result": result, "notice": NOTICE, **({"access": access_info()} if code_row is not None else {})}
 
     # ---------------------------------------------------------------- researcher lookup (OpenAlex)
     pi_hits = {}                                   # visitor hash -> request times in the last hour; per process, resets on restart
@@ -366,6 +441,9 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
                 "judge_concurrency": db.settings()["judge_concurrency"],
                 "static_dir_found": static_dir.is_dir(), "max_body_bytes": MAX_BODY_BYTES,
                 "budget_stop": budget_state(db.settings()),
+                "access_codes": {"required": db.settings()["require_access_code"], "salt_set": bool(os.environ.get("FORGE_SALT")),
+                                 "usable_codes": sum(1 for c in access.listing(db) if not c["revoked"] and c["remaining"] > 0
+                                                     and not (c["expires_at"] and c["expires_at"] <= now()))},
                 "daily_cap": db.settings()["daily_cap"], "rate_limit_per_hour": db.settings()["rate_limit_per_hour"],
                 "max_judgments": db.settings()["max_judgments"]}
 
@@ -387,7 +465,7 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
         for k, v in changes.items():
             if k not in DEFAULT_SETTINGS: raise HTTPException(400, f"unknown setting '{k}'")
             d = DEFAULT_SETTINGS[k]
-            if isinstance(d, bool) or isinstance(v, bool) != isinstance(d, bool) or not isinstance(v, type(d)):
+            if isinstance(v, bool) != isinstance(d, bool) or not isinstance(v, type(d)):
                 raise HTTPException(400, f"setting '{k}' must be {type(d).__name__}")
             if isinstance(v, int) and v < 0: raise HTTPException(400, f"setting '{k}' must not be negative")
         if "active_model" in changes and changes["active_model"] not in available(): raise HTTPException(400, f"active_model must be one of {available()}")
@@ -409,7 +487,7 @@ def create_app(db_path: str = None, lister=None, detailer=None, openalex_client=
     @app.get("/api/admin/runs.csv")
     def runs_csv(_=Depends(admin)):
         out = io.StringIO(); w = csv.writer(out)
-        cols = ["id", "created_at", "input_type", "input_text", "model", "status", "latency_ms", "rubric_version", "archived", "cost_usd"]
+        cols = ["id", "created_at", "input_type", "input_text", "model", "status", "latency_ms", "rubric_version", "archived", "cost_usd", "access_code_id"]
         w.writerow([c + "_estimate" if c == "cost_usd" else c for c in cols])      # runs.cost_usd is an estimate from reported usage
         for r in db.list_runs(10000, 0, None, True): w.writerow([_csv_safe(r[c]) for c in cols])
         return Response(out.getvalue(), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=forge-signal-runs.csv"})

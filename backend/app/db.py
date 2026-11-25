@@ -17,6 +17,7 @@ DEFAULT_SETTINGS = {
     "horizon_months": 3, "lead_time_days": 14, "min_fit": "Low", "faculty_per_run": 25,
     "max_detail_fetches": 250, "max_judgments": PILOT_DEFAULTS["max_judgments"], "judge_concurrency": 8, "judge_deadline_s": 90, "source_timeout_s": 30, "source_concurrency": 8,
     "cache_ttl_minutes": 15, "include_undated_deadlines": False,
+    "require_access_code": True, "access_code_default_expiry": "2026-12-08", "access_checks_per_hour": 120,
     "price_per_mtok_input": 4.0, "price_per_mtok_output": 20.0, "pilot_budget_usd": 9.0,
     "rate_limit_per_hour": PILOT_DEFAULTS["rate_limit_per_hour"], "pi_lookups_per_hour": 60, "pi_lookups_per_day": 1000, "daily_cap": PILOT_DEFAULTS["daily_cap"], "retention_days": 90,
     "email_mode": "dummy", "test_mailbox": "", "sender_label": "Forge Signal (pilot)", "active_model": "mock",
@@ -109,6 +110,23 @@ class Database:
             self.conn = sqlite3.connect(self.target, check_same_thread=False)
             self.conn.row_factory = sqlite3.Row
 
+    def execute_count(self, sql, args=()) -> int:
+        """Run one write and return how many rows it changed (used for atomic claims such as an access-code allowance)."""
+        with self.lock:
+            for attempt in (1, 2):
+                try:
+                    cur = self._run(sql, args)
+                    n = cur.rowcount
+                    self.conn.commit()
+                    return n
+                except Exception as e:
+                    if not self.pg: raise
+                    try: self.conn.rollback()
+                    except Exception: pass
+                    if attempt == 1 and isinstance(e, self._psycopg.OperationalError):
+                        self._connect(); continue
+                    raise
+
     def _run(self, sql, args):
         if self.pg:
             return self.conn.execute(sql.replace("?", "%s"), tuple(_clean(a) for a in args))
@@ -195,7 +213,7 @@ class Database:
 
     def list_runs(self, limit=50, offset=0, q=None, include_archived=False):
         sql, args = ("SELECT id,created_at,input_type,input_text,model,status,latency_ms,rubric_version,archived,"
-                     "input_tokens,output_tokens,opportunities_listed,details_fetched,cost_usd FROM runs WHERE 1=1"), []
+                     "input_tokens,output_tokens,opportunities_listed,details_fetched,cost_usd,access_code_id FROM runs WHERE 1=1"), []
         if not include_archived: sql += " AND archived=0"
         if q: sql += " AND LOWER(input_text) LIKE LOWER(?)"; args.append(f"%{q}%")
         sql += " ORDER BY created_at DESC, id LIMIT ? OFFSET ?"; args += [limit, offset]

@@ -23,6 +23,7 @@ def test_fourth_run_in_an_hour_is_refused_with_production_defaults(monkeypatch):
     monkeypatch.setitem(registry.PROVIDERS, "mock", lambda: MockAdapter([factors_json()]))
     app = create_app(":memory:", lister=lambda *a, **k: [dict(o) for o in CORPUS],
                      detailer=lambda ids, **k: ([dict(o) for o in CORPUS if o["source_record_id"] in [str(i) for i in ids]], []))
+    app.state.db.set_setting("require_access_code", False)            # this test is about the per-visitor limit, not access codes
     c = TestClient(app)
     body = {"input_type": "pi_name", "input_text": "x", "profile": {"career_stage": "e", "lanes": ["photochemistry and flavin biology"]}}
     assert [c.post("/api/runs", json=body).status_code for _ in range(4)] == [200, 200, 200, 429]

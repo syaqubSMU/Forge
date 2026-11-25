@@ -39,4 +39,9 @@ def statements(sql: str) -> list:
 MIGRATIONS = [
     (1, "baseline schema", statements(BASELINE)),
     (2, "cost per run", ["ALTER TABLE runs ADD COLUMN cost_usd REAL"]),
+    (3, "tester access codes", [
+        "CREATE TABLE access_codes(id TEXT PRIMARY KEY, label TEXT NOT NULL, code_hash TEXT NOT NULL UNIQUE, allowance INTEGER NOT NULL,"
+        " runs_used INTEGER NOT NULL DEFAULT 0, expires_at TEXT, revoked_at TEXT, created_at TEXT NOT NULL, created_by TEXT, last_used_at TEXT)",
+        "ALTER TABLE runs ADD COLUMN access_code_id TEXT",
+        "CREATE INDEX ix_runs_access_code ON runs(access_code_id)"]),
 ]

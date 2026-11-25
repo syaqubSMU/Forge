@@ -22,10 +22,7 @@
  <p class="eyebrow">About the project</p>
  <h1>What SIGNAL is, and what it is not</h1>
  <p class="lead">SIGNAL compresses the slowest part of finding funding: reading long announcements and judging whether they fit a particular researcher. It does the first pass. People make the decisions.</p>
- <ul class="toc" aria-label="On this page">
-  <li><a href="#scope">Scope</a></li><li><a href="#collab">AI &amp; human collaboration</a></li>
-  <li><a href="#rating">How a rating is produced</a></li><li><a href="#data">Data &amp; privacy</a></li>
- </ul>
+ <ul class="toc" aria-label="On this page"><li><a href="#how">How it works</a></li><li><a href="#trust">What you can check</a></li><li><a href="#limits">Limits</a></li><li><a href="#rating">How a rating is produced</a></li><li><a href="#data">Data &amp; privacy</a></li></ul>
 </div></section>
 
 <div class="wrap">
@@ -34,28 +31,42 @@
  <p>SIGNAL reads current federal funding announcements and screens them against the research areas you confirm. Every judgment quotes the announcement. You review the evidence, then decide what goes out. Nothing is sent without you.</p></div>
 </section>
 
-<section id="scope">
- <div class="sec-head"><p class="eyebrow">Scope</p><h2>Two ways in, one careful process</h2>
- <p>Research development staff usually start in one of two places. Both end the same way: a person reviews the evidence and decides what goes out.</p></div>
- <div class="collab">
-  <article class="col ai"><h3>Path A &middot; Researcher first</h3>
-   <p class="sub">A researcher asks what is coming up for them.</p>
-   <p class="hint">SIGNAL starts from confirmed research areas and screens open and forecasted opportunities in the chosen deadline window.</p></article>
-  <article class="col ai"><h3>Path B &middot; Opportunity first</h3>
-   <p class="sub">A new announcement appears.</p>
-   <p class="hint">SIGNAL reads the announcement and screens a department&rsquo;s public faculty listing for people who may fit.</p></article>
+<section id="how">
+ <div class="sec-head">
+  <p class="eyebrow">How it works</p>
+  <h2>The model does the first pass. A person makes the calls.</h2>
+  <p>Every run follows the same five steps, and the last two always belong to a person.</p>
  </div>
- <div class="grid g2 mt3">
-  <div class="card"><h3>What it does</h3>
-   <ul class="rule-list mt1">
-    <li>Reads current funding announcements at the moment you run it</li>
-    <li>Screens them against research areas a person has confirmed</li>
-    <li>Quotes the sentence behind every judgment, with a link and a retrieval date</li>
-    <li>Flags eligibility problems, and archived or replaced postings</li>
-    <li>Builds a deadline calendar with internal deadlines, and exports it</li>
-    <li>Drafts an alert for a person to edit and send</li>
-   </ul></div>
-  <div class="card"><h3>What it does not do</h3>
+ <ol class="flow">
+  <li><strong>Confirm the researcher</strong>Research areas are quoted from public sources and confirmed by a person before anything is screened.</li>
+  <li><strong>Read announcements live</strong>Current opportunities are pulled at run time, then filtered to the deadline window in code.</li>
+  <li><strong>Screen with evidence</strong>Each judgment quotes the sentence it rests on. A quote that cannot be found in its source is discarded.</li>
+  <li class="human"><strong>Review the evidence</strong>Research Development confirms eligibility, checks who was surfaced, and who was missed.</li>
+  <li class="human"><strong>Edit and send</strong>A person edits the alert and sends it under their own name. SIGNAL never sends anything.</li>
+ </ol>
+ <p class="legend"><span>Done by the model, checked by code</span><span class="h">Human decision</span></p>
+ <div class="btn-row"><a class="btn" href="match.html">Screen for a researcher</a><a class="btn ghost sample-only" href="results.html">See a sample result</a></div>
+</section>
+
+<section id="trust">
+ <div class="sec-head">
+  <p class="eyebrow">What you can check</p>
+  <h2>Nothing is asserted without a source</h2>
+ </div>
+ <ul class="rules">
+  <li><strong>Check any claim in one click</strong>Each rating quotes the exact sentence it rests on, with a link to the sponsor page and the date it was read.</li>
+  <li><strong>Unsupported claims never help</strong>If a quote cannot be found in its source it is discarded, and the assessment falls back to the cautious value.</li>
+  <li><strong>Eligibility is never guessed</strong>If the announcement does not say, you see &ldquo;Needs verification&rdquo; and what to check next.</li>
+  <li><strong>The rating is calculated, not chosen</strong>The model reports observations. A published rubric turns them into High, Medium or Low, and every result shows the rule that fired.</li>
+  <li><strong>Dates are computed, not written</strong>Deadlines and the calendar are ordinary code. A missing deadline stays &ldquo;Not stated&rdquo;.</li>
+  <li><strong>Fit is never a percentage</strong>And nobody is ever described as uncompetitive.</li>
+ </ul>
+ <div class="mt3"><div class="notice"><strong>Runs are logged.</strong> Runs, inputs and calendars are logged for the preview report, kept for 90 days, then archived. Only the administrator can see them.</div></div>
+</section>
+
+<section id="limits">
+ <div class="sec-head"><p class="eyebrow">Limits</p><h2>What it does not do</h2></div>
+ <div class="card">
    <ul class="rule-list mt1">
     <li>Decide eligibility. If the sources are silent it says &ldquo;Needs verification&rdquo;</li>
     <li>Send anything. Every message is sent by a person, under their name</li>
@@ -64,39 +75,8 @@
     <li>Replace the sponsor announcement, which is always the authority</li>
     <li>Cover every funder. It reads selected official sources and says so</li>
    </ul></div>
- </div>
 </section>
-</div>
 
-<section class="band" id="collab"><div class="wrap">
- <div class="sec-head"><p class="eyebrow">AI &amp; human collaboration</p><h2>Each does what it does best</h2>
- <p>These boundaries govern every SIGNAL workflow: the AI reads and proposes, and a person decides.</p></div>
- <div class="collab">
-  <article class="col ai"><h3>Where AI helps most</h3>
-   <p class="sub">Speed, volume and first-pass analysis, where speed is of the essence.</p>
-   <ul>
-    <li><strong>Rapid synthesis:</strong> summarizing announcements, policies and reports</li>
-    <li><strong>Drafting and structuring:</strong> first drafts of emails, summaries and tables</li>
-    <li><strong>Pattern identification:</strong> themes across many documents</li>
-    <li><strong>Consistency:</strong> shared language across communications</li>
-    <li><strong>Targeted analysis:</strong> opportunity and researcher matching</li>
-    <li><strong>Early sensemaking:</strong> framing questions and surfacing options quickly</li>
-   </ul></article>
-  <article class="col hu"><h3>Where human judgment is required</h3>
-   <p class="sub">To provide trust, context and accountability.</p>
-   <ul>
-    <li><strong>Final interpretation:</strong> strategic choices, priorities and trade-offs</li>
-    <li><strong>Policy and compliance:</strong> grant rules, legal and financial risk</li>
-    <li><strong>Equity and ethics:</strong> who is surfaced, and who is missed</li>
-    <li><strong>Institutional knowledge:</strong> culture, history and informal constraints</li>
-    <li><strong>Relationships:</strong> faculty engagement and leadership communication</li>
-    <li><strong>Accountability:</strong> owning outcomes in audits and reviews</li>
-   </ul></article>
- </div>
- <p class="pull">Humans are essential for setting the oversight, validation of information and direction, and the ethical guardrails.</p>
-</div></section>
-
-<div class="wrap">
 <section id="rating">
  <div class="sec-head"><p class="eyebrow">How a rating is produced</p><h2>The model reports. The rubric decides.</h2>
  <p>The model never picks the rating. It reports observations, each with an exact quote. A published rubric turns those observations into a rating, and every result shows which rule fired.</p></div>
@@ -127,6 +107,18 @@
  <p class="hint">SIGNAL is a capstone project for the SMU Cox MS in AI in Business, built with a research development office as the intended user. It is a class project, not a university product.</p>
  <div class="btn-row"><a class="btn" href="match.html">Find funding for a researcher</a></div>
  <div class="notice warn mt3"><strong>Preview status.</strong> SIGNAL is a class capstone project under test. It is not an approved or endorsed university service, and it does not replace your institution's grants, pre-award or compliance systems. It is not a system of record.</div>
+</section>
+
+<section id="explainer">
+ <div class="sec-head"><p class="eyebrow">Explainer</p><h2>A short look at how it works</h2><p>Placeholder video. A new explainer is coming.</p></div>
+ <div>
+ <figure class="hero-video">
+  <video id="hv" muted loop playsinline preload="metadata" poster="assets/poster.jpg" aria-label="Placeholder explainer video, 21 seconds, no sound. A text description follows."><source src="assets/forge-signal-explainer.mp4" type="video/mp4"></video>
+  <button class="vctl" id="vb" type="button" aria-pressed="false">Pause video</button>
+ </figure>
+ 
+ <details class="evidence vdesc"><summary>Describe this video</summary><div class="body"><p>A 21-second silent animation. It shows a pile of funding announcements and spreadsheets (&ldquo;Too many opportunities. Too little time.&rdquo;), then a researcher profile being compared with an announcement, then a set of options for each opportunity, and ends on the FORGE SIGNAL name. It is a placeholder and will be replaced.</p></div></details>
+ </div>
 </section>
 </div>
 </main>
